@@ -69,8 +69,8 @@ namespace NexusStack.Infrastructure.TypeFinders
         /// <returns></returns>
         public static List<Type> SearchTypes(Type type, TypeClassification classification)
         {
-            // 通过sun开头的来查找当前使用的程序中的所有程序集
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(item => item.FullName.StartsWith("POS.")).ToList();
+            // 通过NexusStack开头的来查找当前使用的程序中的所有程序集
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(item => item.FullName.StartsWith("NexusStack.")).ToList();
             var types = new List<Type>();
             try
             {

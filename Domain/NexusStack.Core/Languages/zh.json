@@ -1,0 +1,21 @@
+{
+  "culture": "zh",
+  "texts": {
+    "BussinessOrderNumber": "业务单号",
+    "StoreName": "仓库",
+    "ProductCommodityNumber": "商品货号",
+    "ProductBarCode": "商品条码",
+    "ProductName": "商品名称",
+    "UnitPrice": "单价",
+    "BussinessType": "业务类型",
+    "InboundQuantity": "入库数量",
+    "InboundAmount": "入库金额",
+    "OutboundQuantity": "出库数量",
+    "OutboundAmount": "出库金额",
+    "changedInventory": "变更后库存",
+    "ManufactureDate": "生产日期",
+    "ExpirationDate": "过期日期",
+    "CreatedAt": "时间",
+    "InventoryFlow": "库存流水"
+  }
+}

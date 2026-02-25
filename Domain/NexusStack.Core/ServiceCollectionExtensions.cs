@@ -2,11 +2,10 @@
 using DynamicLocalizer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Protocol;
-using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.AspNetCore.StaticFiles; 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +42,7 @@ using Newtonsoft.Json.Linq;
 using NexusStack.Core.Services.EventAlerts;
 using AgileConfig.Client;
 using AgileConfig.Client.RegisterCenter;
+using NexusStack.Core.Middlewares;
 
 namespace NexusStack.Core
 {
@@ -206,9 +206,9 @@ namespace NexusStack.Core
             {
                 // 查找当前应用域中所有程序集
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetName().Name?.StartsWith("POS.") == true);
+                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true);
 
-                Console.WriteLine($"预加载Hub类型，检查 {assemblies.Count()} 个POS相关程序集");
+                Console.WriteLine($"预加载Hub类型，检查 {assemblies.Count()} 个NexusStack相关程序集");
 
                 foreach (var assembly in assemblies)
                 {
@@ -255,9 +255,9 @@ namespace NexusStack.Core
             {
                 // 查找当前应用域中所有程序集
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetName().Name?.StartsWith("POS.") == true);
+                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true);
 
-                Console.WriteLine($"找到 {assemblies.Count()} 个POS相关程序集");
+                Console.WriteLine($"找到 {assemblies.Count()} 个NexusStack相关程序集");
 
                 int mappedHubsCount = 0;
 
@@ -381,10 +381,8 @@ namespace NexusStack.Core
 
             builder.Services.ConfigureOptions(builder.Configuration);
 
-            //注册通用短信服务
-            builder.Services.AddScoped<CommonSMSService>();
-            builder.Services.AddScoped<SMTPEmailService>();
-            builder.Services.AddScoped<EventAlertService>();
+            // 注意: CommonSMSService、SMTPEmailService、EventAlertService 等实现了 IScopedDependency 的服务
+            // 会通过后续的 AddServices<IScopedDependency> 自动注册，无需手动注册
             //builder.Services.AddScoped<OperationLogArchiveService>();
 
             builder.Services.AddHttpLogging(options =>

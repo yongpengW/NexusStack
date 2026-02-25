@@ -1,7 +1,7 @@
 ﻿using NexusStack.Core;
 
-var moduleKey = "nexusstack-web-api";
-var moduleTitle = "NexusStack Web API";
+var moduleKey = "nexusstack_web_api";
+var moduleTitle = "NexusStack_Web_API";
 
 var builder = WebApplication.CreateBuilder(args);
 
