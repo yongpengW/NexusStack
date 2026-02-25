@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WNi8by7rWzE=",
+  "dgSpecHash": "Yni6KdjoM+A=",
   "success": true,
-  "projectFilePath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Redis\\NexusStack.Redis.csproj",
+  "projectFilePath": "D:\\NexusStack\\Domain\\NexusStack.Redis\\NexusStack.Redis.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\aliyun.oss.sdk.netcore\\2.14.1\\aliyun.oss.sdk.netcore.2.14.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\csrediscore\\3.8.807\\csrediscore.3.8.807.nupkg.sha512",

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "e7lhN+izQkA=",
+  "dgSpecHash": "7TMc3M5U8Rw=",
   "success": true,
-  "projectFilePath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj",
+  "projectFilePath": "D:\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\aliyun.oss.sdk.netcore\\2.14.1\\aliyun.oss.sdk.netcore.2.14.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",

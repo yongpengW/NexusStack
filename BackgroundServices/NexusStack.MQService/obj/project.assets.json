@@ -6502,11 +6502,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Leo\\NexusStack\\BackgroundServices\\NexusStack.MQService\\NexusStack.MQService.csproj",
+      "projectUniqueName": "D:\\NexusStack\\BackgroundServices\\NexusStack.MQService\\NexusStack.MQService.csproj",
       "projectName": "NexusStack.MQService",
-      "projectPath": "D:\\Leo\\NexusStack\\BackgroundServices\\NexusStack.MQService\\NexusStack.MQService.csproj",
+      "projectPath": "D:\\NexusStack\\BackgroundServices\\NexusStack.MQService\\NexusStack.MQService.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "D:\\Leo\\NexusStack\\BackgroundServices\\NexusStack.MQService\\obj\\",
+      "outputPath": "D:\\NexusStack\\BackgroundServices\\NexusStack.MQService\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\DevelopmentTools\\VisualStudio\\Shared\\NuGetPackages"
@@ -6527,8 +6527,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\Leo\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj"
+            "D:\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj": {
+              "projectPath": "D:\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj"
             }
           }
         }

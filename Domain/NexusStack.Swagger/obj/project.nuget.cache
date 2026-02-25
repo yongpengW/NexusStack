@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "E1ckU4d9SxA=",
+  "dgSpecHash": "j4sRCa1wGDE=",
   "success": true,
-  "projectFilePath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Swagger\\NexusStack.Swagger.csproj",
+  "projectFilePath": "D:\\NexusStack\\Domain\\NexusStack.Swagger\\NexusStack.Swagger.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\aliyun.oss.sdk.netcore\\2.14.1\\aliyun.oss.sdk.netcore.2.14.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\loxsmoke.docxml\\3.9.0\\loxsmoke.docxml.3.9.0.nupkg.sha512",

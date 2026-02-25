@@ -4154,11 +4154,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj",
+      "projectUniqueName": "D:\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj",
       "projectName": "NexusStack.Excel",
-      "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj",
+      "projectPath": "D:\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Excel\\obj\\",
+      "outputPath": "D:\\NexusStack\\Domain\\NexusStack.Excel\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\DevelopmentTools\\VisualStudio\\Shared\\NuGetPackages"
@@ -4179,8 +4179,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
+            "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
+              "projectPath": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
             }
           }
         }

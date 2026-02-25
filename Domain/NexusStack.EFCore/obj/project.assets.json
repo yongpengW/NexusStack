@@ -4173,11 +4173,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Leo\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj",
+      "projectUniqueName": "D:\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj",
       "projectName": "NexusStack.EFCore",
-      "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj",
+      "projectPath": "D:\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.EFCore\\obj\\",
+      "outputPath": "D:\\NexusStack\\Domain\\NexusStack.EFCore\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\DevelopmentTools\\VisualStudio\\Shared\\NuGetPackages"
@@ -4198,8 +4198,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
+            "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
+              "projectPath": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
             }
           }
         }

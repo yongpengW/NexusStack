@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9+jzmLyhAZ4=",
+  "dgSpecHash": "dTSMikK+ScA=",
   "success": true,
-  "projectFilePath": "D:\\Leo\\NexusStack\\BackgroundServices\\NexusStack.PlanTaskService\\NexusStack.PlanTaskService.csproj",
+  "projectFilePath": "D:\\NexusStack\\BackgroundServices\\NexusStack.PlanTaskService\\NexusStack.PlanTaskService.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\agileconfig.client\\1.8.0\\agileconfig.client.1.8.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\alibabacloud.endpointutil\\0.1.2\\alibabacloud.endpointutil.0.1.2.nupkg.sha512",

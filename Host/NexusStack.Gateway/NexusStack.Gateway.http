@@ -1,0 +1,6 @@
+@NexusStack.Gateway_HostAddress = http://localhost:5076
+
+GET {{NexusStack.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NexusStack.Gateway")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f82ac973f2e6b2a74527a09049eb3353c8080a2d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f744a0e5f9777df8cefa4dfa3ecf6a061ba2224a")]
 [assembly: System.Reflection.AssemblyProductAttribute("NexusStack.Gateway")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NexusStack.Gateway")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

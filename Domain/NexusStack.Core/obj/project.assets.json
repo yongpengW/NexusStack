@@ -6396,11 +6396,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj",
+      "projectUniqueName": "D:\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj",
       "projectName": "NexusStack.Core",
-      "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj",
+      "projectPath": "D:\\NexusStack\\Domain\\NexusStack.Core\\NexusStack.Core.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Core\\obj\\",
+      "outputPath": "D:\\NexusStack\\Domain\\NexusStack.Core\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\DevelopmentTools\\VisualStudio\\Shared\\NuGetPackages"
@@ -6421,26 +6421,26 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\Leo\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj"
+            "D:\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj": {
+              "projectPath": "D:\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj"
             },
-            "D:\\Leo\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj"
+            "D:\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj": {
+              "projectPath": "D:\\NexusStack\\Domain\\NexusStack.Excel\\NexusStack.Excel.csproj"
             },
-            "D:\\Leo\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj"
+            "D:\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj": {
+              "projectPath": "D:\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj"
             },
-            "D:\\Leo\\NexusStack\\Domain\\NexusStack.Redis\\NexusStack.Redis.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Redis\\NexusStack.Redis.csproj"
+            "D:\\NexusStack\\Domain\\NexusStack.Redis\\NexusStack.Redis.csproj": {
+              "projectPath": "D:\\NexusStack\\Domain\\NexusStack.Redis\\NexusStack.Redis.csproj"
             },
-            "D:\\Leo\\NexusStack\\Domain\\NexusStack.Serilog\\NexusStack.Serilog.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Serilog\\NexusStack.Serilog.csproj"
+            "D:\\NexusStack\\Domain\\NexusStack.Serilog\\NexusStack.Serilog.csproj": {
+              "projectPath": "D:\\NexusStack\\Domain\\NexusStack.Serilog\\NexusStack.Serilog.csproj"
             },
-            "D:\\Leo\\NexusStack\\Domain\\NexusStack.Swagger\\NexusStack.Swagger.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.Swagger\\NexusStack.Swagger.csproj"
+            "D:\\NexusStack\\Domain\\NexusStack.Swagger\\NexusStack.Swagger.csproj": {
+              "projectPath": "D:\\NexusStack\\Domain\\NexusStack.Swagger\\NexusStack.Swagger.csproj"
             },
-            "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
-              "projectPath": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
+            "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
+              "projectPath": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
             }
           }
         }

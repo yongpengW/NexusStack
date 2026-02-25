@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "NexusStack.PlanTaskService": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

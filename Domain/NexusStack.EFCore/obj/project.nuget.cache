@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "zpnUSE2gnc4=",
+  "dgSpecHash": "0KxMSEMOiJg=",
   "success": true,
-  "projectFilePath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj",
+  "projectFilePath": "D:\\NexusStack\\Domain\\NexusStack.EFCore\\NexusStack.EFCore.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\aliyun.oss.sdk.netcore\\2.14.1\\aliyun.oss.sdk.netcore.2.14.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\ardalis.specification\\9.3.1\\ardalis.specification.9.3.1.nupkg.sha512",

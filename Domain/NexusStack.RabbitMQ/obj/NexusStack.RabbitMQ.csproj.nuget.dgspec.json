@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Leo\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj": {}
+    "D:\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj": {}
   },
   "projects": {
-    "D:\\Leo\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj": {
+    "D:\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Leo\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj",
+        "projectUniqueName": "D:\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj",
         "projectName": "NexusStack.RabbitMQ",
-        "projectPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj",
+        "projectPath": "D:\\NexusStack\\Domain\\NexusStack.RabbitMQ\\NexusStack.RabbitMQ.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\Leo\\NexusStack\\Domain\\NexusStack.RabbitMQ\\obj\\",
+        "outputPath": "D:\\NexusStack\\Domain\\NexusStack.RabbitMQ\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\DevelopmentTools\\VisualStudio\\Shared\\NuGetPackages"
@@ -32,8 +32,8 @@
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
-                "projectPath": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
+              "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
+                "projectPath": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj"
               }
             }
           }
@@ -353,14 +353,14 @@
         }
       }
     },
-    "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
+    "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
+        "projectUniqueName": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
         "projectName": "NexusStack.Infrastructure",
-        "projectPath": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
+        "projectPath": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\Leo\\NexusStack\\Infrastructure\\obj\\",
+        "outputPath": "D:\\NexusStack\\Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\DevelopmentTools\\VisualStudio\\Shared\\NuGetPackages"

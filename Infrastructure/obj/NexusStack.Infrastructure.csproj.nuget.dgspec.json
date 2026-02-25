@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {}
+    "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {}
   },
   "projects": {
-    "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
+    "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
+        "projectUniqueName": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
         "projectName": "NexusStack.Infrastructure",
-        "projectPath": "D:\\Leo\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
+        "projectPath": "D:\\NexusStack\\Infrastructure\\NexusStack.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\Leo\\NexusStack\\Infrastructure\\obj\\",
+        "outputPath": "D:\\NexusStack\\Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\DevelopmentTools\\VisualStudio\\Shared\\NuGetPackages"

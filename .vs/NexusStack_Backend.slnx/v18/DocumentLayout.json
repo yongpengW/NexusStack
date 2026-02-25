@@ -1,22 +1,10 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\Leo\\NexusStack\\",
+  "WorkspaceRootPath": "D:\\NexusStack\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Leo\\NexusStack\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Leo\\NexusStack\\.template.config\\template.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:.template.config\\template.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Leo\\NexusStack\\Install-Template.ps1||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Install-Template.ps1||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Leo\\NexusStack\\NexusStack.sln||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:NexusStack.sln||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{41BD184C-836B-4942-BADC-029CF644E91D}|Host\\NexusStack.Gateway\\NexusStack.Gateway.csproj|d:\\nexusstack\\host\\nexusstack.gateway\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{41BD184C-836B-4942-BADC-029CF644E91D}|Host\\NexusStack.Gateway\\NexusStack.Gateway.csproj|solutionrelative:host\\nexusstack.gateway\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,62 +14,27 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "NexusStack.sln",
-              "DocumentMoniker": "D:\\Leo\\NexusStack\\NexusStack.sln",
-              "RelativeDocumentMoniker": "NexusStack.sln",
-              "ToolTip": "D:\\Leo\\NexusStack\\NexusStack.sln",
-              "RelativeToolTip": "NexusStack.sln",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002855|",
-              "WhenOpened": "2026-02-25T05:51:36.543Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "template.json",
-              "DocumentMoniker": "D:\\Leo\\NexusStack\\.template.config\\template.json",
-              "RelativeDocumentMoniker": ".template.config\\template.json",
-              "ToolTip": "D:\\Leo\\NexusStack\\.template.config\\template.json",
-              "RelativeToolTip": ".template.config\\template.json",
-              "ViewState": "AgIAAGQAAAAAAAAAAAAzwBkAAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-02-25T05:20:00.971Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Install-Template.ps1",
-              "DocumentMoniker": "D:\\Leo\\NexusStack\\Install-Template.ps1",
-              "RelativeDocumentMoniker": "Install-Template.ps1",
-              "ToolTip": "D:\\Leo\\NexusStack\\Install-Template.ps1",
-              "RelativeToolTip": "Install-Template.ps1",
-              "ViewState": "AgIAAMwAAAAAAAAAAADgv+gAAAAXAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-25T05:15:58.725Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{c6f34f0d-7ae5-4f3a-be61-fe0c21ae9eb8}"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "README.md",
-              "DocumentMoniker": "D:\\Leo\\NexusStack\\README.md",
-              "RelativeDocumentMoniker": "README.md",
-              "ToolTip": "D:\\Leo\\NexusStack\\README.md",
-              "RelativeToolTip": "README.md",
-              "ViewState": "AgIAAAgAAAAAAAAAAAAAABgAAAAdAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-02-25T03:59:52.368Z",
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\NexusStack\\Host\\NexusStack.Gateway\\Program.cs",
+              "RelativeDocumentMoniker": "Host\\NexusStack.Gateway\\Program.cs",
+              "ToolTip": "D:\\NexusStack\\Host\\NexusStack.Gateway\\Program.cs",
+              "RelativeToolTip": "Host\\NexusStack.Gateway\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-25T06:02:44.172Z",
               "EditorCaption": ""
             }
           ]

@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "NexusStack.MQService": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

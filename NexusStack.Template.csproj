@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageVersion>1.0.0</PackageVersion>
+    <PackageId>NexusStack.Template</PackageId>
+    <Title>NexusStack - Modern Microservices Solution Template</Title>
+    <Authors>Leo Wang</Authors>
+    <Description>🚀 A modern, production-ready microservices solution template for .NET with SignalR, RabbitMQ, Redis, EF Core and clean architecture.</Description>
+    <PackageTags>dotnet-new;templates;microservices;signalr;rabbitmq;redis;efcore;nexusstack;clean-architecture</PackageTags>
+    <PackageProjectUrl>https://github.com/yongpengW/NexusStack</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yongpengW/NexusStack</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="**\*" Exclude="**\bin\**;**\obj\**;**\.vs\**;**\.git\**;**\.idea\**;**\packages\**;**\*.user;**\*.suo" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

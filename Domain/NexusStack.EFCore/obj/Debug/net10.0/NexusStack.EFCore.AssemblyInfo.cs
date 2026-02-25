@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NexusStack.EFCore")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6d8e3c156ee7c8c1017867695bcde7343af22b66")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f744a0e5f9777df8cefa4dfa3ecf6a061ba2224a")]
 [assembly: System.Reflection.AssemblyProductAttribute("NexusStack.EFCore")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NexusStack.EFCore")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,0 +1,6 @@
+@MineGuard.WebAPI_HostAddress = http://localhost:5244
+
+GET {{MineGuard.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

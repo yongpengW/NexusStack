@@ -1,0 +1,58 @@
+﻿using NexusStack.Infrastructure.Enums;
+using NexusStack.RabbitMQ.EventBus;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace NexusStack.Core.EventData
+{
+    /// <summary>
+    /// 操作日志事件传输数据
+    /// </summary>
+    public class OperationLogEventData : EventBase
+    {
+        public override string TaskCode => "OperationLog";
+
+        /// <summary>
+        /// 菜单Code
+        /// </summary>
+        public string Code { get; set; }
+
+        /// <summary>
+        /// 操作内容
+        /// </summary>
+        public string Content { get; set; }
+
+        /// <summary>
+        /// 传递参数
+        /// </summary>
+        public string Json { get; set; }
+
+        /// <summary>
+        /// ip地址
+        /// </summary>
+        public string IpAddress { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string UserAgent { get; set; }
+        /// <summary>
+        /// 用户Id
+        /// </summary>
+        public long UserId { get; set; }
+
+        /// <summary>
+        /// 获取该请求方法
+        /// </summary>
+        public string Method { get; set; }
+
+        /// <summary>
+        /// 日志类型
+        /// </summary>
+        public LogType LogType { get; set; }
+
+        public override long TaskId { get; set; }
+        public override string Data { get; set; }
+    }
+}
