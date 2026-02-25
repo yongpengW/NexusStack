@@ -243,14 +243,6 @@ services:
 docker-compose up -d
 ```
 
-#### 方式 3: 直接运行
-
-1. 从 [GitHub Releases](https://github.com/dotnetcore/AgileConfig) 下载最新版本
-2. 解压并运行：
-```powershell
-dotnet AgileConfig.Server.Apisite.dll
-```
-
 ### ⚙️ 配置应用程序
 
 #### 1. 在 AgileConfig 控制台创建应用
