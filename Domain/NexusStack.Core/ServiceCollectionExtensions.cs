@@ -436,16 +436,11 @@ namespace NexusStack.Core
             {
                 //SSO认证
                 //builder.Services.AddSsoAuthentication(builder.Configuration);
-                builder.Services.AddAuthentication("OpenAPIAuthentication")
-                    //开放平台开放API认证
-                    .AddScheme<RequestAuthenticationSchemeOptions, RequestAuthenticationHandler>(
-                    "OpenAPIAuthentication",
-                    options => { })
-                    //微信小程序会员认证
-                    //.AddScheme<CustomerAuthenticationSchemeOptions, CustomerAuthenticationHandle>(
-                    //"WechatAuthentication",
-                    //options => { })
-                    ;
+                //builder.Services.AddAuthentication("OpenAPIAuthentication")
+                //    //开放平台开放API认证
+                //    .AddScheme<RequestAuthenticationSchemeOptions, RequestAuthenticationHandler>(
+                //    "OpenAPIAuthentication",
+                //    options => { });
 
                 builder.Services.AddAuthorization();
 
@@ -490,16 +485,11 @@ namespace NexusStack.Core
             {
                 //SSO认证
                 //builder.Services.AddSsoAuthentication(builder.Configuration);
-                builder.Services.AddAuthentication("OpenAPIAuthentication")
-                    //POS开放平台开放API认证
-                    .AddScheme<RequestAuthenticationSchemeOptions, RequestAuthenticationHandler>(
-                    "OpenAPIAuthentication",
-                    options => { })
-                    //微信小程序会员认证
-                    //.AddScheme<CustomerAuthenticationSchemeOptions, CustomerAuthenticationHandle>(
-                    //"WechatAuthentication",
-                    //options => { })
-                    ;
+                //builder.Services.AddAuthentication("OpenAPIAuthentication")
+                //    //POS开放平台开放API认证
+                //    .AddScheme<RequestAuthenticationSchemeOptions, RequestAuthenticationHandler>(
+                //    "OpenAPIAuthentication",
+                //    options => { });
 
                 builder.Services.AddAuthorization();
 

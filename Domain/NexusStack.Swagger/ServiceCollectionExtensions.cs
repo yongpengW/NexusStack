@@ -78,9 +78,6 @@ namespace NexusStack.Swagger
 
                 options.RoutePrefix = routePrefix;
                 options.DocumentTitle = documentTilte;
-                options.HeadContent = string.Empty;
-
-                options.Interceptors.RequestInterceptorFunction = "function(request){return dvs.auth.requestInterceptor(request);}";
 
                 if (app.Environment.IsDevelopment() || swaggerOptions.Value.Endpoints == null)
                 {
@@ -95,6 +92,8 @@ namespace NexusStack.Swagger
                 options.InjectStylesheet("/docs/static/dvs-swagger.css");
 
                 options.HeadContent = $"<script type='text/javascript'>var dvs = dvs || {{}};dvs.host='{commonOptions!.Value.Host}'?'{commonOptions.Value.Host}':location.origin;</script>";
+
+                options.Interceptors.RequestInterceptorFunction = "function(request){{if(window.dvs && dvs.auth && dvs.auth.requestInterceptor){{return dvs.auth.requestInterceptor(request);}}return request;}}";
 
                 //此处需要将文件设置为嵌入的资源
                 options.IndexStream = () => Assembly.GetExecutingAssembly().GetManifestResourceStream("NexusStack.Swagger.Resources.dvs-swagger.html");

@@ -44,10 +44,7 @@ namespace NexusStack.Infrastructure.Options
         /// </summary>
         public Dictionary<string, string[]> HubPathMappings { get; set; } = new()
         {
-            ["/hubs/notification"] = new[] { "NotificationHub" },
-            ["/hubs/orderstatus"] = new[] { "OrderStatusHub", "NotificationHub" },
-            ["/hubs/inventoryrestock"] = new[] { "InventoryRestockHub", "NotificationHub" },
-            ["/hubs/posdevice"] = new[] { "PosDeviceHub" }
+            ["/hubs/notification"] = new[] { "NotificationHub" }
         };
 
         /// <summary>
