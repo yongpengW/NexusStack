@@ -7,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Services.Interfaces;
-using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Utils;
 using NexusStack.Redis;
 using System;

@@ -31,6 +31,7 @@ using NexusStack.EFCore;
 using NexusStack.RabbitMQ;
 using NexusStack.Serilog;
 using NexusStack.Infrastructure.FileStroage;
+using NexusStack.Infrastructure.Client;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -538,12 +539,11 @@ namespace NexusStack.Core
                 // 针对字段 long 类型，序列化时转换为字符串
                 options.JsonSerializerOptions.Converters.Add(new JsonLongConverter());
                 options.JsonSerializerOptions.Converters.Add(new JsonDecimalConverter());
-                //options.JsonSerializerOptions.Converters.Add(new JsonDateTimeConverter());
                 options.JsonSerializerOptions.Converters.Add(new EmptyStringToNullDateTimeConverter());
             });
 
-            // 注册 IHttpClientFactory 
-            builder.Services.AddHttpClient();
+            // 注册 HttpClient 服务（包含 IHttpClientFactory）
+            builder.Services.AddHttpRequestClient();
 
             builder.Services.AddAllAutoMapper();
 

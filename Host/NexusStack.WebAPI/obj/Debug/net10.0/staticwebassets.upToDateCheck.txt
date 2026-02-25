@@ -1,2 +1,0 @@
-D:\NexusStack\Host\NexusStack.WebAPI\wwwroot\index.html
-wwwroot\index.html

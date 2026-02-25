@@ -33,7 +33,7 @@ namespace NexusStack.Infrastructure
 
             using var scope = ServiceProvider.CreateScope();
             //IOptionsSnapshot 可以获取到最新的配置
-            return scope.ServiceProvider.GetService<IOptionsSnapshot<TOptions>>().Value;
+            return scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<TOptions>>().Value;
         }
 
         /// <summary>

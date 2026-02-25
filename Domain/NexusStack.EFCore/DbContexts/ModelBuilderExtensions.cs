@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using NexusStack.EFCore.Mapping;
-using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.TypeFinders;
+using NexusStack.Infrastructure.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
