@@ -72,86 +72,111 @@
         }
 
         window.onload = function () {
-            var configObject = JSON.parse('%(ConfigObject)');
-            var oauthConfigObject = JSON.parse('%(OAuthConfigObject)');
+            console.log('Window loaded, initializing Swagger UI...');
 
-            // Workaround for https://github.com/swagger-api/swagger-ui/issues/5945
-            configObject.urls.forEach(function (item) {
-                if (item.url.startsWith('http') || item.url.startsWith('/')) return;
-                item.url = window.location.href.replace('index.html', item.url).split('#')[0];
-            });
-
-            // If validatorUrl is not explicitly provided, disable the feature by setting to null
-            if (!configObject.hasOwnProperty('validatorUrl')) configObject.validatorUrl = null;
-
-            // If oauth2RedirectUrl isn't specified, use the built-in default
-            if (!configObject.hasOwnProperty('oauth2RedirectUrl')) configObject.oauth2RedirectUrl = new URL('oauth2-redirect.html', window.location.href).href;
-
-            // Apply mandatory parameters
-            configObject.dom_id = '#swagger-ui';
-            configObject.presets = [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset];
-            configObject.layout = 'StandaloneLayout';
-
-            // Parse and add interceptor functions
-            var interceptors = JSON.parse('%(Interceptors)');
-            if (interceptors.RequestInterceptorFunction) configObject.requestInterceptor = parseFunction(interceptors.RequestInterceptorFunction);
-            if (interceptors.ResponseInterceptorFunction) configObject.responseInterceptor = parseFunction(interceptors.ResponseInterceptorFunction);
-
-            // Begin Swagger UI call region
-
-            function getAuthorizeButtonCssClass() {
-                return dvs.auth.getToken() ? 'cancel' : 'authorize';
+            // 检查 dvs 对象是否存在（应该已经在 HeadContent 中加载）
+            if (!window.dvs || !window.dvs.auth || !window.dvs.swagger) {
+                console.error('dvs object not loaded! Check if dvs-swagger.js is properly embedded.');
+                // 仍然尝试初始化 Swagger UI，但不包含自定义认证
+                initializeSwaggerUI(true);
+                return;
             }
 
-            function getAuthorizeButtonText() {
-                return dvs.auth.getToken() ? '退出' : '登录';
-            }
+            console.log('dvs object is ready, initializing Swagger UI with custom auth');
+            initializeSwaggerUI(false);
 
-            configObject.plugins = [
-                function (system) {
-                    return {
-                        components: {
-                            authorizeBtn: function () {
-                                return system.React.createElement(
-                                    'div',
-                                    {
-                                        className: 'auth-wrapper',
-                                    },
-                                    system.React.createElement(
-                                        'button',
+            function initializeSwaggerUI(skipAuth) {
+                console.log('Initializing Swagger UI, skipAuth:', skipAuth);
+                var configObject = JSON.parse('%(ConfigObject)');
+                var oauthConfigObject = JSON.parse('%(OAuthConfigObject)');
+
+                // Workaround for https://github.com/swagger-api/swagger-ui/issues/5945
+                configObject.urls.forEach(function (item) {
+                    if (item.url.startsWith('http') || item.url.startsWith('/')) return;
+                    item.url = window.location.href.replace('index.html', item.url).split('#')[0];
+                });
+
+                // If validatorUrl is not explicitly provided, disable the feature by setting to null
+                if (!configObject.hasOwnProperty('validatorUrl')) configObject.validatorUrl = null;
+
+                // If oauth2RedirectUrl isn't specified, use the built-in default
+                if (!configObject.hasOwnProperty('oauth2RedirectUrl')) configObject.oauth2RedirectUrl = new URL('oauth2-redirect.html', window.location.href).href;
+
+                // Apply mandatory parameters
+                configObject.dom_id = '#swagger-ui';
+                configObject.presets = [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset];
+                configObject.layout = 'StandaloneLayout';
+
+                // Parse and add interceptor functions
+                var interceptors = JSON.parse('%(Interceptors)');
+                if (interceptors.RequestInterceptorFunction) configObject.requestInterceptor = parseFunction(interceptors.RequestInterceptorFunction);
+                if (interceptors.ResponseInterceptorFunction) configObject.responseInterceptor = parseFunction(interceptors.ResponseInterceptorFunction);
+
+                // Begin Swagger UI call region
+
+                function getAuthorizeButtonCssClass() {
+                    return (window.dvs && dvs.auth && dvs.auth.getToken && dvs.auth.getToken()) ? 'cancel' : 'authorize';
+                }
+
+                function getAuthorizeButtonText() {
+                    return (window.dvs && dvs.auth && dvs.auth.getToken && dvs.auth.getToken()) ? '退出' : '登录';
+                }
+
+                configObject.plugins = [
+                    function (system) {
+                        return {
+                            components: {
+                                authorizeBtn: function () {
+                                    return system.React.createElement(
+                                        'div',
                                         {
-                                            id: 'authorize',
-                                            className: 'btn ' + getAuthorizeButtonCssClass(),
-                                            style: {
-                                                lineHeight: 'normal',
-                                            },
-                                            onClick: function () {
-                                                if (dvs.auth.getToken()) {
-                                                    dvs.swagger.logout();
-                                                    location.reload();
-                                                } else {
-                                                    dvs.swagger.openAuthDialog(function () {
-                                                        location.reload();
-                                                    });
-                                                }
-                                            },
+                                            className: 'auth-wrapper',
                                         },
-                                        getAuthorizeButtonText()
-                                    )
-                                );
+                                        system.React.createElement(
+                                            'button',
+                                            {
+                                                id: 'authorize',
+                                                className: 'btn ' + getAuthorizeButtonCssClass(),
+                                                style: {
+                                                    lineHeight: 'normal',
+                                                },
+                                                onClick: function () {
+                                                    if (dvs.auth.getToken()) {
+                                                        dvs.swagger.logout();
+                                                        location.reload();
+                                                    } else {
+                                                        dvs.swagger.openAuthDialog(function () {
+                                                            location.reload();
+                                                        });
+                                                    }
+                                                },
+                                            },
+                                            getAuthorizeButtonText()
+                                        )
+                                    );
+                                },
                             },
-                        },
-                    };
-                },
-            ];
+                        };
+                    },
+                ];
 
-            const ui = SwaggerUIBundle(configObject);
+                console.log('Creating SwaggerUIBundle with config:', configObject);
 
-            ui.initOAuth(oauthConfigObject);
+                try {
+                    const ui = SwaggerUIBundle(configObject);
+                    console.log('SwaggerUIBundle created successfully');
 
-            // End Swagger UI call region
+                    ui.initOAuth(oauthConfigObject);
+                    console.log('OAuth initialized');
 
-            window.ui = ui;
+                    // End Swagger UI call region
+
+                    window.ui = ui;
+                } catch (error) {
+                    console.error('Error initializing Swagger UI:', error);
+                    document.getElementById('swagger-ui').innerHTML = '<div style="padding: 20px; color: red;">Error loading Swagger UI: ' + error.message + '</div>';
+                }
+            }
         };
     </script>
 </body>

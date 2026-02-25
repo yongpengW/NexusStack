@@ -1,19 +1,14 @@
 ﻿using AutoMapper;
 using NexusStack.Core.Entities.Users;
+using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Exceptions;
 using NexusStack.Infrastructure.Utils;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NexusStack.Core.Services.Users
 {
-    public interface IRoleService : IServiceBase<Role>
-    {
-    }
     public class RoleService(MainContext dbContext, IMapper mapper) : ServiceBase<Role>(dbContext, mapper), IRoleService, IScopedDependency
     {
         public override async Task<Role> InsertAsync(Role entity, CancellationToken cancellationToken = default)
