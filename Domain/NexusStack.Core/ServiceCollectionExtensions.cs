@@ -442,6 +442,9 @@ namespace NexusStack.Core
                 //    "OpenAPIAuthentication",
                 //    options => { });
 
+                builder.Services.AddAuthentication("Authorization-Token")
+                    .AddScheme<RequestAuthenticationTokenSchemeOptions, RequestAuthenticationTokenHandler>("Authorization-Token", options => { });
+
                 builder.Services.AddAuthorization();
 
                 // 添加SignalR服务 - 使用.NET 8最新功能
