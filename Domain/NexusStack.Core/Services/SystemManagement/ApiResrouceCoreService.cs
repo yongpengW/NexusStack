@@ -20,7 +20,7 @@ namespace NexusStack.Core.Services.SystemManagement
             {
                 var resource = new MenuResourceDto
                 {
-                    Name = a.Key.GroupName,
+                    Name = a.Key.GroupName!,
                     Code = $"{a.Key.NameSpace}.{a.Key.ControllerName}",
                 };
 

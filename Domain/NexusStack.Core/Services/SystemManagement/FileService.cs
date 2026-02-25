@@ -44,7 +44,7 @@ namespace NexusStack.Core.Services.SystemManagement
                 return GetContentAsync(id);
             }
 
-            throw new ErrorCodeException(-1, "文件未找到");
+            throw new BusinessException("文件未找到");
         }
 
         public async Task<byte[]> GetContentAsync(File file)
@@ -115,7 +115,7 @@ namespace NexusStack.Core.Services.SystemManagement
                 return await GetTempFilePathAsync(id);
             }
 
-            throw new ErrorCodeException(-1, "文件未找到");
+            throw new BusinessException("文件未找到");
         }
 
         public async Task<File> UploadAsync(Stream stream, string originName, long originalFileId = 0, bool transcode = true)

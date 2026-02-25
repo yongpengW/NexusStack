@@ -22,13 +22,13 @@ namespace NexusStack.Core.Services.SystemManagement
 
             if (entity is null)
             {
-                throw new Exception("你要删除的数据不存在");
+                throw new BusinessException("你要删除的数据不存在");
             }
 
             var children = await GetListAsync(a => a.ParentId == id);
             if (children.Count > 0)
             {
-                throw new Exception("请先删除子级菜单");
+                throw new BusinessException("请先删除子级菜单");
             }
 
             return await DeleteAsync(entity);
@@ -38,7 +38,7 @@ namespace NexusStack.Core.Services.SystemManagement
         {
             if (entity.ParentId != 0)
             {
-                var parent = await GetByIdAsync(entity.ParentId) ?? throw new Exception("父级菜单不存在");
+                var parent = await GetByIdAsync(entity.ParentId) ?? throw new BusinessException("父级菜单不存在");
                 entity.IdSequences = $"{parent.IdSequences}{entity.Id}.";
             }
             else
@@ -49,12 +49,12 @@ namespace NexusStack.Core.Services.SystemManagement
             var exists = await GetAsync(a => a.Code == entity.Code);
             if (exists != null && exists.Id != entity.Id)
             {
-                throw new ErrorCodeException(-1, "菜单代码已存在");
+                throw new BusinessException("菜单代码已存在");
             }
 
             if (entity.Id == entity.ParentId)
             {
-                throw new ErrorCodeException(-1, "菜单的父级菜单不能是自己");
+                throw new BusinessException("菜单的父级菜单不能是自己");
             }
 
             return await base.InsertAsync(entity, cancellationToken);
@@ -152,7 +152,7 @@ namespace NexusStack.Core.Services.SystemManagement
 
         public async Task<int> PutAsync(long id, CreateMenuDto model)
         {
-            var entity = await GetAsync(a => a.Id == id) ?? throw new Exception("你要修改的数据不存在");
+            var entity = await GetAsync(a => a.Id == id) ?? throw new BusinessException("你要修改的数据不存在");
             entity = Mapper.Map(model, entity);
 
             return await UpdateAsync(entity);

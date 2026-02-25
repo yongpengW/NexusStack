@@ -15,12 +15,12 @@ namespace NexusStack.Core.Services.Users
         {
             if (entity.Code.IsNullOrEmpty())
             {
-                throw new ErrorCodeException(-1, "角色代码不能为空");
+                throw new BusinessException("角色代码不能为空");
             }
 
             if (await ExistsAsync(a => a.Code == entity.Code))
             {
-                throw new ErrorCodeException(-1, "角色代码已存在");
+                throw new BusinessException("角色代码已存在");
             }
 
             return await base.InsertAsync(entity, cancellationToken);
@@ -30,16 +30,16 @@ namespace NexusStack.Core.Services.Users
         {
             if (entity.IsSystem)
             {
-                throw new ErrorCodeException(-1, "系统角色不允许修改");
+                throw new BusinessException("系统角色不允许修改");
             }
             if (entity.Code.IsNullOrEmpty())
             {
-                throw new ErrorCodeException(-1, "角色代码不能为空");
+                throw new BusinessException("角色代码不能为空");
             }
 
             if (await ExistsAsync(a => a.Code == entity.Code && a.Id != entity.Id))
             {
-                throw new ErrorCodeException(-1, "角色代码已存在");
+                throw new BusinessException("角色代码已存在");
             }
 
             var result = await base.UpdateAsync(entity, cancellationToken);

@@ -86,12 +86,12 @@ namespace NexusStack.Core.Services.Users
 
             if (user == null)
             {
-                throw new ErrorCodeException(100002, "账号或密码错误");
+                throw new BusinessException("账号或密码错误");
             }
 
             if (user.PasswordSalt.IsNullOrEmpty())
             {
-                throw new ErrorCodeException(100003, "该用户还未设置密码");
+                throw new BusinessException("该用户还未设置密码");
             }
 
             // swagger特殊登录
@@ -109,7 +109,7 @@ namespace NexusStack.Core.Services.Users
 
             if (!user.Password.Equals(password.EncodePassword(user.PasswordSalt)))
             {
-                throw new ErrorCodeException(100002, "账号或密码错误");
+                throw new BusinessException("账号或密码错误");
             }
 
             return await GenerateUserTokenAsync(user, platform);
@@ -125,7 +125,7 @@ namespace NexusStack.Core.Services.Users
         {
             if (!user.IsEnable)
             {
-                throw new ErrorCodeException(100001, "该账号已禁用");
+                throw new BusinessException("该账号已禁用");
             }
 
             // 更新最后登录时间
@@ -193,19 +193,19 @@ namespace NexusStack.Core.Services.Users
         {
             if (refreshToken.IsNullOrEmpty())
             {
-                throw new ErrorCodeException(401, "Refresh Token 无效");
+                throw new BusinessException("Refresh Token 无效");
             }
 
             var userToken = await GetAsync(a => a.RefreshToken == refreshToken);
             if (userToken is null || !userToken.RefreshTokenIsAvailable || userToken.UserId != userId)
             {
-                throw new ErrorCodeException(401, "Refresh Token 无效");
+                throw new BusinessException("Refresh Token 无效");
             }
 
             // RefreshToken 有效期为一个月
             if (userToken.CreatedAt < DateTime.Now.AddMonths(-1))
             {
-                throw new ErrorCodeException(401, "Refresh Token 已过期");
+                throw new BusinessException("Refresh Token 已过期");
             }
 
             var user = await userService.GetAsync(a => a.Id == userToken.UserId);
