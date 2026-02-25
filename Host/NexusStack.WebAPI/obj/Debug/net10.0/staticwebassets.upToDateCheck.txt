@@ -1,0 +1,2 @@
+D:\Leo\NexusStack\Host\NexusStack.WebAPI\wwwroot\index.html
+wwwroot\index.html

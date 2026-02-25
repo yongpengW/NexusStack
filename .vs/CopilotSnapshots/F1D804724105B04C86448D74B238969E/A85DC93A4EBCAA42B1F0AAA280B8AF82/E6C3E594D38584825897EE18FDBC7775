@@ -1,0 +1,107 @@
+﻿# NexusStack - Modern Microservices Solution
+
+<div align="center">
+
+🚀 **A modern, production-ready microservices solution for .NET**
+
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/yongpengW/NexusStack?style=social)](https://github.com/yongpengW/NexusStack)
+
+[English](README.md) · [中文文档](README.zh-CN.md)
+
+</div>
+
+> **📚 Complete Documentation**: See [README.md](README.md)
+
+## ✨ Features
+
+- 🏗️ **Clean Architecture** - Well-structured layers (Infrastructure, Domain, Host)
+- 🔄 **SignalR** - Real-time communication with auto-mapped hubs
+- 📨 **RabbitMQ** - Event-driven messaging system
+- 💾 **Redis** - Distributed caching
+- 🗄️ **EF Core** - Multi-database support (PostgreSQL, MySQL, SQL Server)
+- 📊 **Swagger/OpenAPI** - Automatic API documentation
+- 📝 **Serilog** - Structured logging
+- ⏰ **Background Jobs** - Cron-based task scheduling
+- 🐳 **Docker Ready** - Complete containerization support
+
+## 🚀 Quick Start
+
+```powershell
+# 1. Install template
+.\Install-Template.ps1
+
+# 2. Create your project
+dotnet new nexusstack -n MyAwesomeProject
+
+# 3. Advanced configuration
+dotnet new nexusstack -n MyAwesomeProject \
+  --DatabaseProvider MySQL \
+  --EnableSignalR true \
+  --IncludeMQService false \
+  --TargetFramework net10.0
+
+# 4. Run your project
+cd MyAwesomeProject
+dotnet run --project Host\MyAwesomeProject.WebAPI
+```
+
+## 📖 Documentation
+
+- [Template Usage Guide](TEMPLATE_USAGE.md) - Installation, configuration, development
+
+## 🔧 Quick Commands
+
+- **Install**: `dotnet new install .`
+- **Create**: `dotnet new nexusstack -n <ProjectName>`
+- **Help**: `dotnet new nexusstack --help`
+- **Uninstall**: `dotnet new uninstall NexusStack.Template`
+
+## 📦 What's Included
+
+```
+YourProject/
+├── Infrastructure/           # Core utilities and models
+├── Domain/                   # Business logic
+│   ├── YourProject.Core/
+│   ├── YourProject.EFCore/
+│   ├── YourProject.Redis/
+│   ├── YourProject.RabbitMQ/
+│   └── ...
+├── Host/                     # Application entry
+│   └── YourProject.WebAPI/
+└── BackgroundServices/       # Background workers
+```
+
+## 🎯 Use Cases
+
+Perfect for:
+- 🏢 Enterprise microservices
+- 🚀 SaaS platforms
+- 📱 Mobile backends
+- 🔌 API gateways
+- 🛠️ Internal tools
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Leo Wang**
+- GitHub: [@yongpengW](https://github.com/yongpengW)
+
+---
+
+<div align="center">
+
+**⭐ If you find this project helpful, please give it a star! ⭐**
+
+Made with ❤️ by Leo Wang
+
+</div>

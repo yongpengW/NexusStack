@@ -1,0 +1,366 @@
+﻿# NexusStack - 现代化微服务解决方案
+
+<div align="center">
+
+🚀 **一个现代化的、生产就绪的企业级 .NET 微服务解决方案**
+
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![许可证](https://img.shields.io/badge/许可证-MIT-green.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/yongpengW/NexusStack?style=social)](https://github.com/yongpengW/NexusStack)
+
+</div>
+
+## ✨ 特性
+
+- 🏗️ **清晰架构** - 结构良好的分层（基础设施、领域、宿主）
+- 🌐 **API 网关** - 基于 YARP 的动态路由网关，支持实时配置管理和服务代理
+- 🔄 **SignalR** - 实时通信，自动映射 Hub
+- 📨 **RabbitMQ** - 事件驱动的消息系统
+- 💾 **Redis** - 分布式缓存
+- 🗄️ **EF Core** - 多数据库支持（PostgreSQL、MySQL、SQL Server）
+- ⚙️ **AgileConfig** - 轻量级分布式配置中心，解决方案默认使用 AgileConfig 作为配置中心，提供了一个轻量级的分布式配置管理系统，适用于各种规模的应用程序。通过集成 AgileConfig，NexusStack 允许开发者轻松地集中管理和动态更新应用程序的配置，而无需重启服务。这使得在生产环境中调整配置变得更加高效和安全，极大地提升了应用程序的可维护性和灵活性。
+- 📊 **Swagger/OpenAPI** - 自动 API 文档
+- 📝 **Serilog + Seq** - 结构化日志与集中式日志查询
+- ⏰ **后台任务** - 基于 Cron 的任务调度
+- 🐳 **Docker 就绪** - 完整的容器化支持
+
+## 🚀 快速开始
+
+```powershell
+# 1. 安装模板
+.\Install-Template.ps1
+
+# 2. 创建你的项目
+dotnet new nexusstack -n MyAwesomeProject
+
+# 3. 运行你的项目
+cd MyAwesomeProject
+dotnet run --project Host\MyAwesomeProject.WebAPI
+```
+
+## 📖 详细指南
+
+- [安装模板](#安装模板)
+- [创建项目](#创建项目)
+- [配置参数](#配置参数)
+- [项目结构](#项目结构)
+- [开发指南](#开发指南)
+- [故障排除](#故障排除)
+
+## 📦 包含内容
+
+```
+您的项目/
+├── Infrastructure/           # 核心工具和模型
+├── Domain/                   # 业务逻辑
+│   ├── 您的项目.Core/
+│   ├── 您的项目.EFCore/
+│   ├── 您的项目.Redis/
+│   ├── 您的项目.RabbitMQ/
+│   └── ...
+├── Host/                     # 应用程序入口
+│   ├── 您的项目.WebAPI/    # API 服务
+│   └── 您的项目.Gateway/   # API 网关
+└── BackgroundServices/       # 后台服务
+```
+
+---
+
+## 安装模板
+
+### 方式 1: 使用安装脚本（推荐）
+```powershell
+.\Install-Template.ps1
+```
+
+选项说明：
+- **1** - 本地安装（开发测试用）
+- **4** - 卸载现有模板
+- **5** - 完全清理并重新安装（推荐）
+
+### 方式 2: 命令行安装
+```powershell
+# 首次安装
+dotnet new install .
+
+# 更新安装
+dotnet new install . --force
+```
+
+### 验证安装
+```powershell
+# 查看已安装的模板
+dotnet new list | Select-String "nexusstack"
+
+# 查看参数
+dotnet new nexusstack --help
+```
+
+---
+
+## 创建项目
+
+### 基础用法
+```powershell
+dotnet new nexusstack -n MyProject
+```
+
+### 高级配置
+```powershell
+# 企业级项目
+dotnet new nexusstack -n Enterprise.HR.API \
+  --DatabaseProvider MySQL \
+  --EnableSignalR true \
+  --IncludeMQService false
+
+# 最小配置
+dotnet new nexusstack -n SimpleAPI \
+  --IncludeMQService false \
+  --IncludePlanTaskService false
+
+# .NET 8 项目
+dotnet new nexusstack -n Net8Project \
+  --TargetFramework net8.0
+```
+
+### 预览文件
+```powershell
+# 查看会生成哪些文件
+dotnet new nexusstack -n MyProject --dry-run
+```
+
+---
+
+## 配置参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `-n, --name` | string | - | 项目名称（必需） |
+| `--EnableSignalR` | bool | true | 启用 SignalR |
+| `--EnableRabbitMQ` | bool | true | 启用 RabbitMQ |
+| `--EnableRedis` | bool | true | 启用 Redis |
+| `--DatabaseProvider` | choice | PostgreSQL | PostgreSQL/MySQL/SqlServer |
+| `--IncludeMQService` | bool | true | 包含 MQ 后台服务 |
+| `--IncludePlanTaskService` | bool | true | 包含计划任务服务 |
+| `--TargetFramework` | choice | net10.0 | net8.0/net9.0/net10.0 |
+
+---
+
+## 项目结构
+
+```
+MyProject/
+├── MyProject.sln                    # 传统解决方案（命令行/CI）
+├── MyProject_Backend.slnx           # 新式解决方案（VS 2022+）
+├── Infrastructure/                  # 基础设施层
+│   └── MyProject.Infrastructure.csproj
+├── Domain/                          # 业务领域层
+│   ├── MyProject.Core/             # 核心服务
+│   ├── MyProject.EFCore/           # 数据访问
+│   ├── MyProject.Excel/            # Excel 操作
+│   ├── MyProject.RabbitMQ/         # 消息队列
+│   ├── MyProject.Redis/            # 缓存
+│   ├── MyProject.Serilog/          # 日志
+│   └── MyProject.Swagger/          # API 文档
+├── Host/                            # 宿主层
+│   ├── MyProject.WebAPI/           # API 服务
+│   └── MyProject.Gateway/          # API 网关
+└── BackgroundServices/              # 后台服务
+    ├── MyProject.MQService/
+    └── MyProject.PlanTaskService/
+```
+
+### 解决方案文件
+
+- **`.sln`** - 命令行/CI/CD 使用，兼容性最好
+- **`.slnx`** - VS 2022+ 使用，更简洁
+
+---
+
+## 开发指南
+
+### 初始化项目
+
+1. **配置 AgileConfig（可选）**
+```json
+// Host/MyProject.WebAPI/appsettings.json
+{
+  "AgileConfig": {
+    "appId": "your-app-id",
+    "secret": "your-secret",
+    "nodes": "http://localhost:5000"
+  }
+}
+```
+
+2. **配置 Seq 日志（可选）**
+```json
+// Host/MyProject.WebAPI/appsettings.json
+{
+  "Seq": {
+    "ServerUrl": "http://localhost:5341",
+    "ApiKey": "your-api-key"
+  }
+}
+```
+
+3. **配置数据库**
+```json
+// Host/MyProject.WebAPI/appsettings.json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=mydb;..."
+  }
+}
+```
+
+4. **运行迁移**
+```powershell
+cd Host/MyProject.WebAPI
+dotnet ef database update
+```
+
+5. **启动项目**
+```powershell
+# 启动 API 服务
+dotnet run --project Host/MyProject.WebAPI
+
+# 启动 API 网关
+dotnet run --project Host/MyProject.Gateway
+```
+
+### 网关配置
+
+网关支持动态路由配置，配置文件位于 `Host/MyProject.Gateway/proxy-config.json`
+
+**示例配置：**
+```json
+{
+  "Routes": [
+    {
+      "RouteId": "api-route",
+      "ClusterId": "api-cluster",
+      "Match": {
+        "Path": "/api/{**catch-all}"
+      }
+    }
+  ],
+  "Clusters": {
+    "api-cluster": {
+      "Destinations": {
+        "destination1": {
+          "Address": "http://localhost:5000"
+        }
+      }
+    }
+  }
+}
+```
+
+**网关管理 API：**
+- `GET /routes` - 获取所有路由
+- `POST /routes` - 创建新路由
+- `PUT /routes/{routeId}` - 更新路由
+- `DELETE /routes/{routeId}` - 删除路由
+
+### 常用命令
+
+```powershell
+# 构建
+dotnet build
+
+# 运行
+dotnet run --project Host/MyProject.WebAPI
+
+# 测试
+dotnet test
+
+# 发布
+dotnet publish -c Release -o ./publish
+
+# 数据库迁移
+dotnet ef migrations add InitialCreate --project Domain/MyProject.EFCore
+dotnet ef database update --project Host/MyProject.WebAPI
+```
+
+### Docker 部署
+
+```powershell
+# 构建镜像
+docker build -t myproject:latest -f Host/MyProject.WebAPI/Dockerfile .
+
+# 运行
+docker run -d -p 5000:8080 myproject:latest
+```
+
+---
+
+## 故障排除
+
+### 找不到模板
+```powershell
+# 解决方案
+.\Install-Template.ps1
+# 选择: 5 (完全清理并重新安装)
+```
+
+### 卸载失败
+```powershell
+# 查看实际卸载命令
+dotnet new uninstall
+
+# 使用显示的命令
+dotnet new uninstall <显示的路径>
+```
+
+### 编译失败
+```powershell
+# 还原并重新构建
+dotnet restore
+dotnet clean
+dotnet build
+```
+
+---
+
+## 环境要求
+
+- **.NET SDK**: 10.0+
+- **Visual Studio**: 2022+ （推荐）
+- **数据库**: PostgreSQL 12+ / MySQL 8.0+ / SQL Server 2019+
+- **AgileConfig**: （默认）轻量级配置中心
+- **Seq**: （Prod默认）集中式日志服务器
+
+---
+
+## 🎯 使用场景
+
+适用于:
+- 🏢 企业微服务
+- 🚀 SaaS 平台
+- 📱 移动应用后端
+- 🔌 API 网关
+- 🛠️ 内部工具
+
+## 🤝 贡献
+
+欢迎贡献！请随时提交 Pull Request。
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 👨‍💻 作者
+
+**Leo Wang**
+- GitHub: [@yongpengW](https://github.com/yongpengW)
+
+---
+
+<div align="center">
+
+**⭐ 如果这个项目对你有帮助，请给它一个星标！ ⭐**
+
+由 Leo Wang 用 ❤️ 制作
+
+</div>

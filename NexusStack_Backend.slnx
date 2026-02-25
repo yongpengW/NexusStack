@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/BackgroundServices/">
+    <Project Path="BackgroundServices/NexusStack.MQService/NexusStack.MQService.csproj" />
+    <Project Path="BackgroundServices/NexusStack.PlanTaskService/NexusStack.PlanTaskService.csproj" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="Domain/NexusStack.Core/NexusStack.Core.csproj" />
+    <Project Path="Domain/NexusStack.EFCore/NexusStack.EFCore.csproj" />
+    <Project Path="Domain/NexusStack.Excel/NexusStack.Excel.csproj" />
+    <Project Path="Domain/NexusStack.RabbitMQ/NexusStack.RabbitMQ.csproj" />
+    <Project Path="Domain/NexusStack.Redis/NexusStack.Redis.csproj" />
+    <Project Path="Domain/NexusStack.Serilog/NexusStack.Serilog.csproj" />
+    <Project Path="Domain/NexusStack.Swagger/NexusStack.Swagger.csproj" />
+  </Folder>
+  <Folder Name="/Host/">
+    <Project Path="Host/NexusStack.Gateway/NexusStack.Gateway.csproj" Id="41bd184c-836b-4942-badc-029cf644e91d" />
+    <Project Path="Host/NexusStack.WebAPI/NexusStack.WebAPI.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="Infrastructure/NexusStack.Infrastructure.csproj" />
+  </Folder>
+</Solution>
