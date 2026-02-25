@@ -54,7 +54,7 @@ namespace NexusStack.Core
         /// <param name="builder"></param>
         /// <param name="moduleKey"></param>
         /// <param name="moduleTitle"></param>
-        /// <param name="posServiceType">POS服务类型</param>
+        /// <param name="coreServiceType">服务类型</param>
         /// <param name="enableSignalR">是否启用SignalR自动映射</param>
         /// <returns></returns>
         /// 
@@ -333,7 +333,7 @@ namespace NexusStack.Core
         /// <param name="builder"></param>
         /// <param name="moduleKey"></param>
         /// <param name="moduleTitle"></param>
-        /// <param name="posServiceType">POS服务类型</param>
+        /// <param name="coreServiceType">服务类型</param>
         /// <returns></returns>
         public static WebApplicationBuilder AddBuilderServices(this WebApplicationBuilder builder, string moduleKey, string moduleTitle, CoreServiceType coreServiceType = CoreServiceType.WebService)
         {
@@ -447,40 +447,22 @@ namespace NexusStack.Core
 
                 builder.Services.AddAuthorization();
 
-                // 添加SignalR服务 - 使用.NET 8最新功能
+                // 添加SignalR服务
                 builder.Services.AddSignalR(options =>
                 {
-                    // 配置SignalR选项
                     options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-
-                    // .NET 8 优化的超时设置
-                    options.ClientTimeoutInterval = TimeSpan.FromMinutes(2);  // 增加到2分钟
-                    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
-                    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
-
-                    // .NET 8 新增的性能优化选项
-                    options.StreamBufferCapacity = 10;
-                    options.MaximumReceiveMessageSize = 64 * 1024; // 增加到64KB以支持MessagePack
-                    options.MaximumParallelInvocationsPerClient = 1;
+                    options.ClientTimeoutInterval = TimeSpan.FromMinutes(2);
+                    options.MaximumReceiveMessageSize = 64 * 1024;
                 })
-                // 添加JSON协议支持 - 默认协议，兼容性最好
                 .AddJsonProtocol(options =>
                 {
-                    // 配置JSON序列化选项
                     options.PayloadSerializerOptions.Converters.Add(new JsonLongConverter());
                     options.PayloadSerializerOptions.Converters.Add(new JsonDecimalConverter());
-
-                    // .NET 8 性能优化
-                    options.PayloadSerializerOptions.DefaultBufferSize = 1024;
-                    options.PayloadSerializerOptions.MaxDepth = 64;
                 })
-                // 添加MessagePack协议支持 - 高性能二进制协议
                 .AddMessagePackProtocol(options =>
                 {
-                    // 配置MessagePack选项以获得最佳性能
                     options.SerializerOptions = MessagePack.MessagePackSerializerOptions.Standard
                         .WithCompression(MessagePack.MessagePackCompression.Lz4BlockArray)
-                        .WithOldSpec(false)
                         .WithOmitAssemblyVersion(true);
                 });
             }
@@ -489,7 +471,7 @@ namespace NexusStack.Core
                 //SSO认证
                 //builder.Services.AddSsoAuthentication(builder.Configuration);
                 //builder.Services.AddAuthentication("OpenAPIAuthentication")
-                //    //POS开放平台开放API认证
+                //    //开放API认证
                 //    .AddScheme<RequestAuthenticationSchemeOptions, RequestAuthenticationHandler>(
                 //    "OpenAPIAuthentication",
                 //    options => { });
@@ -548,7 +530,7 @@ namespace NexusStack.Core
                 builder.Services.AddCronTask();
                 //Quartz Job服务
                 //builder.Services.AddQuartz(builder.Configuration);
-                //POS BackService
+                //BackService
                 builder.Services.AddHostedService<ExecuteSeedDataService>();
             }
             //else
