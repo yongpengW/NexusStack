@@ -2,7 +2,7 @@
 
 <div align="center">
 
-🚀 **一个现代化的、生产就绪的企业级 .NET 微服务解决方案**
+🚀 **一个现代化的、生产级别的企业级 .NET 微服务解决方案**
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![许可证](https://img.shields.io/badge/许可证-MIT-green.svg)](LICENSE)
@@ -26,6 +26,8 @@
 
 ## 🚀 快速开始
 
+> ⚠️ **重要提示**: 在启动项目前，请先参考 [配置中心 (AgileConfig)](#配置中心-agileconfig) 章节搭建 AgileConfig 配置中心。
+
 ```powershell
 # 1. 安装模板
 .\Install-Template.ps1
@@ -44,6 +46,7 @@ dotnet run --project Host\MyAwesomeProject.WebAPI
 - [创建项目](#创建项目)
 - [配置参数](#配置参数)
 - [项目结构](#项目结构)
+- [配置中心 (AgileConfig)](#配置中心-agileconfig)
 - [开发指南](#开发指南)
 - [故障排除](#故障排除)
 
@@ -185,11 +188,180 @@ MyProject/
 
 ---
 
+## 配置中心 (AgileConfig)
+
+### 📋 概述
+
+NexusStack 默认使用 **AgileConfig** 作为分布式配置中心。AgileConfig 是一个轻量级的配置管理系统，支持配置的集中管理、动态更新和多环境管理。
+
+> ⚠️ **重要提示**: 项目启动前需要先搭建 AgileConfig 配置中心服务。
+
+### 🚀 快速搭建 AgileConfig
+
+#### 方式 1: Docker 部署（推荐）
+
+```powershell
+# 1. 拉取镜像
+docker pull kklldog/agile_config:latest
+
+# 2. 运行容器
+docker run -d --name agileconfig \
+  -p 5000:5000 \
+  -e TZ=Asia/Shanghai \
+  -e adminConsole=true \
+  kklldog/agile_config:latest
+
+# 3. 访问管理控制台
+# http://localhost:5000
+# 默认账号: admin
+# 默认密码: admin
+```
+
+#### 方式 2: Docker Compose 部署
+
+创建 `docker-compose.yml` 文件：
+
+```yaml
+version: '3.8'
+services:
+  agileconfig:
+    image: kklldog/agile_config:latest
+    container_name: agileconfig
+    ports:
+      - "5000:5000"
+    environment:
+      - TZ=Asia/Shanghai
+      - adminConsole=true
+      - db:provider=sqlite  # 或使用 mysql/sqlserver
+    volumes:
+      - ./agileconfig_data:/app/db
+    restart: unless-stopped
+```
+
+启动服务：
+```powershell
+docker-compose up -d
+```
+
+#### 方式 3: 直接运行
+
+1. 从 [GitHub Releases](https://github.com/dotnetcore/AgileConfig) 下载最新版本
+2. 解压并运行：
+```powershell
+dotnet AgileConfig.Server.Apisite.dll
+```
+
+### ⚙️ 配置应用程序
+
+#### 1. 在 AgileConfig 控制台创建应用
+
+1. 登录 AgileConfig 管理控制台 (http://localhost:5000)
+2. 创建新应用，记录 `AppId` 和 `Secret`
+3. 添加配置项（支持 JSON、Text、XML 等格式）
+
+#### 2. 配置项目
+
+在 `appsettings.json` 中配置 AgileConfig 连接信息：
+
+```json
+// Host/MyProject.WebAPI/appsettings.json
+{
+  "AgileConfig": {
+    "appId": "your-app-id",           // 在 AgileConfig 控制台创建的应用ID
+    "secret": "your-secret",          // 应用密钥
+    "nodes": "http://localhost:5000", // AgileConfig 服务地址
+    "name": "MyProject",              // 应用名称（可选）
+    "tag": "dev",                     // 环境标签（可选）
+    "env": "DEV"                      // 环境名称（可选）
+  }
+}
+```
+
+#### 3. 使用配置
+
+配置会自动注入到 `IConfiguration` 中，无需额外代码即可使用：
+
+```csharp
+public class MyService
+{
+    private readonly IConfiguration _configuration;
+
+    public MyService(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
+    public void UseConfig()
+    {
+        // 直接读取 AgileConfig 中的配置
+        var value = _configuration["YourConfigKey"];
+    }
+}
+```
+
+### 🔄 配置热更新
+
+AgileConfig 支持配置热更新，无需重启服务：
+
+1. 在 AgileConfig 控制台修改配置
+2. 点击"发布"按钮
+3. 应用程序会自动接收新配置（通常在 5-10 秒内）
+
+### 📝 最佳实践
+
+1. **环境隔离**: 为不同环境（开发、测试、生产）创建不同的应用或使用不同的 tag
+2. **敏感信息**: 数据库连接字符串、API密钥等敏感信息统一存放在 AgileConfig
+3. **配置分组**: 使用 Group 功能对配置进行分组管理
+4. **版本管理**: AgileConfig 支持配置历史记录，可以随时回滚
+5. **本地开发**: 开发环境可以在 `appsettings.Development.json` 中覆盖配置，避免连接配置中心
+
+### 🔧 高级配置
+
+#### 禁用 AgileConfig（本地开发）
+
+如果本地开发不想使用配置中心，可以在 `appsettings.Development.json` 中设置：
+
+```json
+{
+  "AgileConfig": {
+    "appId": "",
+    "secret": "",
+    "nodes": ""
+  }
+}
+```
+
+或直接删除 AgileConfig 配置节点，项目会使用本地配置文件。
+
+#### 使用多个配置节点（高可用）
+
+```json
+{
+  "AgileConfig": {
+    "appId": "your-app-id",
+    "secret": "your-secret",
+    "nodes": "http://node1:5000,http://node2:5000,http://node3:5000"
+  }
+}
+```
+
+### 📚 更多资源
+
+- [AgileConfig 官方文档](https://github.com/dotnetcore/AgileConfig)
+- [AgileConfig 使用教程](https://github.com/dotnetcore/AgileConfig/wiki)
+- [配置示例](https://github.com/dotnetcore/AgileConfig/wiki/Configuration-Examples)
+
+---
+
 ## 开发指南
 
 ### 初始化项目
 
-1. **配置 AgileConfig（可选）**
+1. **搭建 AgileConfig 配置中心（必需）**
+
+   参考 [配置中心 (AgileConfig)](#配置中心-agileconfig) 章节先搭建配置中心。
+
+2. **配置 AgileConfig 连接**
 ```json
 // Host/MyProject.WebAPI/appsettings.json
 {
@@ -201,7 +373,7 @@ MyProject/
 }
 ```
 
-2. **配置 Seq 日志（可选）**
+3. **配置 Seq 日志（可选）**
 ```json
 // Host/MyProject.WebAPI/appsettings.json
 {
@@ -212,7 +384,7 @@ MyProject/
 }
 ```
 
-3. **配置数据库**
+4. **配置数据库**
 ```json
 // Host/MyProject.WebAPI/appsettings.json
 {
@@ -222,13 +394,13 @@ MyProject/
 }
 ```
 
-4. **运行迁移**
+5. **运行迁移**
 ```powershell
 cd Host/MyProject.WebAPI
 dotnet ef database update
 ```
 
-5. **启动项目**
+6. **启动项目**
 ```powershell
 # 启动 API 服务
 dotnet run --project Host/MyProject.WebAPI
@@ -339,8 +511,8 @@ dotnet build
 - **.NET SDK**: 10.0+
 - **Visual Studio**: 2022+ （推荐）
 - **数据库**: PostgreSQL 12+ / MySQL 8.0+ / SQL Server 2019+
-- **AgileConfig**: （默认）轻量级配置中心
-- **Seq**: （Prod默认）集中式日志服务器
+- **AgileConfig**: （必需）轻量级配置中心 - [快速搭建指南](#配置中心-agileconfig)
+- **Seq**: （可选）集中式日志服务器
 
 ---
 
