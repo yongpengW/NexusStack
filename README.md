@@ -22,7 +22,7 @@
 - 📨 **RabbitMQ** - 事件驱动的消息系统
 - 💾 **Redis** - 分布式缓存
 - 🗄️ **EF Core** - 多数据库支持（PostgreSQL、MySQL、SQL Server）
-- ⚙️ **AgileConfig** - 轻量级分布式配置中心，解决方案默认使用 AgileConfig 作为配置中心，提供了一个轻量级的分布式配置管理系统，适用于各种规模的应用程序。通过集成 AgileConfig，NexusStack 允许开发者轻松地集中管理和动态更新应用程序的配置，而无需重启服务。这使得在生产环境中调整配置变得更加高效和安全，极大地提升了应用程序的可维护性和灵活性。
+- ⚙️ **AgileConfig** - 轻量级分布式配置中心
 - 📊 **Swagger/OpenAPI** - 自动 API 文档
 - 📝 **Serilog + Seq** - 结构化日志与集中式日志查询
 - ⏰ **后台任务** - 基于 Cron 的任务调度
