@@ -1,30 +1,107 @@
+﻿# IDE 相关文件
 **/.classpath
 **/.dockerignore
-**/.env
-**/.git
-**/.gitignore
 **/.project
 **/.settings
 **/.toolstarget
 **/.vs
 **/.vscode
+**/.idea
+**/*.suo
+**/*.user
 **/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/azds.yaml
-**/bin
-**/charts
-**/docker-compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
+**/.DS_Store
+**/Thumbs.db
+
+# 环境配置和敏感信息
+**/.env
+**/.env.*
 **/secrets.dev.yaml
 **/values.dev.yaml
-LICENSE
-README.md
+**/appsettings.Development.json
+**/appsettings.*.json
+
+# Git 相关（保留部分必要文件）
+**/.git
+**/.gitignore
+**/.gitattributes
 !**/.gitignore
 !.git/HEAD
 !.git/config
 !.git/packed-refs
 !.git/refs/heads/**
+
+# 构建输出目录
+**/bin
+**/obj
+**/out
+**/publish
+
+# 日志文件
+**/logs/
+**/log/
+**/*.log
+**/[Ll]og/
+**/[Ll]ogs/
+
+# 临时文件和缓存
+**/temp/
+**/tmp/
+**/.temp/
+**/*.tmp
+**/*.cache
+**/*.bak
+
+# 测试相关
+**/TestResults/
+**/[Tt]est[Rr]esult*/
+**/*.trx
+**/*.coverage
+**/*.coveragexml
+**/coverage*.json
+**/coverage*.xml
+**/coverage*.info
+
+# NuGet 包
+**/packages/
+**/.nuget/
+**/*.nupkg
+**/*.snupkg
+
+# 数据库文件
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.mdf
+**/*.ldf
+**/*.ndf
+
+# 上传和存储目录
+**/uploads/
+**/filestorage/
+**/wwwroot/uploads/
+
+# Docker 相关
+**/charts
+**/docker-compose*
+**/Dockerfile*
+**/azds.yaml
+
+# Node.js（如果有前端项目）
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
+**/package-lock.json
+**/yarn.lock
+
+# 工具和元数据
+**/*.dbmdl
+**/*.jfm
+**/.terraform
+**/*.tfstate
+
+# 文档（通常不需要打包到镜像）
+LICENSE
+README.md
+CHANGELOG.md
+**/*.md
