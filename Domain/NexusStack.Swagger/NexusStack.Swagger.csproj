@@ -7,14 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.2" />
-    <PackageReference Include="Unchase.Swashbuckle.AspNetCore.Extensions" Version="2.7.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.4" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Resources\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\dvs-swagger.html" />
+    <EmbeddedResource Include="Resources\dvs-swagger.js" />
+    <EmbeddedResource Include="Resources\dvs-swagger.css" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,8 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
-using Unchase.Swashbuckle.AspNetCore.Extensions.Options;
 
 namespace NexusStack.Swagger
 {
@@ -40,16 +38,12 @@ namespace NexusStack.Swagger
                     Description = "Token"
                 });
 
-                var action = new Action<FixEnumsOptions>(o =>
-                {
-                    o.IncludeDescriptions = true;
-                    o.IncludeXEnumRemarks = true;
-                    o.DescriptionSource = DescriptionSources.DescriptionAttributesThenXmlComments;
-                });
-                options.AddEnumsWithValuesFixFilters(action);
-
-                // 加载程序运行目录下的所有 xml 注释文档
-                Directory.GetFiles(AppContext.BaseDirectory, "*.xml").ToList().ForEach(comment => options.IncludeXmlComments(comment, true));
+                // 使用 Swashbuckle 内置的枚举描述支持
+                options.UseInlineDefinitionsForEnums();
+                
+                // 加载 XML 注释文档
+                Directory.GetFiles(AppContext.BaseDirectory, "*.xml").ToList()
+                    .ForEach(comment => options.IncludeXmlComments(comment, true));
 
                 options.OperationFilter<HttpHeaderFilter>(Array.Empty<object>());
             });
@@ -84,9 +78,6 @@ namespace NexusStack.Swagger
 
                 options.RoutePrefix = routePrefix;
                 options.DocumentTitle = documentTilte;
-                options.HeadContent = string.Empty;
-
-                options.Interceptors.RequestInterceptorFunction = "function(request){return dvs.auth.requestInterceptor(request);}";
 
                 if (app.Environment.IsDevelopment() || swaggerOptions.Value.Endpoints == null)
                 {
@@ -101,6 +92,8 @@ namespace NexusStack.Swagger
                 options.InjectStylesheet("/docs/static/dvs-swagger.css");
 
                 options.HeadContent = $"<script type='text/javascript'>var dvs = dvs || {{}};dvs.host='{commonOptions!.Value.Host}'?'{commonOptions.Value.Host}':location.origin;</script>";
+
+                options.Interceptors.RequestInterceptorFunction = "function(request){{if(window.dvs && dvs.auth && dvs.auth.requestInterceptor){{return dvs.auth.requestInterceptor(request);}}return request;}}";
 
                 //此处需要将文件设置为嵌入的资源
                 options.IndexStream = () => Assembly.GetExecutingAssembly().GetManifestResourceStream("NexusStack.Swagger.Resources.dvs-swagger.html");

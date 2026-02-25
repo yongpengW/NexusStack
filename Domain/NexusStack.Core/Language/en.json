@@ -1,0 +1,21 @@
+{
+  "culture": "en",
+  "texts": {
+    "BussinessOrderNumber": "BussinessOrderNumber",
+    "StoreName": "StoreName",
+    "ProductCommodityNumber": "ProductCommodityNumber",
+    "ProductBarCode": "ProductBarCode",
+    "ProductName": "ProductName",
+    "UnitPrice": "UnitPrice",
+    "BussinessType": "BussinessType",
+    "InboundQuantity": "InboundQuantity",
+    "InboundAmount": "InboundAmount",
+    "OutboundQuantity": "OutboundQuantity",
+    "OutboundAmount": "OutboundAmount",
+    "changedInventory": "changedInventory",
+    "ManufactureDate": "ManufactureDate",
+    "ExpirationDate": "ExpirationDate",
+    "CreatedAt": "CreatedAt",
+    "InventoryFlow": "InventoryFlow"
+  }
+}
