@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DynamicLocalizer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -48,6 +48,15 @@ namespace NexusStack.Core
 {
     public static partial class ServiceCollectionExtensions
     {
+        // 缓存 MapHub 方法以避免重复反射查找
+        private static readonly Lazy<MethodInfo?> _mapHubMethod = new(() =>
+            typeof(HubEndpointRouteBuilderExtensions)
+                .GetMethods()
+                .FirstOrDefault(m => m.Name == "MapHub" &&
+                                    m.IsGenericMethodDefinition &&
+                                    m.GetParameters().Length == 2 &&
+                                    m.GetParameters()[1].ParameterType == typeof(string)));
+
         /// <summary>
         /// 项目初始化函数
         /// </summary>
@@ -68,14 +77,10 @@ namespace NexusStack.Core
 
             app.UseApp(moduleKey, moduleTitle, coreServiceType);
 
-            // 如果启用SignalR
-            if (enableSignalR)
+            // 如果启用SignalR且是WebService类型，自动映射Hub端点
+            if (enableSignalR && coreServiceType == CoreServiceType.WebService)
             {
-                // Web API：自动映射Hub端点
-                if (coreServiceType == CoreServiceType.WebService)
-                {
-                    AutoMapSignalRHubs(app);
-                }
+                AutoMapSignalRHubs(app);
             }
 
             await app.RunAsync();
@@ -120,7 +125,7 @@ namespace NexusStack.Core
             {
                 // 获取SignalR通知选项配置
                 var signalROptions = app.Services.GetService<IOptions<SignalRNotificationOptions>>()?.Value;
-                if (signalROptions?.HubPathMappings == null || !signalROptions.HubPathMappings.Any())
+                if (signalROptions?.HubPathMappings is not { Count: > 0 })
                 {
                     Console.WriteLine("未找到SignalR配置或HubPathMappings为空");
                     return false;
@@ -129,7 +134,7 @@ namespace NexusStack.Core
                 Console.WriteLine($"从配置文件加载到 {signalROptions.HubPathMappings.Count} 个Hub路径映射");
 
                 int mappedHubsCount = 0;
-                var hubTypeCache = new Dictionary<string, Type>();
+                Dictionary<string, Type> hubTypeCache = [];
 
                 // 预加载所有Hub类型到缓存中
                 PreloadHubTypes(hubTypeCache);
@@ -153,19 +158,10 @@ namespace NexusStack.Core
                     {
                         try
                         {
-                            // 使用反射调用MapHub方法
-                            var mapHubMethod = typeof(HubEndpointRouteBuilderExtensions)
-                                .GetMethods()
-                                .Where(m => m.Name == "MapHub" &&
-                                           m.IsGenericMethodDefinition &&
-                                           m.GetParameters().Length == 2 &&
-                                           m.GetParameters()[1].ParameterType == typeof(string))
-                                .FirstOrDefault();
-
-                            if (mapHubMethod != null)
+                            if (_mapHubMethod.Value != null)
                             {
-                                var genericMethod = mapHubMethod.MakeGenericMethod(hubType);
-                                genericMethod.Invoke(null, new object[] { app, hubPath });
+                                var genericMethod = _mapHubMethod.Value.MakeGenericMethod(hubType);
+                                genericMethod.Invoke(null, [app, hubPath]);
 
                                 mappedHubsCount++;
                                 Console.WriteLine($"  ✓ 成功映射Hub: {primaryHubName} -> {hubPath}");
@@ -204,11 +200,11 @@ namespace NexusStack.Core
         {
             try
             {
-                // 查找当前应用域中所有程序集
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true);
+                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true)
+                    .ToArray();
 
-                Console.WriteLine($"预加载Hub类型，检查 {assemblies.Count()} 个NexusStack相关程序集");
+                Console.WriteLine($"预加载Hub类型，检查 {assemblies.Length} 个NexusStack相关程序集");
 
                 foreach (var assembly in assemblies)
                 {
@@ -253,11 +249,11 @@ namespace NexusStack.Core
         {
             try
             {
-                // 查找当前应用域中所有程序集
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true);
+                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true)
+                    .ToArray();
 
-                Console.WriteLine($"找到 {assemblies.Count()} 个NexusStack相关程序集");
+                Console.WriteLine($"找到 {assemblies.Length} 个NexusStack相关程序集");
 
                 int mappedHubsCount = 0;
 
@@ -272,32 +268,23 @@ namespace NexusStack.Core
                             .Where(t => t.IsClass &&
                                        !t.IsAbstract &&
                                        typeof(Hub).IsAssignableFrom(t) &&
-                                       t.GetCustomAttributes(typeof(SignalRHubAttribute), false).Length > 0)
+                                       t.IsDefined(typeof(SignalRHubAttribute), false))
                             .ToList();
 
                         Console.WriteLine($"在程序集 {assembly.GetName().Name} 中找到 {hubTypes.Count} 个Hub类型");
 
                         foreach (var hubType in hubTypes)
                         {
-                            var hubAttribute = (SignalRHubAttribute)hubType.GetCustomAttributes(typeof(SignalRHubAttribute), false).First();
+                            var hubAttribute = hubType.GetCustomAttribute<SignalRHubAttribute>(false)!;
 
                             Console.WriteLine($"正在映射Hub: {hubType.Name} -> {hubAttribute.Route}");
 
                             try
                             {
-                                // 使用反射调用MapHub方法
-                                var mapHubMethod = typeof(HubEndpointRouteBuilderExtensions)
-                                    .GetMethods()
-                                    .Where(m => m.Name == "MapHub" &&
-                                               m.IsGenericMethodDefinition &&
-                                               m.GetParameters().Length == 2 &&
-                                               m.GetParameters()[1].ParameterType == typeof(string))
-                                    .FirstOrDefault();
-
-                                if (mapHubMethod != null)
+                                if (_mapHubMethod.Value != null)
                                 {
-                                    var genericMethod = mapHubMethod.MakeGenericMethod(hubType);
-                                    genericMethod.Invoke(null, new object[] { app, hubAttribute.Route });
+                                    var genericMethod = _mapHubMethod.Value.MakeGenericMethod(hubType);
+                                    genericMethod.Invoke(null, [app, hubAttribute.Route]);
 
                                     mappedHubsCount++;
                                     Console.WriteLine($"✓ 成功映射Hub: {hubType.Name} -> {hubAttribute.Route}");
@@ -342,27 +329,26 @@ namespace NexusStack.Core
             {
                 LoadResource = () =>
                 {
-                    Dictionary<string, string> resource = new Dictionary<string, string>();
-                    Assembly assembly = Assembly.GetExecutingAssembly();
-                    List<string> jsonFileNames = new List<string>() { "en.json", "zh.json" };
+                    Dictionary<string, string> resource = [];
+                    var assembly = Assembly.GetExecutingAssembly();
+                    string[] jsonFileNames = ["en.json", "zh.json"];
 
                     foreach (var jsonFileName in jsonFileNames)
                     {
-                        String jsonfile = assembly.GetName().Name + $".Language.{jsonFileName}";
-                        Stream fileStream = assembly.GetManifestResourceStream(jsonfile);
+                        var jsonfile = $"{assembly.GetName().Name}.Language.{jsonFileName}";
+                        var fileStream = assembly.GetManifestResourceStream(jsonfile);
+                        if (fileStream == null) continue;
 
-                        using (StreamReader reader = new StreamReader(fileStream))
+                        using var reader = new StreamReader(fileStream);
+                        var data = reader.ReadToEnd();
+                        var jobject = JObject.Parse(data);
+                        var culture = jobject["culture"];
+                        var textsToken = jobject["texts"];
+                        if (textsToken == null) continue;
+
+                        foreach (JProperty property in textsToken)
                         {
-                            var data = reader.ReadToEnd();
-                            JObject jobject = JObject.Parse(data);
-                            var culture = jobject["culture"];
-                            foreach (JProperty property in jobject["texts"])
-                            {
-                                if (!resource.ContainsKey($"{property.Name}.{culture}"))
-                                {
-                                    resource.Add($"{property.Name}.{culture}", property.Value?.ToString());
-                                }
-                            }
+                            resource.TryAdd($"{property.Name}.{culture}", property.Value?.ToString());
                         }
                     }
 
@@ -396,15 +382,12 @@ namespace NexusStack.Core
             // 添加内存缓存服务 - SignalRNotificationService依赖此服务
             builder.Services.AddMemoryCache(options =>
             {
-                // 针对SignalR Hub缓存的优化配置
-                // 移除SizeLimit以避免每个缓存项都需要指定Size的复杂性
-                // options.SizeLimit = 512; // 注释掉，Hub数量有限，不需要严格的大小限制
-                options.CompactionPercentage = 0.10; // 仅清理10%，保持Hub上下文稳定
-                options.ExpirationScanFrequency = TimeSpan.FromMinutes(10); // 降低扫描频率，减少开销
+                options.CompactionPercentage = 0.10;
+                options.ExpirationScanFrequency = TimeSpan.FromMinutes(10);
 
-                // .NET 8 新特性：设置内存压力阈值
-                options.TrackLinkedCacheEntries = false; // 关闭链接追踪以提高性能
-                options.TrackStatistics = builder.Environment.IsDevelopment(); // 仅开发环境追踪统计
+                // .NET 8+ 性能优化选项
+                options.TrackLinkedCacheEntries = false;
+                options.TrackStatistics = builder.Environment.IsDevelopment();
             });
 
             //builder.Services.AddEFCoreArchiveDb(builder.Configuration);
@@ -424,9 +407,10 @@ namespace NexusStack.Core
             var cors = builder.Configuration["Cors"] ?? string.Empty;
             builder.Services.AddCors(options =>
             {
+                var origins = cors.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 options.AddPolicy(
                     "AllowSpecificOrigin",
-                    builder => builder.WithOrigins(cors.Split(';').Select(x => x.Trim()).ToArray())
+                    builder => builder.WithOrigins(origins)
                                       .AllowAnyMethod()
                                       .AllowAnyHeader()
                                       .AllowCredentials());
@@ -487,8 +471,7 @@ namespace NexusStack.Core
 
                 // 使用自定义配置提供程序注册 YARP
                 builder.Services.AddReverseProxy()
-                    .LoadFromMemory(Array.Empty<RouteConfig>(),
-                                    Array.Empty<ClusterConfig>())
+                    .LoadFromMemory([], [])
                     .Services.AddSingleton<IProxyConfigProvider>(
                         sp => sp.GetRequiredService<DynamicProxyConfigProvider>());
             }
@@ -552,7 +535,7 @@ namespace NexusStack.Core
 
             //app.UseSetStartDefaultRoute();
 
-            if (app.Environment.IsDevelopment() || app.Services.GetService<IOptions<SwaggerOptions>>()!.Value.Enable)
+            if (app.Environment.IsDevelopment() || app.Services.GetService<IOptions<SwaggerOptions>>()?.Value.Enable == true)
             {
                 app.UseSwagger(moduleKey, moduleTitle);
             }
@@ -681,22 +664,25 @@ namespace NexusStack.Core
         }
 
         /// <summary>
-        /// 上传文件的静态文件服务5
+        /// 上传文件的静态文件服务
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
         public static IApplicationBuilder UseStaticFileServer(this IApplicationBuilder app)
         {
             var storageOptions = app.ApplicationServices.GetService<IOptions<StorageOptions>>();
-            var staticDirectory = Path.Combine(AppContext.BaseDirectory, storageOptions.Value.Path.IsNullOrEmpty() ? "uploads" : storageOptions.Value.Path);
+            var staticDirectory = Path.Combine(
+                AppContext.BaseDirectory, 
+                storageOptions?.Value?.Path.IsNullOrEmpty() == false ? storageOptions.Value.Path : "uploads");
 
             var forwardedHeadersOptions = new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+                ForwardLimit = null
             };
             forwardedHeadersOptions.KnownIPNetworks.Clear();
             forwardedHeadersOptions.KnownProxies.Clear();
-            forwardedHeadersOptions.ForwardLimit = null;
+
             app.UseForwardedHeaders(forwardedHeadersOptions);
 
             Directory.CreateDirectory(staticDirectory);
@@ -737,17 +723,17 @@ namespace NexusStack.Core
                 return services;
             }
 
-            // AutoMapper 16+ 推荐使用程序集方式注册
             var assemblies = types.Select(t => t.Assembly).Distinct().ToArray();
 
             Console.WriteLine($"注册 AutoMapper，共找到 {types.Length} 个 Profile，分布在 {assemblies.Length} 个程序集中");
 
-            // 使用配置 Action 方式，逐个添加 Profile
+            // AutoMapper 16+ 支持程序集参数的扩展方法
             services.AddAutoMapper(cfg =>
             {
-                foreach (var type in types)
+                // 批量添加所有程序集中的 Profile
+                foreach (var assembly in assemblies)
                 {
-                    cfg.AddProfile(type);
+                    cfg.AddMaps(assembly);
                 }
             });
 
@@ -769,20 +755,36 @@ namespace NexusStack.Core
             // 注册所有 Options
             var types = TypeFinders.SearchTypes(typeof(IOptions), TypeFinders.TypeClassification.Interface);
 
-            //using reflection to invoke the Configure<TOption> extension
+            // 缓存反射方法
             Type extensionClass = typeof(OptionsConfigurationServiceCollectionExtensions);
-            //get the desired extension method by name and using the expected arguments
             Type[] parameterTypes = [typeof(IServiceCollection), typeof(IConfiguration)];
             string extensionName = nameof(OptionsConfigurationServiceCollectionExtensions.Configure);
-            MethodInfo configureExtension = extensionClass.GetMethod(extensionName, parameterTypes);
+            MethodInfo? configureExtension = extensionClass.GetMethod(extensionName, parameterTypes);
+
+            if (configureExtension == null)
+            {
+                Console.WriteLine("警告: 无法找到 Configure 扩展方法");
+                return services;
+            }
 
             foreach (var optionType in types)
             {
-                var instance = (IOptions)Activator.CreateInstance(optionType);
+                try
+                {
+                    var instance = Activator.CreateInstance(optionType) as IOptions;
+                    if (instance == null) continue;
 
-                IConfiguration section = instance.SectionName.IsNullOrEmpty() ? configuration : configuration.GetSection(instance.SectionName);
-                MethodInfo extensionMethod = configureExtension.MakeGenericMethod(optionType);
-                extensionMethod.Invoke(services, new object[] { services, section });
+                    IConfiguration section = instance.SectionName.IsNullOrEmpty() 
+                        ? configuration 
+                        : configuration.GetSection(instance.SectionName);
+
+                    MethodInfo extensionMethod = configureExtension.MakeGenericMethod(optionType);
+                    extensionMethod.Invoke(null, [services, section]);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"注册配置选项 {optionType.Name} 失败: {ex.Message}");
+                }
             }
 
             return services;
@@ -796,7 +798,7 @@ namespace NexusStack.Core
         {
             var root = (IConfigurationBuilder)configuration;
 
-            foreach (JsonConfigurationSource source in root.Sources.Where(a => a.GetType() == typeof(JsonConfigurationSource)).Cast<JsonConfigurationSource>())
+            foreach (var source in root.Sources.OfType<JsonConfigurationSource>())
             {
                 var path = Path.Combine(((PhysicalFileProvider)source.FileProvider).Root, source.Path);
                 //Log.Information($"配置文件({(File.Exists(path) ? "有效" : "无效")}):{path}");
