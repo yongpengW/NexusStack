@@ -369,7 +369,7 @@ namespace NexusStack.WebAPI.Controllers
             //var departments = regionDepartments.Concat(shopDepartments).ToList();
 
             //userInfo.Departments = departments;
-            var departmentIdsValue = userInfo?.DepartmentIdsValue?.Split('.').Select(a => a).ToArray();
+            var departmentIdsValue = userInfo.DepartmentIdsValue?.Split('.').Select(a => a).ToArray();
             userInfo.DepartmentIds = departmentIdsValue;
 
             userInfo.UserRoles = userRoles.Select(a => new UserRoleDto
