@@ -38,17 +38,17 @@ namespace NexusStack.Core.Services.Users
 
             if (entity.UserName.IsNotNullOrEmpty() && await ExistsAsync(item => item.UserName == entity.UserName))
             {
-                throw new ErrorCodeException(100201, "此用户名已存在");
+                throw new BusinessException("此用户名已存在");
             }
 
             if (entity.Mobile.IsNotNullOrEmpty() && await ExistsAsync(item => item.Mobile == entity.Mobile))
             {
-                throw new ErrorCodeException(100202, "此手机号码已存在");
+                throw new BusinessException("此手机号码已存在");
             }
 
             if (!entity.Email.IsNullOrEmpty() && await ExistsAsync(a => a.Email == entity.Email))
             {
-                throw new ErrorCodeException(100203, "此邮箱已存在");
+                throw new BusinessException("此邮箱已存在");
             }
 
             await base.InsertAsync(entity, cancellationToken);
@@ -69,12 +69,12 @@ namespace NexusStack.Core.Services.Users
 
             if (user == null)
             {
-                throw new ErrorCodeException(100204, "用户不存在");
+                throw new BusinessException("用户不存在");
             }
 
             if (user.Mobile.IsNullOrEmpty())
             {
-                throw new ErrorCodeException(100205, "请先为用户设置手机号码");
+                throw new BusinessException("请先为用户设置手机号码");
             }
         }
 

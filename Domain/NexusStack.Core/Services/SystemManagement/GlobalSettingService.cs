@@ -1,10 +1,11 @@
-﻿using AutoMapper;
-using Ardalis.Specification;
+﻿using Ardalis.Specification;
+using AutoMapper;
 using NexusStack.Core.Dtos.GlobalSettings;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure;
+using NexusStack.Infrastructure.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -98,7 +99,7 @@ namespace NexusStack.Core.Services.SystemManagement
 
         public async Task<GlobalSettingDto> GetEditGlobalSettingInfo(long id)
         {
-            var entity = await GetAsync(a => a.Id == id) ?? throw new Exception("数据不存在");
+            var entity = await GetAsync(a => a.Id == id) ?? throw new BusinessException("数据不存在");
             var model = Mapper.Map<GlobalSettingDto>(entity);
             return model;
         }
@@ -112,7 +113,7 @@ namespace NexusStack.Core.Services.SystemManagement
 
         public async Task<int> PutAsync(CreateGlobalSettingDto model)
         {
-            var entity = await GetAsync(a => a.Id == model.Id && a.Key == model.Key) ?? throw new Exception("你要修改的数据不存在");
+            var entity = await GetAsync(a => a.Id == model.Id && a.Key == model.Key) ?? throw new BusinessException("你要修改的数据不存在");
 
             entity = Mapper.Map(model, entity);
 

@@ -6,9 +6,16 @@ using System.Text;
 namespace NexusStack.Core.Authentication
 {
     /// <summary>
-    /// Open API请求身份验证方案选项
+    /// 请求身份验证方案选项
     /// </summary>
     public class RequestAuthenticationSchemeOptions : AuthenticationSchemeOptions
+    {
+
+    }
+    /// <summary>
+    /// Token请求身份验证方案选项
+    /// </summary>
+    public class RequestAuthenticationTokenSchemeOptions : AuthenticationSchemeOptions
     {
 
     }

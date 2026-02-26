@@ -16,6 +16,23 @@ namespace NexusStack.Swagger
     public static partial class ServiceCollectionExtensions
     {
         /// <summary>
+        /// 读取嵌入资源内容
+        /// </summary>
+        private static string ReadEmbeddedResource(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+            {
+                Console.WriteLine($"[Swagger] Warning: Embedded resource not found: {resourceName}");
+                return string.Empty;
+            }
+
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
+
+        /// <summary>
         /// 添加 Swagger 文档
         /// </summary>
         /// <param name="services"></param>
@@ -88,51 +105,18 @@ namespace NexusStack.Swagger
                     swaggerOptions.Value?.Endpoints?.ForEach(a => options.SwaggerEndpoint(a.Url, a.Name));
                 }
 
-                options.InjectJavascript("/docs/static/dvs-swagger.js");
-                options.InjectStylesheet("/docs/static/dvs-swagger.css");
+                // 读取嵌入的 JavaScript 和 CSS 内容
+                var jsContent = ReadEmbeddedResource("NexusStack.Swagger.Resources.dvs-swagger.js");
+                var cssContent = ReadEmbeddedResource("NexusStack.Swagger.Resources.dvs-swagger.css");
 
-                options.HeadContent = $"<script type='text/javascript'>var dvs = dvs || {{}};dvs.host='{commonOptions!.Value.Host}'?'{commonOptions.Value.Host}':location.origin;</script>";
+                // 直接在 HeadContent 中内联 JavaScript 和 CSS
+                var hostScript = $"var dvs = dvs || {{}};dvs.host='{commonOptions!.Value.Host}'||location.origin;";
+                options.HeadContent = $"<script type='text/javascript'>{hostScript}{jsContent}</script><style>{cssContent}</style>";
 
                 options.Interceptors.RequestInterceptorFunction = "function(request){{if(window.dvs && dvs.auth && dvs.auth.requestInterceptor){{return dvs.auth.requestInterceptor(request);}}return request;}}";
 
                 //此处需要将文件设置为嵌入的资源
                 options.IndexStream = () => Assembly.GetExecutingAssembly().GetManifestResourceStream("NexusStack.Swagger.Resources.dvs-swagger.html");
-            });
-
-            app.MapGet("/docs/static/dvs-swagger.js", async () =>
-            {
-                var fileProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly());
-
-                var file = fileProvider.GetFileInfo("Resources/dvs-swagger.js");
-
-                if (file.Exists)
-                {
-                    using var stream = file.CreateReadStream();
-
-                    var bytes = new byte[stream.Length];
-                    await stream.ReadAsync(bytes);
-
-                    return Results.File(bytes, contentType: "application/javascript");
-                }
-                return Results.NotFound();
-            });
-
-            app.MapGet("/docs/static/dvs-swagger.css", async () =>
-            {
-                var fileProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly());
-
-                var file = fileProvider.GetFileInfo("Resources/dvs-swagger.css");
-
-                if (file.Exists)
-                {
-                    using var stream = file.CreateReadStream();
-
-                    var bytes = new byte[stream.Length];
-                    await stream.ReadAsync(bytes);
-
-                    return Results.File(bytes, contentType: "text/css");
-                }
-                return Results.NotFound();
             });
 
             return app;
