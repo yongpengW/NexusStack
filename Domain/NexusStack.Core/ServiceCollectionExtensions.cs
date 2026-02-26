@@ -348,7 +348,7 @@ namespace NexusStack.Core
 
                         foreach (JProperty property in textsToken)
                         {
-                            resource.TryAdd($"{property.Name}.{culture}", property.Value?.ToString());
+                            resource.TryAdd($"{property.Name}.{culture}", property.Value?.ToString() ?? string.Empty);
                         }
                     }
 
