@@ -53,7 +53,7 @@ namespace NexusStack.Core.Authentication
                     claims.Add(new Claim(ClaimTypes.Role, a));
                 });
 
-                var claimsIdentity = new ClaimsIdentity(claims, nameof(RequestAuthenticationHandler));
+                var claimsIdentity = new ClaimsIdentity(claims, nameof(RequestAuthenticationTokenHandler));
 
                 var ticket = new AuthenticationTicket(new ClaimsPrincipal(claimsIdentity), this.Scheme.Name);
                 return AuthenticateResult.Success(ticket);
