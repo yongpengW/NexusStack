@@ -259,7 +259,15 @@ namespace NexusStack.WebAPI.Controllers
                     throw new ForbiddenException($"该用户[{user?.UserName}]已被禁用, 请联系IT管理员处理");
                 }
 
-                var departmentIds = user?.DepartmentIds?.Split('.').Select(x => long.Parse(x)).ToList();
+                var departmentIds = new List<long>();
+                foreach (var segment in user.DepartmentIds.Split('.', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (!long.TryParse(segment, out var id))
+                    {
+                        throw new ForbiddenException($"该用户[{user?.UserName}]的区域和门店信息配置不正确, 请联系IT管理员处理");
+                    }
+                    departmentIds.Add(id);
+                }
                 if (departmentIds == null || !departmentIds.Any())
                 {
                     throw new ForbiddenException($"该用户[{user?.UserName}]未分配区域和门店信息, 请联系IT管理员配置");
