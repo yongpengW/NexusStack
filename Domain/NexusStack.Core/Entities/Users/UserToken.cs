@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.EFCore.Entities;
 using NexusStack.Infrastructure.Enums;
 using System;
@@ -62,16 +62,6 @@ namespace NexusStack.Core.Entities.Users
         public PlatformType PlatformType { get; set; }
 
         /// <summary>
-        /// 当前登录的角色编号
-        /// </summary>
-        public long RoleId { get; set; }
-
-        /// <summary>
-        /// 当前登录的区域编号
-        /// </summary>
-        public long RegionId { get; set; }
-
-        /// <summary>
         /// 登录方式
         /// </summary>
         public LoginMethodType LoginMethodType { get; set; }
@@ -85,16 +75,6 @@ namespace NexusStack.Core.Entities.Users
         /// Token 所属用户
         /// </summary>
         public virtual User? User { get; set; }
-
-        /// <summary>
-        /// 角色
-        /// </summary>
-        public virtual Role? Role { get; set; }
-
-        /// <summary>
-        /// 区域
-        /// </summary>
-        public virtual Region? Region { get; set; }
 
         /// <summary>
         /// 登录方式

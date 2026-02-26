@@ -1,4 +1,4 @@
-﻿using NexusStack.Infrastructure.Dtos;
+using NexusStack.Infrastructure.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,8 +23,8 @@ namespace NexusStack.Core.Dtos.Users
         public bool IsDefault { get; set; }
 
         /// <summary>
-        /// 所属业务平台
+        /// 所属业务平台（字符串表示的枚举，如 "Admin, Pc"）
         /// </summary>
-        public string Platforms { get; set; }
+        public string Platforms { get; set; } = string.Empty;
     }
 }

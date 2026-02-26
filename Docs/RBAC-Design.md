@@ -92,7 +92,7 @@ NexusStack 是一个全新架构的后端框架模板，**不存在历史数据�
 
 ---
 
-## 四、关键表设计（待最终确认）
+## 四、关键表设计（V1 已确认）
 
 ### 4.1 User 表
 
@@ -146,9 +146,9 @@ public class Role : AuditedEntity
     public bool IsSystem { get; set; }
     public bool IsEnable { get; set; } = true;
     public int  Order    { get; set; }
+    public PlatformType Platforms { get; set; }  // 采用 [Flags] 平台枚举（见决策 B）
 
     // 导航属性
-    public virtual List<RolePlatform>? RolePlatforms { get; set; }  // ← 替换 Platforms 字符串
     public virtual List<UserRole>?     UserRoles     { get; set; }
     public virtual List<Permission>?   Permissions   { get; set; }
 }
@@ -324,6 +324,47 @@ var apiKeys = MenuResource
   - `Type`：枚举（目录/菜单/按钮/其他）  
   - `Order`：排序  
 
+**当前实现示例（`Menu` 实体）：**
+
+```csharp
+public class Menu : AuditedEntity
+{
+    [MaxLength(256)]
+    public string Name { get; set; }
+
+    [MaxLength(256)]
+    public string Code { get; set; }
+
+    public long       ParentId     { get; set; }
+    public MenuType   Type         { get; set; }
+    public PlatformType PlatformType { get; set; }
+
+    [MaxLength(1024)]
+    public string Icon { get; set; }
+    public MenuIconType IconType { get; set; }
+
+    [MaxLength(1024)]
+    public string ActiveIcon { get; set; }
+    public MenuIconType ActiveIconType { get; set; }
+
+    [MaxLength(1024)]
+    public string Url { get; set; }
+
+    public int  Order        { get; set; }
+    public bool IsVisible    { get; set; }
+    public bool IsExternalLink { get; set; }
+
+    [MaxLength(1024)]
+    public string IdSequences { get; set; }
+
+    public virtual List<Menu>           Children  { get; set; }
+    public virtual Menu                 Parent    { get; set; }
+    public virtual IEnumerable<MenuResource> Resources { get; set; }
+
+    public long SystemId { get; set; } = 0;
+}
+```
+
 ### 6.2 ApiResource（API 资源）表
 
 - **职责**：为每个需要做权限控制的后端 API 建立**稳定的资源编号**。  
@@ -333,6 +374,37 @@ var apiKeys = MenuResource
   - `ControllerName` / `ActionName` / `RequestMethod`：用于构建校验用的 `apiKey`  
   - `RouteTemplate`：可选，用于调试与文档生成  
 
+**当前实现示例（`ApiResource` 实体）：**
+
+```csharp
+public class ApiResource : AuditedEntity
+{
+    [MaxLength(256)]
+    public string? Name { get; set; }
+
+    [MaxLength(256)]
+    public string? Code { get; set; }
+
+    [MaxLength(256)]
+    public string? GroupName { get; set; }
+
+    [MaxLength(256)]
+    public string? RoutePattern { get; set; }
+
+    [MaxLength(256)]
+    public string? NameSpace { get; set; }
+
+    [MaxLength(256)]
+    public string? ControllerName { get; set; }
+
+    [MaxLength(256)]
+    public string? ActionName { get; set; }
+
+    [MaxLength(256)]
+    public string? RequestMethod { get; set; }
+}
+```
+
 ### 6.3 MenuResource（菜单与 API 关联表）
 
 - **职责**：描述"某个菜单/按钮会调用哪些受控 API"。  
@@ -340,6 +412,19 @@ var apiKeys = MenuResource
   - `MenuId`  
   - `ApiResourceId`  
   - 复合唯一索引 `(MenuId, ApiResourceId)`，避免重复配置。  
+
+**当前实现示例（`MenuResource` 实体）：**
+
+```csharp
+public class MenuResource : AuditedEntity
+{
+    public long MenuId       { get; set; }
+    public long ApiResourceId { get; set; }
+
+    public virtual Menu       Menu       { get; set; }
+    public virtual ApiResource ApiResource { get; set; }
+}
+```
 
 > **最佳实践**：  
 > - 角色只直接配置到 `Menu` 上；`MenuResource` 再把菜单映射到一个或多个 `ApiResource`；  

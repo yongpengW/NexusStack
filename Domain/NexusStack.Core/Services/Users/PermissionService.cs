@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Dtos.Menus;
@@ -78,10 +78,10 @@ namespace NexusStack.Core.Services.Users
             {
                 throw new BusinessException("当前角色不存在");
             }
-            var platforms = role.Platforms.Split(',').Select(int.Parse).ToArray();
 
             var query = from m in menuService.GetQueryable().Where(a => a.IsVisible
-                            && (platformType.HasValue ? a.PlatformType == platformType : platforms.Contains((int)a.PlatformType)))
+                            && (platformType.HasValue ? a.PlatformType == platformType
+                                                      : (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)))
                         join p in GetQueryable().Where(a => a.RoleId == roleId) on m.Id equals p.MenuId into pt
                         from pm in pt.DefaultIfEmpty()
                         select new PermissionDto
@@ -142,10 +142,9 @@ namespace NexusStack.Core.Services.Users
 
             foreach (var role in roles)
             {
-                var platforms = role.Platforms.Split(',').Select(int.Parse).ToArray();
-
                 var query = from m in menuService.GetQueryable().Where(a => a.IsVisible
-                                && (platformType.HasValue ? a.PlatformType == platformType : platforms.Contains((int)a.PlatformType)))
+                                && (platformType.HasValue ? a.PlatformType == platformType
+                                                          : (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)))
                             join p in GetQueryable().Where(a => a.RoleId == role.Id) on m.Id equals p.MenuId into pt
                             from pm in pt.DefaultIfEmpty()
                             select new PermissionDto

@@ -1,4 +1,5 @@
-﻿using NexusStack.EFCore.Entities;
+using NexusStack.EFCore.Entities;
+using NexusStack.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -27,14 +28,10 @@ namespace NexusStack.Core.Entities.Users
         [MaxLength(64)]
         public string Name { get; set; } = string.Empty;
 
-
         /// <summary>
-        /// 所属平台类型
+        /// 所属平台类型（Flags 枚举，支持多平台）
         /// </summary>
-        //public PlatformType PlatformType { get; set; }
-
-        [MaxLength(64)]
-        public string Platforms { get; set; } = string.Empty;
+        public PlatformType Platforms { get; set; }
 
         /// <summary>
         /// 别名

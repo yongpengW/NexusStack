@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using NexusStack.Core.Dtos.Users;
@@ -153,14 +153,6 @@ namespace NexusStack.Core.Services.Users
             token.Token = StringExtensions.GenerateToken(user.Id.ToString(), token.ExpirationDate);
             token.TokenHash = StringExtensions.EncodeMD5(token.Token);
             token.RefreshToken = StringExtensions.GenerateToken(token.Token, token.ExpirationDate.AddMonths(1));
-
-            // 获取用户默认角色信息
-            var role = await userRoleService.GetUserDefaultRole(user.Id);
-            if (role != null)
-            {
-                token.RoleId = role.RoleId;
-                //token.RegionId = role.RegionId;
-            }
 
             await InsertAsync(token);
 
