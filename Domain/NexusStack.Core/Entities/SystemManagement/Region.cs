@@ -16,7 +16,8 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// 名称
         /// </summary>
         [MaxLength(64)]
-        public string Name { get; set; }
+        [Required]
+        public required string Name { get; set; }
 
         /// <summary>
         /// 简称
@@ -28,7 +29,8 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// 别名
         /// </summary>
         [MaxLength(64)]
-        public string Code { get; set; }
+        [Required]
+        public required string Code { get; set; }
 
         /// <summary>
         /// 父级编号，无父级为 0
@@ -48,8 +50,7 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// <summary>
         /// Id 序列
         /// </summary>
-        [MaxLength(250)]
-        public string IdSequences { get; set; }
+        public string IdSequences { get; set; } = string.Empty;
 
         /// <summary>
         /// 是否启用

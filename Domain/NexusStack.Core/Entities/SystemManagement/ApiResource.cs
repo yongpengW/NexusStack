@@ -15,7 +15,8 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// 接口名称
         /// </summary>
         [MaxLength(256)]
-        public string? Name { get; set; }
+        [Required]
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// 接口标识

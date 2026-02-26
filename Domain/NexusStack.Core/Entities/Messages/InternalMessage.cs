@@ -1,4 +1,5 @@
 ﻿using NexusStack.EFCore.Entities;
+using NexusStack.Infrastructure.Enums;
 using NexusStack.Infrastructure.Enums.Messages;
 using System;
 using System.Collections.Generic;
@@ -11,18 +12,14 @@ namespace NexusStack.Core.Entities.Messages
     {
         public MessageType MessageType { get; set; }
 
+        [Required]
         [MaxLength(128)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
-        public string Body { get; set; }
+        public string Body { get; set; } = string.Empty;
 
         public string? Attachments { get; set; }
 
-        /// <summary>
-        ///  Admin web: 1
-        ///  安卓设备: 2
-        /// </summary>
-
-        public string PlatformTypes { get; set; }
+        public PlatformType Platforms { get; set; }
     }
 }

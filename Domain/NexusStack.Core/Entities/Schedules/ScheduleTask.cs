@@ -15,7 +15,8 @@ namespace NexusStack.Core.Entities.Schedules
         /// 名称
         /// </summary>
         [MaxLength(256)]
-        public string? Name { get; set; }
+        [Required]
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// 代码，默认为 Schedule 的类名

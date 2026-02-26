@@ -9,10 +9,10 @@ using System.Text;
 
 namespace NexusStack.Core.Services.OpenAppConfigs
 {
-    public interface IWebhookConfigService : IServiceBase<WebhookConfig>
+    public interface IWebhookConfigService : IServiceBase<AppWebhookConfig>
     {
     }
-    public class WebhookConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<WebhookConfig>(dbContext, mapper), IWebhookConfigService, IScopedDependency
+    public class WebhookConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<AppWebhookConfig>(dbContext, mapper), IWebhookConfigService, IScopedDependency
     {
     }
 }

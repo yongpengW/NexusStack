@@ -7,7 +7,7 @@ using System.Text;
 
 namespace NexusStack.Core.Entities.OpenAppConfigs
 {
-    public class ApiNotificationConfig : AuditedEntity
+    public class AppNotificationConfig : AuditedEntity
     {
         /// <summary>
         /// OpenApiConfig表主键Id

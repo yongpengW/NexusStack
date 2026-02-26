@@ -16,13 +16,15 @@ namespace NexusStack.Core.Entities.Messages
         /// 名称
         /// </summary>
         [MaxLength(256)]
-        public string Name { get; set; }
+        [Required]
+        public required string Name { get; set; }
 
         /// <summary>
         /// 标识
         /// </summary>
         [MaxLength(256)]
-        public string Code { get; set; }
+        [Required]
+        public required string Code { get; set; }
 
         /// <summary>
         /// 父级
@@ -55,11 +57,11 @@ namespace NexusStack.Core.Entities.Messages
         /// <summary>
         /// 下级事件
         /// </summary>
-        public virtual List<NotifyEvent> Children { get; set; }
+        public virtual List<NotifyEvent>? Children { get; set; }
 
         /// <summary>
         /// 父级菜单
         /// </summary>
-        public virtual NotifyEvent Parent { get; set; }
+        public virtual NotifyEvent? Parent { get; set; }
     }
 }

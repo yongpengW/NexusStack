@@ -1,4 +1,4 @@
-using NexusStack.Core.Entities.SystemManagement;
+﻿using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.EFCore.Entities;
 using NexusStack.Infrastructure.Enums;
 using System;
@@ -79,6 +79,6 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// 登录方式
         /// </summary>
-        public LoginType LoginType { get; set; }
+        public LoginStatus LoginType { get; set; }
     }
 }

@@ -41,11 +41,14 @@ namespace NexusStack.EFCore
 
         private void TrackerHandler(DbContextEventData eventData)
         {
-            var tracker = eventData.Context.ChangeTracker;
-            tracker.DetectChanges();
+            var tracker = eventData.Context?.ChangeTracker;
+            if (tracker != null)
+            {
+                tracker.DetectChanges();
 
-            SoftDeleteHandler(tracker);
-            AuditHandler(tracker);
+                SoftDeleteHandler(tracker);
+                AuditHandler(tracker);
+            }
         }
 
         /// <summary>
@@ -60,9 +63,9 @@ namespace NexusStack.EFCore
             {
                 foreach (var entry in entities)
                 {
-                    ISoftDelete entity = entry.Entity as ISoftDelete;
+                    ISoftDelete? entity = entry.Entity as ISoftDelete;
 
-                    entity.IsDeleted = true;
+                    entity?.IsDeleted = true;
                     entry.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 }
             }
@@ -83,26 +86,26 @@ namespace NexusStack.EFCore
 
                 foreach (var entry in entities)
                 {
-                    IAuditedEntity entity = entry.Entity as IAuditedEntity;
+                    IAuditedEntity? entity = entry.Entity as IAuditedEntity;
 
                     switch (entry.State)
                     {
                         case Microsoft.EntityFrameworkCore.EntityState.Added:
-                            entity.UpdatedAt = DateTime.Now;
-                            entity.CreatedAt = DateTime.Now;
-                            if (currentUser.IsAuthenticated)
+                            entity?.UpdatedAt = DateTime.UtcNow;
+                            entity?.CreatedAt = DateTime.UtcNow;
+                            if (currentUser != null && currentUser.IsAuthenticated)
                             {
-                                entity.CreatedBy = currentUser.UserId;
-                                entity.UpdatedBy = currentUser.UserId;
+                                entity?.CreatedBy = currentUser.UserId;
+                                entity?.UpdatedBy = currentUser.UserId;
                             }
                             break;
 
                         case Microsoft.EntityFrameworkCore.EntityState.Modified:
                         case Microsoft.EntityFrameworkCore.EntityState.Deleted:
-                            entity.UpdatedAt = DateTime.Now;
-                            if (currentUser.IsAuthenticated)
+                            entity?.UpdatedAt = DateTime.UtcNow;
+                            if (currentUser != null && currentUser.IsAuthenticated)
                             {
-                                entity.UpdatedBy = currentUser.UserId;
+                                entity?.UpdatedBy = currentUser.UserId;
                             }
                             break;
                     }

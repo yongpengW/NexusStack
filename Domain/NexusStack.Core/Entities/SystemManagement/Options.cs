@@ -16,19 +16,15 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// 键
         /// </summary>
         [MaxLength(1024)]
-        public string Key { get; set; }
+        [Required]
+        public required string Key { get; set; }
 
         /// <summary>
         /// 值
         /// </summary>
         [Column(TypeName = "text")]
-        public string Value { get; set; }
-
-        /// <summary>
-        /// 描述
-        /// </summary>
-        [MaxLength(1024)]
-        public string Remark { get; set; }
+        [Required]
+        public required string Value { get; set; }
 
         ///// <summary>
         ///// 租户Id
@@ -44,7 +40,5 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// 所属系统Id
         /// </summary>
         public long SystemId { get; set; } = 0;
-
-
     }
 }

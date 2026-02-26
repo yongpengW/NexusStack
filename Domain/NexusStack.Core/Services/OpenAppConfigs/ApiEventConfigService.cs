@@ -9,10 +9,10 @@ using System.Text;
 
 namespace NexusStack.Core.Services.OpenAppConfigs
 {
-    public interface IApiEventConfigService : IServiceBase<ApiEventConfig>
+    public interface IApiEventConfigService : IServiceBase<AppEventConfig>
     {
     }
-    public class ApiEventConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<ApiEventConfig>(dbContext, mapper), IApiEventConfigService, IScopedDependency
+    public class ApiEventConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<AppEventConfig>(dbContext, mapper), IApiEventConfigService, IScopedDependency
     {
     }
 }

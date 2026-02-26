@@ -46,18 +46,18 @@ namespace NexusStack.Core.Services.EventAlerts
             {
                 if (user != null)
                 {
-                    usersList.Add(user);
-                    var departmentIds = user?.DepartmentIds?.Split('.').Select(x => long.Parse(x)).ToList();
-                    if (departmentIds != null)
-                    {
-                        var userRegions = regions.Where(x => departmentIds.Contains(x.Id)).ToList();
-                        var regionIds = userRegions.Select(x => x.Id).ToList();
-                        //var userShops = shops.Where(x => departmentIds.Contains(x.Id)).ToList();
-                        //var regionShops = shops.Where(x => regionIds.Contains(x.RegionId)).ToList();
-                        //shopIds.AddRange(userShops.Select(x => x.Id).ToList());
-                        //shopIds.AddRange(regionShops.Select(x => x.Id).ToList());
-                        //shopIds = shopIds.Distinct().ToList();
-                    }
+                    //usersList.Add(user);
+                    //var departmentIds = user?.DepartmentIds?.Split('.').Select(x => long.Parse(x)).ToList();
+                    //if (departmentIds != null)
+                    //{
+                    //    var userRegions = regions.Where(x => departmentIds.Contains(x.Id)).ToList();
+                    //    var regionIds = userRegions.Select(x => x.Id).ToList();
+                    //    var userShops = shops.Where(x => departmentIds.Contains(x.Id)).ToList();
+                    //    var regionShops = shops.Where(x => regionIds.Contains(x.RegionId)).ToList();
+                    //    shopIds.AddRange(userShops.Select(x => x.Id).ToList());
+                    //    shopIds.AddRange(regionShops.Select(x => x.Id).ToList());
+                    //    shopIds = shopIds.Distinct().ToList();
+                    //}
                 }
             }
 

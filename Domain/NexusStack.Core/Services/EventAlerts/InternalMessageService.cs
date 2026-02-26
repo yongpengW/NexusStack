@@ -46,49 +46,8 @@ namespace NexusStack.Core.Services.EventAlerts
 
         public async Task<long> PostAsync(CreateInternalMessageDto model)
         {
-            // 创建主数据
-            var internalMessage = new InternalMessage
-            {
-                MessageType = MessageType.InternalMessage,
-                Title = model.Title,
-                Body = model.Content,
-                PlatformTypes = model.PlatformTypes,
-                CreatedBy = currentUser.UserId
-            };
-            if (model.Attachments != null && model.Attachments.Length > 0)
-            {
-                // 上传附件
-                var aliyunStorage = storageFactory.GetStorage(FileStorageType.Aliyun);
-                internalMessage.Attachments = "";
-
-                foreach (var attachment in model.Attachments)
-                {
-                    var result = await aliyunStorage.UploadAsync(attachment.OpenReadStream(), "InternalMessages", attachment.FileName);
-                    if (result.Success)
-                    {
-                        if (!string.IsNullOrEmpty(internalMessage.Attachments))
-                        {
-                            internalMessage.Attachments += ",";
-                        }
-                        internalMessage.Attachments += result.Data;
-                    }
-                }
-            }
-            await InsertAsync(internalMessage);
-            // 创建关联的InternalMessageRecipient数据
-            foreach (var shopId in model.StoreIds)
-            {
-                var recipient = new InternalMessageRecipient
-                {
-                    MessageId = internalMessage.Id,
-                    StoreId = shopId
-                };
-                dbContext.Set<InternalMessageRecipient>().Add(recipient);
-            }
-            // 保存更改
-            await dbContext.SaveChangesAsync();
-            // 返回主数据的Id
-            return internalMessage.Id;
+            // To Do
+            return 0;
         }
 
         public async Task<long> ReadAsync(long id)

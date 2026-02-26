@@ -12,11 +12,11 @@ namespace NexusStack.Core.Services.OpenAppConfigs
     /// <summary>
     /// 开放API配置服务
     /// </summary>
-    public interface IOpenApiConfigService : IServiceBase<OpenApiConfig>
+    public interface IOpenApiConfigService : IServiceBase<AppConfig>
     {
 
     }
-    public class OpenApiConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<OpenApiConfig>(dbContext, mapper), IOpenApiConfigService, IScopedDependency
+    public class OpenApiConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<AppConfig>(dbContext, mapper), IOpenApiConfigService, IScopedDependency
     {
 
     }

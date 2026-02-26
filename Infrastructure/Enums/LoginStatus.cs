@@ -4,7 +4,10 @@ using System.Text;
 
 namespace NexusStack.Infrastructure.Enums
 {
-    public enum LoginType
+    /// <summary>
+    /// 登录状态
+    /// </summary>
+    public enum LoginStatus
     {
         /// <summary>
         /// 登录状态
