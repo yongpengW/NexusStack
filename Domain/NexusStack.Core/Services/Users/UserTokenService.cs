@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
@@ -31,7 +32,8 @@ namespace NexusStack.Core.Services.Users
         IRedisService redisService,
         IUserService userService,
         IUserRoleService userRoleService,
-        IHttpContextAccessor httpContextAccessor) : ServiceBase<UserToken>(dbContext, mapper), IUserTokenService, IScopedDependency
+        IHttpContextAccessor httpContextAccessor,
+        IHostEnvironment hostEnvironment) : ServiceBase<UserToken>(dbContext, mapper), IUserTokenService, IScopedDependency
     {
         public async Task<CaptchaDto> GenerateCaptchaAsync()
         {
@@ -94,8 +96,8 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("该用户还未设置密码");
             }
 
-            // swagger特殊登录
-            if (password.StartsWith("swagger"))
+            // swagger特殊登录（仅在开发环境中允许）
+            if (hostEnvironment.IsDevelopment() && password.StartsWith("swagger"))
             {
                 password = password[7..];
             }
