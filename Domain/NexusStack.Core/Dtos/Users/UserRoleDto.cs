@@ -18,13 +18,8 @@ namespace NexusStack.Core.Dtos.Users
         public string RoleName { get; set; }
 
         /// <summary>
-        /// 是否默认角色
+        /// 所属业务平台（Flags 枚举，可多选）
         /// </summary>
-        public bool IsDefault { get; set; }
-
-        /// <summary>
-        /// 所属业务平台（字符串表示的枚举，如 "Admin, Pc"）
-        /// </summary>
-        public string Platforms { get; set; } = string.Empty;
+        public PlatformType Platforms { get; set; }
     }
 }

@@ -229,6 +229,9 @@ namespace NexusStack.Core.Services.Users
         /// </summary>
         public async Task<bool> HasApiPermissionAsync(long userId, PlatformType platformType, string controllerName, string actionName, string httpMethod)
         {
+            // 规范化 HTTP 方法，确保与 InitApiResourceService 中保存的一致（大写）
+            httpMethod = httpMethod.ToUpperInvariant();
+
             // 1. 拿到用户在该平台下的所有角色
             var roleIds = await dbContext.Set<UserRole>()
                 .Join(roleService.GetQueryable(), ur => ur.RoleId, r => r.Id, (ur, r) => new { ur, r })

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,9 +11,5 @@ namespace NexusStack.Core.Dtos.Roles
         /// </summary>
         public long RoleId { get; set; }
 
-        /// <summary>
-        /// 区域 Id
-        /// </summary>
-        public long RegionId { get; set; }
     }
 }

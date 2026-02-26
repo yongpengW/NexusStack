@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Infrastructure.Dtos;
 using NexusStack.Infrastructure.Enums;
@@ -62,20 +62,8 @@ namespace NexusStack.Core.Dtos.Users
 
         public string? Remark { get; set; }
 
-        public string? DepartmentIdsValue { get; set; }
-
         /// <summary>
-        /// 部门 Id集合
-        /// </summary>
-        public string[] DepartmentIds { get; set; } = [];
-
-        /// <summary>
-        /// 用户角色
-        /// </summary>
-        public List<UserRoleDto> UserRoles { get; set; } = new List<UserRoleDto>();
-
-        /// <summary>
-        /// 用户部门
+        /// 用户所属组织单元（当前指向 Region）
         /// </summary>
         public List<UserDepartmentDto> Departments { get; set; } = new List<UserDepartmentDto>();
     }
@@ -83,44 +71,7 @@ namespace NexusStack.Core.Dtos.Users
     public class CurrentUserDto : UserDto
     {
         /// <summary>
-        /// 角色 Id
-        /// </summary>
-        public long RoleId { get; set; }
-
-        /// <summary>
-        /// 角色名称
-        /// </summary>
-        public string RoleName { get; set; }
-
-        /// <summary>
-        /// 角色区域 Id
-        /// </summary>
-        public long RegionId { get; set; }
-
-        /// <summary>
-        /// 区域名称
-        /// </summary>
-        public string RegionName { get; set; }
-
-        public string[] RegionFullName { get; set; }
-
-        /// <summary>
-        /// 人口身份证号码
-        /// </summary>
-        public string IdCard { get; set; }
-
-        /// <summary>
-        /// 区域等级
-        /// </summary>
-        public RegionLevel RegionLevel { get; set; }
-
-        /// <summary>
-        /// 是否关注公众号
-        /// </summary>
-        //public bool IsSubscribed { get; set; }
-
-        /// <summary>
-        /// 签名url
+        /// 当前登录用户的扩展信息（可按业务需要继续扩展）
         /// </summary>
         public string SignatureUrl { get; set; }
     }
