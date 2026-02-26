@@ -311,7 +311,7 @@ namespace NexusStack.WebAPI.Controllers
                 await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.Roles, string.Join(',', userRoles.Select(x => x.Role.Id).Distinct()), CoreRedisConstants.DefaultExpireSeconds);
                 await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.Regions, string.Join(',', regions.Select(x => x.Id).Distinct()), CoreRedisConstants.DefaultExpireSeconds);
                 //await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.Shops, string.Join(',', shops.Select(x => x.Id).Distinct()), CoreRedisConstants.DefaultExpireSeconds);
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.IsEnable, user?.IsEnable == true ? "1" : "0", CoreRedisConstants.DefaultExpireSeconds);
+                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.IsEnable, user.IsEnable == true ? "1" : "0", CoreRedisConstants.DefaultExpireSeconds);
             }
         }
 
