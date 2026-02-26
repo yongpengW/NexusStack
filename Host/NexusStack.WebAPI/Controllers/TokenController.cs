@@ -110,10 +110,10 @@ namespace NexusStack.WebAPI.Controllers
         [HttpGet("permission")]
         public async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(PlatformType platformType)
         {
-            return await GetCurrentUserPermissionAsync(CurrentUser.UserId, CurrentUser.Roles, platformType);
+            return await GetCurrentUserPermissionAsync(CurrentUser.UserId, platformType);
         }
 
-        private async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(long userId, long[] roles, PlatformType platformType)
+        private async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(long userId, PlatformType platformType)
         {
             var menuFilter = PredicateBuilder.New<Menu>(true).And(a => a.PlatformType == platformType);
             var query = (from p in permissionService.GetQueryable()
@@ -121,7 +121,6 @@ namespace NexusStack.WebAPI.Controllers
                          join ur in userRoleService.GetQueryable() on p.RoleId equals ur.RoleId
                          join r in userService.GetQueryable() on ur.UserId equals r.Id
                          where ur.UserId == userId
-                         && roles.Contains(ur.RoleId)
                          && m.IsVisible
                          select new RolePermissionDto
                          {

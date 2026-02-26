@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NexusStack.Core.Attributes;
 using NexusStack.Core.EventData;
@@ -38,12 +38,6 @@ namespace NexusStack.Core.Filters
             }
 
             var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
-
-            //var menuCode = context.HttpContext.Request.Headers["Menu-Code"].ToString();
-
-            //var ipAddress = context.HttpContext.Connection.RemoteIpAddress?.ToString();
-            // 获取 Action 注释
-            //var commentsInfo = DocsHelper.GetMethodComments(actionDescriptor.ControllerTypeInfo.Assembly.GetName().Name, actionDescriptor.MethodInfo);
 
             if (actionDescriptor != null)
             {

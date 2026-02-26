@@ -93,44 +93,6 @@ namespace NexusStack.Core.Authentication
             {
                 throw new AuthenticationFailureException("请求方式不正确，开放接口只允许POST请求");
             }
-
-            #region 废弃代码
-
-            //var token = Request.Headers.Authorization.ToString();
-
-            //if (!string.IsNullOrEmpty(token))
-            //{
-            //    token = token.Trim();
-
-            //    // 验证 Token 是否有效，并获取用户信息
-            //    var userToken = await userTokenService.ValidateTokenAsync(token);
-            //    if (userToken == null)
-            //    {
-            //        return AuthenticateResult.Fail("Invalid Token!");
-            //    }
-
-            //    var claims = new List<Claim>
-            //    {
-            //        new(PosClaimTypes.RegionId, userToken.RegionId.ToString()),
-            //        new(PosClaimTypes.UserId, userToken.UserId.ToString()),
-            //        new(PosClaimTypes.Token, token),
-            //        new(PosClaimTypes.RoleId, userToken.RoleId.ToString()),
-            //        new(ClaimTypes.NameIdentifier, userToken.UserId.ToString()),
-            //        new(PosClaimTypes.TokenId, userToken.Id.ToString()),
-            //        new(PosClaimTypes.PlatFormType, userToken.PlatformType.ToString()),
-            //    };
-
-            //    userToken.Roles.ForEach(a =>
-            //    {
-            //        claims.Add(new Claim(ClaimTypes.Role, a));
-            //    });
-
-            //    var claimsIdentity = new ClaimsIdentity(claims, nameof(RequestAuthenticationHandler));
-            //    var ticket = new AuthenticationTicket(new ClaimsPrincipal(claimsIdentity), this.Scheme.Name);
-            //    return AuthenticateResult.Success(ticket);
-            //}
-            //return AuthenticateResult.NoResult();
-            #endregion
         }
     }
 }

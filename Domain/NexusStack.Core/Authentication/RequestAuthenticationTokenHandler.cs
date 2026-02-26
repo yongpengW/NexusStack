@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NexusStack.Core.Services.Interfaces;
@@ -25,7 +25,7 @@ public class RequestAuthenticationTokenHandler(
             {
                 token = token.Trim();
 
-                // 验证 Token 是否有效，并获取用户信息
+                // 验证 Token 是否有效，并获取用户信息（从 Redis / 数据库）
                 var userToken = await userTokenService.ValidateTokenAsync(token);
                 if (userToken == null)
                 {
@@ -34,20 +34,12 @@ public class RequestAuthenticationTokenHandler(
 
                 var claims = new List<Claim>
                 {
-                    new(CoreClaimTypes.RegionId, userToken.RegionId.ToString()),
                     new(CoreClaimTypes.UserId, userToken.UserId.ToString()),
                     new(CoreClaimTypes.Token, token),
-                    new(CoreClaimTypes.RoleId, userToken.RoleId.ToString()),
                     new(ClaimTypes.NameIdentifier, userToken.UserId.ToString()),
                     new(CoreClaimTypes.TokenId, userToken.Id.ToString()),
                     new(CoreClaimTypes.PlatFormType, userToken.PlatformType.ToString()),
                 };
-
-                // 将当前用户的所有角色添加到 Claims 中
-                userToken.Roles.ForEach(a =>
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, a));
-                });
 
                 var claimsIdentity = new ClaimsIdentity(claims, nameof(RequestAuthenticationTokenHandler));
 
