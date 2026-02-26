@@ -671,9 +671,10 @@ namespace NexusStack.Core
         public static IApplicationBuilder UseStaticFileServer(this IApplicationBuilder app)
         {
             var storageOptions = app.ApplicationServices.GetService<IOptions<StorageOptions>>();
+            var uploadPath = storageOptions?.Value?.Path;
             var staticDirectory = Path.Combine(
-                AppContext.BaseDirectory, 
-                storageOptions?.Value?.Path.IsNullOrEmpty() == false ? storageOptions.Value.Path : "uploads");
+                AppContext.BaseDirectory,
+                uploadPath.IsNullOrEmpty() ? "uploads" : uploadPath);
 
             var forwardedHeadersOptions = new ForwardedHeadersOptions
             {
