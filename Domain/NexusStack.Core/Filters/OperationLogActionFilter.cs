@@ -22,6 +22,7 @@ namespace NexusStack.Core.Filters
     /// </summary>
     public class OperationLogActionFilter(IOperationLogService operationLogService, IEventPublisher publisher, ICurrentUser currentUser) : IAsyncActionFilter
     {
+        private static readonly Regex _placeholderRegex = new(@"\{([\w\.]+)\}", RegexOptions.Compiled);
         /// <summary>
         /// 执行时机可通过代码中的的位置（await next();）来分辨
         /// </summary>
@@ -51,13 +52,16 @@ namespace NexusStack.Core.Filters
 
                 //系统刚上线阶段 所有的接口都记录日志
                 //OperationLogActionAttribute 标记自定义操作日志内容（可加入参数）
-                var logAttribute = actionDescriptor.MethodInfo.GetCustomAttribute<OperationLogActionAttribute>();
+                var logAttribute = actionDescriptor.MethodInfo.GetCustomAttribute<OperationLogActionAttribute>()
+                    ?? actionDescriptor.ControllerTypeInfo.GetCustomAttribute<OperationLogActionAttribute>();
 
                 var method = context.HttpContext.Request.Method;
 
                 var logMessage = string.Empty;
+                var module = string.Empty;
                 if (logAttribute != null)
                 {
+                    module = logAttribute.Module;
                     logMessage = logAttribute.MessageTemplate;
                     if (!string.IsNullOrEmpty(logMessage))
                     {
@@ -65,18 +69,24 @@ namespace NexusStack.Core.Filters
                     }
                 }
 
+                // Module 未指定时回退到控制器名称
+                if (string.IsNullOrEmpty(module))
+                {
+                    module = actionDescriptor.ControllerName;
+                }
+
                 var apiPath = context.HttpContext.Request.Path;
                 //var userAgent = context.HttpContext.Request.Headers["User-Agent"];
 
                 //修改为MQ记录操作日志
                 var pushData = new OperationLogEventData();
-                pushData.Code = apiPath;
+                pushData.Code = module;
                 pushData.Content = logMessage;
                 pushData.Json = json;
                 pushData.UserId = currentUser.UserId;
                 pushData.IpAddress = context.HttpContext.Request.GetRemoteIpAddress();
                 pushData.UserAgent = context.HttpContext.Request.Headers.UserAgent!;
-                pushData.Method = method ?? string.Empty;
+                pushData.Method = $"{method} {apiPath}";
                 pushData.LogType = LogType.Request;
 
                 publisher.Publish(pushData);
@@ -93,19 +103,12 @@ namespace NexusStack.Core.Filters
         /// <param name="logMessage"></param>
         private void CreateOperationLogContent(string json, ref string logMessage)
         {
-            JObject jObject = JObject.Parse(json);
-
-            // 正则提取参数
-            Regex regex = new Regex(@"\{([\w\.]+)\}");
-            MatchCollection matches = regex.Matches(logMessage);
-
-            // 替换
-            foreach (Match match in matches)
+            var jObject = JObject.Parse(json);
+            logMessage = _placeholderRegex.Replace(logMessage, match =>
             {
-                Console.WriteLine(match.Groups[1].Value);
                 var key = match.Groups[1].Value;
-                logMessage = logMessage.Replace($"{{{key}}}", jObject.SelectToken(key).Value<string>());
-            }
+                return jObject.SelectToken(key)?.Value<string>() ?? match.Value;
+            });
         }
         /// <summary>
         /// 检查是否应该跳过日志记录

@@ -21,20 +21,23 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// Token
         /// </summary>
+        [Required]
         [MaxLength(256)]
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
 
         /// <summary>
         /// Token Hash 用于查询
         /// </summary>
+        [Required]
         [MaxLength(32)]
-        public string TokenHash { get; set; }
+        public string TokenHash { get; set; } = string.Empty;
 
         /// <summary>
         /// Refresh Token
         /// </summary>
+        [Required]
         [MaxLength(256)]
-        public string RefreshToken { get; set; }
+        public string RefreshToken { get; set; } = string.Empty;
 
         /// <summary>
         /// 过期时间
@@ -81,17 +84,17 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// Token 所属用户
         /// </summary>
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         /// <summary>
         /// 角色
         /// </summary>
-        public virtual Role Role { get; set; }
+        public virtual Role? Role { get; set; }
 
         /// <summary>
         /// 区域
         /// </summary>
-        public virtual Region Region { get; set; }
+        public virtual Region? Region { get; set; }
 
         /// <summary>
         /// 登录方式

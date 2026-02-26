@@ -38,7 +38,6 @@ public class RequestAuthenticationTokenHandler(
                     new(CoreClaimTypes.UserId, userToken.UserId.ToString()),
                     new(CoreClaimTypes.Token, token),
                     new(CoreClaimTypes.RoleId, userToken.RoleId.ToString()),
-                    //new(CoreClaimTypes.PopulationId, userToken.PopulationId.ToString()),
                     new(ClaimTypes.NameIdentifier, userToken.UserId.ToString()),
                     new(CoreClaimTypes.TokenId, userToken.Id.ToString()),
                     new(CoreClaimTypes.PlatFormType, userToken.PlatformType.ToString()),

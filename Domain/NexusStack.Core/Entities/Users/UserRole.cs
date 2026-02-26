@@ -28,11 +28,11 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// 用户信息
         /// </summary>
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         /// <summary>
         /// 角色信息
         /// </summary>
-        public virtual Role Role { get; set; }
+        public virtual Role? Role { get; set; }
     }
 }

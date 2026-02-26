@@ -15,37 +15,39 @@ namespace NexusStack.Core.Entities.Users
         /// 手机号码
         /// </summary>
         [MaxLength(15)]
-        public string Mobile { get; set; }
+        public string? Mobile { get; set; }
 
         /// <summary>
         /// 真实姓名
         /// </summary>
         [MaxLength(128)]
-        public string RealName { get; set; }
+        public string? RealName { get; set; }
 
         /// <summary>
         /// 用户名
         /// </summary>
+        [Required]
         [MaxLength(128)]
-        public string UserName { get; set; }
+        public string UserName { get; set; } = string.Empty;
 
         /// <summary>
         /// 昵称
         /// </summary>
         [MaxLength(128)]
-        public string NickName { get; set; }
+        public string? NickName { get; set; }
 
         /// <summary>
         /// 密码
         /// </summary>
+        [Required]
         [MaxLength(256)]
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
 
         /// <summary>
         /// Password Salt
         /// </summary>
         [MaxLength(256)]
-        public string PasswordSalt { get; set; }
+        public string PasswordSalt { get; set; } = string.Empty;
 
         /// <summary>
         /// 是否启用
@@ -61,13 +63,14 @@ namespace NexusStack.Core.Entities.Users
         /// 头像
         /// </summary>
         [MaxLength(512)]
-        public string Avatar { get; set; }
+        public string? Avatar { get; set; }
 
         /// <summary>
         /// 邮箱
         /// </summary>
+        [Required]
         [MaxLength(120)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// 最后登录时间
@@ -77,7 +80,7 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// 签名url
         /// </summary>
-        public string SignatureUrl { get; set; }
+        public string? SignatureUrl { get; set; }
 
         /// <summary>
         /// 用户所属部门
@@ -87,12 +90,12 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// 用户所有角色
         /// </summary>
-        public virtual List<Role> Roles { get; set; }
+        public virtual List<Role>? Roles { get; set; }
 
         /// <summary>
         /// 角色用户关系数据
         /// </summary>
-        public virtual List<UserRole> UserRoles { get; set; }
+        public virtual List<UserRole>? UserRoles { get; set; }
     }
 
     /// <summary>

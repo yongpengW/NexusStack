@@ -34,12 +34,12 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// 菜单
         /// </summary>
-        public virtual Menu Menu { get; set; }
+        public virtual Menu? Menu { get; set; }
 
         /// <summary>
         /// 角色
         /// </summary>
-        public virtual Role Role { get; set; }
+        public virtual Role? Role { get; set; }
     }
 
     /// <summary>
