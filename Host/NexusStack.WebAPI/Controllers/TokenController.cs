@@ -239,11 +239,11 @@ namespace NexusStack.WebAPI.Controllers
                     var newUserRole = new UserRole
                     {
                         UserId = createUser.Id,
-                        RoleId = SystemRoleConstants.DEFAULTROLEID,
+                        RoleId = SystemRoleConstants.DefaultRoleId,
                         IsDefault = true
                     };
                     //检查系统默认角色是否已存在
-                    var existRoles = await userRoleService.CheckUserRoleExists(createUser.Id, SystemRoleConstants.DEFAULTROLEID);
+                    var existRoles = await userRoleService.CheckUserRoleExists(createUser.Id, SystemRoleConstants.DefaultRoleId);
                     if (!existRoles) await userRoleService.InsertAsync(newUserRole);
                 }
 
@@ -273,11 +273,17 @@ namespace NexusStack.WebAPI.Controllers
                     throw new ForbiddenException($"该用户[{user?.UserName}]未分配任何有效角色, 请联系IT管理员配置");
                 }
 
-                var platforms = new List<int>();
-                userRoles.ForEach(x =>
+                var platforms = new HashSet<int>();
+                foreach (var role in userRoles)
                 {
-                    platforms.AddRange(x.Role.Platforms.Split(',').Select(int.Parse));
-                });
+                    foreach (var part in role.Role.Platforms.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (int.TryParse(part, out var platformId))
+                        {
+                            platforms.Add(platformId);
+                        }
+                    }
+                }
                 //var allowedPlatforms = new List<int> { 0, 1, 2 }; //允许登录的平台类型
                 //判断是否有权限登录当前平台
                 if (!platforms.Any(x => allowedPlatforms != null && allowedPlatforms.Contains(x)))
