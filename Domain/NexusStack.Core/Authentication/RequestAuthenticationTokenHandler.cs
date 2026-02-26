@@ -10,15 +10,12 @@ using System.Text.Encodings.Web;
 
 namespace NexusStack.Core.Authentication
 {
-#pragma warning disable CS0618 // 类型或成员已过时 - AuthenticationHandler 基类仍需要 ISystemClock
-    public class RequestAuthenticationTokenHandler(
-        IOptionsMonitor<RequestAuthenticationTokenSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder,
-        ISystemClock clock,
-        IUserTokenService userTokenService
-    ) : AuthenticationHandler<RequestAuthenticationTokenSchemeOptions>(options, logger, encoder, clock)
-#pragma warning restore CS0618
+public class RequestAuthenticationTokenHandler(
+    IOptionsMonitor<RequestAuthenticationTokenSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    IUserTokenService userTokenService
+) : AuthenticationHandler<RequestAuthenticationTokenSchemeOptions>(options, logger, encoder)
     {
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
@@ -32,7 +29,7 @@ namespace NexusStack.Core.Authentication
                 var userToken = await userTokenService.ValidateTokenAsync(token);
                 if (userToken == null)
                 {
-                    return AuthenticateResult.Fail("Invalid Token!");
+                    return AuthenticateResult.Fail("Invalid Token");
                 }
 
                 var claims = new List<Claim>

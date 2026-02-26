@@ -1,8 +1,8 @@
-﻿var dvs = dvs || {};
+﻿var nexusstack = nexusstack || {};
 (function () {
-    dvs.utils = dvs.utils || {};
+    nexusstack.utils = nexusstack.utils || {};
 
-    dvs.utils.setCookieValue = function (key, value, expireDate, path) {
+    nexusstack.utils.setCookieValue = function (key, value, expireDate, path) {
         var cookieValue = encodeURIComponent(key) + '=';
 
         if (value) {
@@ -20,7 +20,7 @@
         document.cookie = cookieValue;
     };
 
-    dvs.utils.getCookieValue = function (key) {
+    nexusstack.utils.getCookieValue = function (key) {
         var equalities = document.cookie.split('; ');
         for (var i = 0; i < equalities.length; i++) {
             if (!equalities[i]) {
@@ -40,39 +40,39 @@
         return null;
     };
 
-    dvs.auth = dvs.auth || {};
+    nexusstack.auth = nexusstack.auth || {};
 
-    dvs.auth.tokenHeaderName = 'Authorization';
-    dvs.auth.tokenCookieName = 'DVS.AuthToken';
+    nexusstack.auth.tokenHeaderName = 'Authorization';
+    nexusstack.auth.tokenCookieName = 'NexusStack.AuthToken';
 
-    dvs.auth.getToken = function () {
-        return dvs.utils.getCookieValue(dvs.auth.tokenCookieName);
+    nexusstack.auth.getToken = function () {
+        return nexusstack.utils.getCookieValue(nexusstack.auth.tokenCookieName);
     };
 
-    dvs.auth.setToken = function (token, expireDate) {
+    nexusstack.auth.setToken = function (token, expireDate) {
         console.log('SetToken', token, expireDate);
-        dvs.utils.setCookieValue(dvs.auth.tokenCookieName, token, expireDate, '/');
+        nexusstack.utils.setCookieValue(nexusstack.auth.tokenCookieName, token, expireDate, '/');
     };
 
-    dvs.auth.clearToken = function () {
-        dvs.auth.setToken();
+    nexusstack.auth.clearToken = function () {
+        nexusstack.auth.setToken();
     };
 
-    dvs.auth.requestInterceptor = function (request) {
-        var token = dvs.auth.getToken();
+    nexusstack.auth.requestInterceptor = function (request) {
+        var token = nexusstack.auth.getToken();
         request.headers.Authorization = token;
 
         return request;
     };
 
-    dvs.swagger = dvs.swagger || {};
+    nexusstack.swagger = nexusstack.swagger || {};
 
-    dvs.swagger.openAuthDialog = function (loginCallback) {
-        dvs.swagger.closeAuthDialog();
+    nexusstack.swagger.openAuthDialog = function (loginCallback) {
+        nexusstack.swagger.closeAuthDialog();
 
         var authDialog = document.createElement('div');
         authDialog.className = 'dialog-ux';
-        authDialog.id = 'dvs-auth-dialog';
+        authDialog.id = 'nexusstack-auth-dialog';
 
         authDialog.innerHTML = `<div class="backdrop-ux"></div>
         <div class="modal-ux">
@@ -111,34 +111,34 @@
         document.getElementsByClassName('swagger-ui')[1].appendChild(authDialog);
 
         authDialog.querySelector('.btn-done.modal-btn').onclick = function () {
-            dvs.swagger.closeAuthDialog();
+            nexusstack.swagger.closeAuthDialog();
         };
 
         authDialog.querySelector('.authorize.modal-btn').onclick = function () {
-            dvs.swagger.login(loginCallback);
+            nexusstack.swagger.login(loginCallback);
         };
 
         window.addEventListener("keydown", function (event) {
             console.log(event.key, "event.key");
             if (event.key === 'Enter') {
-                dvs.swagger.login(loginCallback);
+                nexusstack.swagger.login(loginCallback);
             }
         });
         authDialog.querySelector('.close-modal').onclick = function () {
-            dvs.swagger.closeAuthDialog();
+            nexusstack.swagger.closeAuthDialog();
         };
 
         // 加载验证码
         loadCaptcha();
     };
 
-    dvs.swagger.closeAuthDialog = function () {
-        if (document.getElementById('dvs-auth-dialog')) {
-            document.getElementsByClassName('swagger-ui')[1].removeChild(document.getElementById('dvs-auth-dialog'));
+    nexusstack.swagger.closeAuthDialog = function () {
+        if (document.getElementById('nexusstack-auth-dialog')) {
+            document.getElementsByClassName('swagger-ui')[1].removeChild(document.getElementById('nexusstack-auth-dialog'));
         }
     };
 
-    dvs.swagger.login = async function (callback) {
+    nexusstack.swagger.login = async function (callback) {
         var data = {
             userName: document.getElementById('username').value,
             // 密码暂时前端通过base64进行转码加密，swagger这里做特殊处理
@@ -157,7 +157,7 @@
             return;
         }
 
-        await fetch(`${dvs.host}/api/basic/token/password`, {
+        await fetch(`${nexusstack.host}/api/basic/token/password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -168,7 +168,7 @@
             .then(async (response) => {
                 if (response.code === 200) {
                     var expireDate = new Date(response.data.expirationDate);
-                    dvs.auth.setToken(response.data.token, expireDate);
+                    nexusstack.auth.setToken(response.data.token, expireDate);
                     callback();
                 } else {
                     alert(response.message);
@@ -178,8 +178,8 @@
             });
     };
 
-    dvs.swagger.logout = function () {
-        dvs.auth.clearToken();
+    nexusstack.swagger.logout = function () {
+        nexusstack.auth.clearToken();
     };
 
     function createCaptcha(container, id, title) {
@@ -211,7 +211,7 @@
     }
 
     async function loadCaptcha() {
-        fetch(`${dvs.host}/api/basic/Token/captcha`)
+        fetch(`${nexusstack.host}/api/Token/captcha`)
             .then((response) => response.json())
             .then((response) => {
                 console.log('Captcha:', response);
@@ -245,4 +245,52 @@
 
         container.appendChild(wrapper);
     }
+
+    // 拦截 SwaggerUIBundle 的赋值，在配置初始化时注入自定义 authorizeBtn 插件。
+    // nexusstack-swagger.js 通过 HeadContent 注入在 <head>，此时 <body> 里的
+    // swagger-ui-bundle.js 尚未加载，因此可以通过 defineProperty setter 安全拦截。
+    (function () {
+        var _original;
+        Object.defineProperty(window, 'SwaggerUIBundle', {
+            configurable: true,
+            get: function () { return _original; },
+            set: function (fn) {
+                _original = function (config) {
+                    function getCssClass() {
+                        return (nexusstack.auth && nexusstack.auth.getToken && nexusstack.auth.getToken()) ? 'cancel' : 'authorize';
+                    }
+                    function getText() {
+                        return (nexusstack.auth && nexusstack.auth.getToken && nexusstack.auth.getToken()) ? '退出' : '登录';
+                    }
+
+                    config.plugins = (config.plugins || []).concat([function (system) {
+                        return {
+                            components: {
+                                authorizeBtn: function () {
+                                    return system.React.createElement(
+                                        'div', { className: 'auth-wrapper' },
+                                        system.React.createElement('button', {
+                                            id: 'authorize',
+                                            className: 'btn ' + getCssClass(),
+                                            style: { lineHeight: 'normal' },
+                                            onClick: function () {
+                                                if (nexusstack.auth.getToken()) {
+                                                    nexusstack.swagger.logout();
+                                                    location.reload();
+                                                } else {
+                                                    nexusstack.swagger.openAuthDialog(function () { location.reload(); });
+                                                }
+                                            }
+                                        }, getText())
+                                    );
+                                }
+                            }
+                        };
+                    }]);
+                    return fn(config);
+                };
+                Object.assign(_original, fn);
+            }
+        });
+    })();
 })();

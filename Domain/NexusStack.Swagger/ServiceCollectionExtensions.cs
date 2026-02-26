@@ -75,7 +75,7 @@ namespace NexusStack.Swagger
 
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path.Value.Equals("/swagger"))
+                if (context.Request.Path.Value?.Equals("/swagger") == true)
                 {
                     context.Response.Redirect("/docs/index.html");
                     return;
@@ -96,7 +96,7 @@ namespace NexusStack.Swagger
                 options.RoutePrefix = routePrefix;
                 options.DocumentTitle = documentTilte;
 
-                if (app.Environment.IsDevelopment() || swaggerOptions.Value.Endpoints == null)
+                if (app.Environment.IsDevelopment() || swaggerOptions?.Value.Endpoints == null)
                 {
                     options.SwaggerEndpoint($"/api/{name}/swagger.json", title);
                 }
@@ -106,17 +106,15 @@ namespace NexusStack.Swagger
                 }
 
                 // 读取嵌入的 JavaScript 和 CSS 内容
-                var jsContent = ReadEmbeddedResource("NexusStack.Swagger.Resources.dvs-swagger.js");
-                var cssContent = ReadEmbeddedResource("NexusStack.Swagger.Resources.dvs-swagger.css");
+                var jsContent = ReadEmbeddedResource("NexusStack.Swagger.Resources.nexusstack-swagger.js");
+                var cssContent = ReadEmbeddedResource("NexusStack.Swagger.Resources.nexusstack-swagger.css");
 
                 // 直接在 HeadContent 中内联 JavaScript 和 CSS
-                var hostScript = $"var dvs = dvs || {{}};dvs.host='{commonOptions!.Value.Host}'||location.origin;";
+                var safeHost = commonOptions!.Value.Host?.Replace("\\", "\\\\").Replace("'", "\\'") ?? string.Empty;
+                var hostScript = $"var nexusstack = nexusstack || {{}};nexusstack.host='{safeHost}'||location.origin;";
                 options.HeadContent = $"<script type='text/javascript'>{hostScript}{jsContent}</script><style>{cssContent}</style>";
 
-                options.Interceptors.RequestInterceptorFunction = "function(request){{if(window.dvs && dvs.auth && dvs.auth.requestInterceptor){{return dvs.auth.requestInterceptor(request);}}return request;}}";
-
-                //此处需要将文件设置为嵌入的资源
-                options.IndexStream = () => Assembly.GetExecutingAssembly().GetManifestResourceStream("NexusStack.Swagger.Resources.dvs-swagger.html");
+                options.Interceptors.RequestInterceptorFunction = "function(request){if(window.nexusstack && nexusstack.auth && nexusstack.auth.requestInterceptor){return nexusstack.auth.requestInterceptor(request);}return request;}";
             });
 
             return app;
