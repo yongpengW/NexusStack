@@ -122,43 +122,45 @@
                     return (window.dvs && dvs.auth && dvs.auth.getToken && dvs.auth.getToken()) ? '退出' : '登录';
                 }
 
-                configObject.plugins = [
-                    function (system) {
-                        return {
-                            components: {
-                                authorizeBtn: function () {
-                                    return system.React.createElement(
-                                        'div',
-                                        {
-                                            className: 'auth-wrapper',
-                                        },
-                                        system.React.createElement(
-                                            'button',
+                if (!skipAuth) {
+                    configObject.plugins = [
+                        function (system) {
+                            return {
+                                components: {
+                                    authorizeBtn: function () {
+                                        return system.React.createElement(
+                                            'div',
                                             {
-                                                id: 'authorize',
-                                                className: 'btn ' + getAuthorizeButtonCssClass(),
-                                                style: {
-                                                    lineHeight: 'normal',
-                                                },
-                                                onClick: function () {
-                                                    if (dvs.auth.getToken()) {
-                                                        dvs.swagger.logout();
-                                                        location.reload();
-                                                    } else {
-                                                        dvs.swagger.openAuthDialog(function () {
-                                                            location.reload();
-                                                        });
-                                                    }
-                                                },
+                                                className: 'auth-wrapper',
                                             },
-                                            getAuthorizeButtonText()
-                                        )
-                                    );
+                                            system.React.createElement(
+                                                'button',
+                                                {
+                                                    id: 'authorize',
+                                                    className: 'btn ' + getAuthorizeButtonCssClass(),
+                                                    style: {
+                                                        lineHeight: 'normal',
+                                                    },
+                                                    onClick: function () {
+                                                        if (dvs.auth.getToken()) {
+                                                            dvs.swagger.logout();
+                                                            location.reload();
+                                                        } else {
+                                                            dvs.swagger.openAuthDialog(function () {
+                                                                location.reload();
+                                                            });
+                                                        }
+                                                    },
+                                                },
+                                                getAuthorizeButtonText()
+                                            )
+                                        );
+                                    },
                                 },
-                            },
-                        };
-                    },
-                ];
+                            };
+                        },
+                    ];
+                }
 
                 console.log('Creating SwaggerUIBundle with config:', configObject);
 
