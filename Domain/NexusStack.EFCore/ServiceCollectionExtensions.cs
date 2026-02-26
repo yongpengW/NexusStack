@@ -41,7 +41,8 @@ namespace NexusStack.EFCore
 
                     pgOptions.EnableRetryOnFailure();
 
-                    pgOptions.MigrationsHistoryTable("__EFMigrationsHistory", "dbo");
+                    // 如果需要自定义迁移历史表，可以取消下面的注释，并根据需要修改表名和模式
+                    //pgOptions.MigrationsHistoryTable("__EFMigrationsHistory", "public");
                 })
                 .EnableSensitiveDataLogging(false)
                 .EnableDetailedErrors(false);

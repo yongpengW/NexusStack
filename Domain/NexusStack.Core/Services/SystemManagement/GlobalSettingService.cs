@@ -71,30 +71,34 @@ namespace NexusStack.Core.Services.SystemManagement
     {
         public async Task<IPagedList<GlobalSettingDto>> GetSettingListAsync(GlobalSettingQueryDto model)
         {
-            var spec = Specifications<GlobalSettings>.Create();
-            spec.Query.OrderByDescending(a => a.CreatedAt);
-            spec.Query.Where(w => w.AppId != "-1");
-            if (!string.IsNullOrEmpty(model.Keyword))
-            {
-                spec.Query.Where(w => w.AppId.Contains(model.Keyword));
-            }
+            //var spec = Specifications<GlobalSettings>.Create();
+            //spec.Query.OrderByDescending(a => a.CreatedAt);
+            //spec.Query.Where(w => w.AppId != "-1");
+            //if (!string.IsNullOrEmpty(model.Keyword))
+            //{
+            //    spec.Query.Where(w => w.AppId.Contains(model.Keyword));
+            //}
 
-            return await GetPagedListAsync<GlobalSettingDto>(spec, model.Page, model.Limit);
+            //return await GetPagedListAsync<GlobalSettingDto>(spec, model.Page, model.Limit);
+
+            return null;
         }
 
         public async Task<GlobalSettingDto> GetSingleSettingForApiAsync(string key)
         {
-            var spec = Specifications<GlobalSettings>.Create();
-            spec.Query.Where(w => w.Key == key && w.AppId == "0001");
-            return await GetAsync<GlobalSettingDto>(spec);
+            //var spec = Specifications<GlobalSettings>.Create();
+            //spec.Query.Where(w => w.Key == key && w.AppId == "0001");
+            //return await GetAsync<GlobalSettingDto>(spec);
+            return null;
         }
 
         public async Task<GlobalSettingDto> GetDefaltSettingAsync()
         {
-            var spec = Specifications<GlobalSettings>.Create();
-            spec.Query.Where(w => w.AppId == "-1");
+            //var spec = Specifications<GlobalSettings>.Create();
+            //spec.Query.Where(w => w.AppId == "-1");
 
-            return await GetAsync<GlobalSettingDto>(spec);
+            //return await GetAsync<GlobalSettingDto>(spec);
+            return null;
         }
 
         public async Task<GlobalSettingDto> GetEditGlobalSettingInfo(long id)

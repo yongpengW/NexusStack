@@ -40,6 +40,6 @@ namespace NexusStack.Core.Entities.Schedules
         /// <summary>
         /// 定时任务
         /// </summary>
-        public virtual ScheduleTask ScheduleTask { get; set; }
+        public virtual ScheduleTask? ScheduleTask { get; set; }
     }
 }

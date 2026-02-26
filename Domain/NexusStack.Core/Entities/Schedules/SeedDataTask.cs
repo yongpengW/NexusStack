@@ -21,7 +21,8 @@ namespace NexusStack.Core.Entities.Schedules
         /// 任务名称
         /// </summary>
         [MaxLength(256)]
-        public string? Name { get; set; }
+        [Required]
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// 种子数据所属类的类名

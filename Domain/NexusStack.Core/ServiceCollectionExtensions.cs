@@ -253,16 +253,12 @@ namespace NexusStack.Core
                     .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true)
                     .ToArray();
 
-                Console.WriteLine($"找到 {assemblies.Length} 个NexusStack相关程序集");
-
                 int mappedHubsCount = 0;
 
                 foreach (var assembly in assemblies)
                 {
                     try
                     {
-                        Console.WriteLine($"正在检查程序集: {assembly.GetName().Name}");
-
                         // 查找所有继承自Hub且带有SignalRHub特性的类型
                         var hubTypes = assembly.GetTypes()
                             .Where(t => t.IsClass &&
@@ -287,16 +283,16 @@ namespace NexusStack.Core
                                     genericMethod.Invoke(null, [app, hubAttribute.Route]);
 
                                     mappedHubsCount++;
-                                    Console.WriteLine($"✓ 成功映射Hub: {hubType.Name} -> {hubAttribute.Route}");
+                                    Console.WriteLine($"成功映射Hub: {hubType.Name} -> {hubAttribute.Route}");
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"✗ 找不到MapHub方法，无法映射Hub: {hubType.Name}");
+                                    Console.WriteLine($"找不到MapHub方法，无法映射Hub: {hubType.Name}");
                                 }
                             }
                             catch (Exception hubMapEx)
                             {
-                                Console.WriteLine($"✗ 映射Hub失败: {hubType.Name} -> {hubAttribute.Route}, 错误: {hubMapEx.Message}");
+                                Console.WriteLine($"映射Hub失败: {hubType.Name} -> {hubAttribute.Route}, 错误: {hubMapEx.Message}");
                             }
                         }
                     }
@@ -369,7 +365,6 @@ namespace NexusStack.Core
 
             // 注意: CommonSMSService、SMTPEmailService、EventAlertService 等实现了 IScopedDependency 的服务
             // 会通过后续的 AddServices<IScopedDependency> 自动注册，无需手动注册
-            //builder.Services.AddScoped<OperationLogArchiveService>();
 
             builder.Services.AddHttpLogging(options =>
             {
@@ -390,14 +385,14 @@ namespace NexusStack.Core
                 options.TrackStatistics = builder.Environment.IsDevelopment();
             });
 
-            //builder.Services.AddEFCoreArchiveDb(builder.Configuration);
             //builder.Services.AddEFCoreAndMySql(builder.Configuration);
             builder.Services.AddEFCoreAndPostgreSQL(builder.Configuration);
 
             // 添加 Lazy<T> 支持以解决循环依赖问题
             builder.Services.AddLazySupport();
 
-            //!!!通过反射自动注册所有服务 不需要再单独写注册服务的代码 只需要在服务类上继承ITransientDependency、IScopedDependency、ISingletonDependency
+            // 通过反射自动注册所有服务 不需要再单独写注册服务的代码
+            // 只需要在服务类上继承ITransientDependency、IScopedDependency、ISingletonDependency
             builder.Services.AddServices<ITransientDependency>(ServiceLifetime.Transient);
             builder.Services.AddServices<IScopedDependency>(ServiceLifetime.Scoped);
             builder.Services.AddServices<ISingletonDependency>(ServiceLifetime.Singleton);
@@ -516,10 +511,11 @@ namespace NexusStack.Core
                 //BackService
                 builder.Services.AddHostedService<ExecuteSeedDataService>();
             }
-            //else
-            //{
-            //    builder.Services.AddHostedService<InitApiResourceService>();
-            //}
+            else if (coreServiceType == CoreServiceType.WebService)
+            {
+                // 初始化API资源数据
+                builder.Services.AddHostedService<InitApiResourceService>();
+            }
 
             return builder;
         }

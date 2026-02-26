@@ -8,13 +8,14 @@ using System.Text;
 namespace NexusStack.Core.Entities.OpenAppConfig
 {
     /// <summary>
-    /// 平台开放API配置
+    /// 平台开放应用配置
     /// </summary>
-    public class OpenApiConfig : AuditedEntity
+    public class AppConfig : AuditedEntity
     {
         /// <summary>
         /// 应用Key 每个应用唯一
         /// </summary>
+        [Required]
         [MaxLength(64)]
         public required string AppKey { get; set; }
 
@@ -22,23 +23,26 @@ namespace NexusStack.Core.Entities.OpenAppConfig
         /// 应用名称
         /// </summary>
         [MaxLength(256)]
+        [Required]
         public required string AppName { get; set; }
 
         /// <summary>
         /// 应用绑定的门店ID
         /// </summary>
-        public long? ShopId { get; set; }
+        //public long? ShopId { get; set; }
 
         /// <summary>
         /// 应用安全密钥
         /// </summary>
         [MaxLength(256)]
+        [Required]
         public required string SecretKey { get; set; }
 
         /// <summary>
         /// 应用会话密钥
         /// </summary>
         [MaxLength(256)]
+        [Required]
         public required string Sessionkey { get; set; }
 
         /// <summary>

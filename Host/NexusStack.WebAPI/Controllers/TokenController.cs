@@ -1,4 +1,4 @@
-using LinqKit;
+﻿using LinqKit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +15,6 @@ using NexusStack.Infrastructure.Enums;
 using NexusStack.Infrastructure.Exceptions;
 using NexusStack.Infrastructure.Utils;
 using NexusStack.Redis;
-using System.Net.Http.Headers;
-using System.Net.Security;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using StringExtensions = NexusStack.Infrastructure.Utils.StringExtensions;
 
 namespace NexusStack.WebAPI.Controllers
@@ -83,7 +78,7 @@ namespace NexusStack.WebAPI.Controllers
             if (userToken != null)
             {
                 userToken.ExpirationDate = DateTime.Now;
-                userToken.LoginType = LoginType.logout;
+                userToken.LoginType = LoginStatus.logout;
                 await userTokenService.UpdateAsync(userToken);
                 // 删除 Redis 中的缓存
                 await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(userToken.TokenHash));
@@ -110,17 +105,12 @@ namespace NexusStack.WebAPI.Controllers
         [HttpGet("permission")]
         public async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(PlatformType platformType)
         {
-            return await GetCurrentUserPermissionAsync(CurrentUser.UserId, platformType);
-        }
-
-        private async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(long userId, PlatformType platformType)
-        {
             var menuFilter = PredicateBuilder.New<Menu>(true).And(a => a.PlatformType == platformType);
             var query = (from p in permissionService.GetQueryable()
                          join m in menuService.GetExpandable().Where(menuFilter) on p.MenuId equals m.Id
                          join ur in userRoleService.GetQueryable() on p.RoleId equals ur.RoleId
                          join r in userService.GetQueryable() on ur.UserId equals r.Id
-                         where ur.UserId == userId
+                         where ur.UserId == CurrentUser.UserId
                          && m.IsVisible
                          select new RolePermissionDto
                          {
@@ -151,86 +141,6 @@ namespace NexusStack.WebAPI.Controllers
             }
 
             return getChildren(0);
-        }
-
-        /// <summary>
-        /// 切换当前用户角色（已废弃：V1 RBAC 采用多角色权限并集，不再支持切换角色）
-        /// </summary>
-        /// <param name="platformType"></param>
-        /// <param name="userRoleId">用户角色Id(不是roleId)</param>
-        /// <returns></returns>
-        [HttpGet("switchrole/{platformType}/{userRoleId}")]
-        public Task<bool> SwitchRoleAsync(PlatformType platformType, long userRoleId)
-        {
-            throw new BusinessException("系统已不再支持切换角色，权限由用户全部有效角色的并集决定。");
-        }
-
-        [HttpGet("getLoginUserInfo")]
-        public async Task<UserDto> GetLoginUserInfo()
-        {
-            if (!CurrentUser.IsAuthenticated)
-            {
-                throw new ForbiddenException($"当前用户未通过认证");
-            }
-
-            var userRoles = await userRoleService.GetUserRoles(CurrentUser.UserId);
-            var user = await userService.GetAsync(x => x.Id == CurrentUser.UserId);
-
-            if (user == null || string.IsNullOrEmpty(user?.DepartmentIds))
-            {
-                throw new ForbiddenException($"当前用户[{user?.UserName}]未分配区域和门店信息, 请联系IT管理员配置");
-            }
-
-            var departmentIds = user?.DepartmentIds?.Split('.').Select(x => long.Parse(x)).ToList();
-
-            var userInfo = new UserDto()
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Mobile = user.Mobile,
-                Email = user.Email,
-                NickName = user.NickName,
-                RealName = user.RealName,
-                Gender = user.Gender,
-                IsEnable = user.IsEnable,
-                Remark = user.Remark,
-                DepartmentIdsValue = user.DepartmentIds
-            };
-
-            var regions = await regionService.GetListAsync(x => departmentIds.Contains(x.Id));
-            //var shops = await shopService.GetListAsync(x => departmentIds.Contains(x.Id));
-
-            var regionDepartments = regions.Select(i => new UserDepartmentDto
-            {
-                DepartmentId = i.Id,
-                DepartmentName = i.Name
-            }).ToList();
-
-            //var shopDepartments = shops.Select(s => new UserDepartmentDto
-            //{
-            //    DepartmentId = s.Id,
-            //    DepartmentName = s.ShopName
-            //}).ToList();
-
-            //var departments = regionDepartments.Concat(shopDepartments).ToList();
-
-            //userInfo.Departments = departments;
-            var departmentIdsValue = userInfo.DepartmentIdsValue?.Split('.').Select(a => a).ToArray();
-            userInfo.DepartmentIds = departmentIdsValue;
-
-            userInfo.UserRoles = userRoles.Select(a => new UserRoleDto
-            {
-                Id = a.Id,
-                Platforms = a.Role.Platforms.ToString(),
-                RoleId = a.RoleId,
-                RoleName = a.Role.Name,
-                //RegionId = a.RegionId,
-                //RegionName = a.Region.Name,
-                //ShopId = a.ShopId,
-                //ShopName = a.Shop == null ? "" : a.Shop.ShopName
-            }).OrderBy(a => a.Id).ToList();
-
-            return userInfo;
         }
     }
 }

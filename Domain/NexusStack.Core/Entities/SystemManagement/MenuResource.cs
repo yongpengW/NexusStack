@@ -23,11 +23,11 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// <summary>
         /// 菜单
         /// </summary>
-        public virtual Menu Menu { get; set; }
+        public virtual Menu? Menu { get; set; }
 
         /// <summary>
         /// 接口
         /// </summary>
-        public virtual ApiResource ApiResource { get; set; }
+        public virtual ApiResource? ApiResource { get; set; }
     }
 }

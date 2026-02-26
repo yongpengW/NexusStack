@@ -2,6 +2,7 @@
 using NexusStack.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace NexusStack.Core.Entities.AsyncTasks
@@ -19,12 +20,14 @@ namespace NexusStack.Core.Entities.AsyncTasks
         /// <summary>
         /// 任务标识，根据该值判断处理方式
         /// </summary>
-        public string Code { get; set; }
+        [Required]
+        [MaxLength(64)]
+        public string Code { get; set; } = string.Empty;
 
         /// <summary>
         /// 任务数据
         /// </summary>
-        public string Data { get; set; }
+        public string Data { get; set; } = string.Empty;
 
         /// <summary>
         /// 错误消息

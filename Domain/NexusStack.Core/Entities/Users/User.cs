@@ -1,4 +1,4 @@
-using NexusStack.EFCore.Entities;
+﻿using NexusStack.EFCore.Entities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -82,12 +82,6 @@ namespace NexusStack.Core.Entities.Users
         /// </summary>
         [MaxLength(512)]
         public string? SignatureUrl { get; set; }
-
-        /// <summary>
-        /// 用户所属部门（旧字段，待迁移至 UserDepartment）
-        /// </summary>
-        [Obsolete("Use UserDepartments navigation instead of DepartmentIds string.")]
-        public string? DepartmentIds { get; set; }
 
         /// <summary>
         /// 用户所属组织单元

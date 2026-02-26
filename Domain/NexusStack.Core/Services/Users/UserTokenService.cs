@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using NexusStack.Core.Dtos.Users;
@@ -146,7 +146,7 @@ namespace NexusStack.Core.Services.Users
                 PlatformType = platform,
                 UserAgent = userAgent ?? string.Empty,
                 UserId = user.Id,
-                LoginType = LoginType.Login,
+                LoginType = LoginStatus.Login,
                 RefreshTokenIsAvailable = true
             };
 
@@ -180,7 +180,7 @@ namespace NexusStack.Core.Services.Users
             // Redis 未命中（重启/过期）时回落到数据库，避免全量用户被强制下线
             var userToken = await GetAsync(a => a.TokenHash == tokenHash
                                              && a.ExpirationDate > DateTime.Now
-                                             && a.LoginType != LoginType.logout);
+                                             && a.LoginType != LoginStatus.logout);
             if (userToken == null)
             {
                 return null;

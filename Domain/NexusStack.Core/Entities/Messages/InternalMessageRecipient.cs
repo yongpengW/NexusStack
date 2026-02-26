@@ -11,10 +11,8 @@ namespace NexusStack.Core.Entities.Messages
         [Required]
         public long MessageId { get; set; }
 
-        public InternalMessage Message { get; set; }
-
-        public long StoreId { get; set; }
-
         public long? RecipientUserId { get; set; }
+
+        public virtual InternalMessage? Message { get; set; }
     }
 }

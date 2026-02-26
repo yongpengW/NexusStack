@@ -15,8 +15,9 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// <summary>
         /// 文件名称
         /// </summary>
-        [MaxLength(512)]
-        public string Name { get; set; }
+        [MaxLength(256)]
+        [Required]
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// 文件类型
@@ -32,19 +33,20 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// 文件扩展名
         /// </summary>
         [MaxLength(16)]
-        public string Extension { get; set; }
+        [Required]
+        public string Extension { get; set; } = string.Empty;
 
         /// <summary>
         /// 文件 Url
         /// </summary>
         [MaxLength(1024)]
-        public string Url { get; set; }
+        public string Url { get; set; } = string.Empty;
 
         /// <summary>
         /// 文件存储路径
         /// </summary>
         [MaxLength(1024)]
-        public string Path { get; set; }
+        public string Path { get; set; } = string.Empty;
 
         /// <summary>
         /// 文件存储方式
@@ -55,13 +57,13 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// 文件MIME
         /// </summary>
         [MaxLength(128)]
-        public string ContentType { get; set; }
+        public string ContentType { get; set; } = string.Empty;
 
         /// <summary>
         /// 文件 MD5 Hash 值
         /// </summary>
         [MaxLength(64)]
-        public string Hash { get; set; }
+        public string Hash { get; set; } = string.Empty;
 
         /// <summary>
         /// 原文件 Id, 用于存储缩略图、裁剪图、视频转码等文件的原始文件编号，如果为 0 表示该文件为原始文件
