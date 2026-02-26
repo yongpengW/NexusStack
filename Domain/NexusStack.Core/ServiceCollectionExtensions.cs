@@ -728,15 +728,7 @@ namespace NexusStack.Core
 
             Console.WriteLine($"注册 AutoMapper，共找到 {types.Length} 个 Profile，分布在 {assemblies.Length} 个程序集中");
 
-            // AutoMapper 16+ 支持程序集参数的扩展方法
-            services.AddAutoMapper(cfg =>
-            {
-                // 批量添加所有程序集中的 Profile
-                foreach (var assembly in assemblies)
-                {
-                    cfg.AddMaps(assembly);
-                }
-            });
+            services.AddAutoMapper(cfg => cfg.AddMaps(assemblies));
 
             return services;
         }
