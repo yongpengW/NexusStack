@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Dtos.Menus;
+using NexusStack.Core.Dtos.Menus;
 using NexusStack.Core.Dtos.Permissions;
 using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.Repository;
@@ -30,6 +30,16 @@ namespace NexusStack.Core.Services.Interfaces
         /// 获取菜单树（权限筛选）
         /// </summary>
         Task<List<MenuTreeDto>> GetUserMenuTreeListAsync(ICurrentUser currentUser, PlatformType platformType);
+
+        /// <summary>
+        /// 判断指定用户在指定平台下，是否拥有当前 API 的访问权限
+        /// </summary>
+        /// <param name="userId">用户 Id</param>
+        /// <param name="platformType">平台</param>
+        /// <param name="controllerName">控制器名称</param>
+        /// <param name="actionName">Action 名称</param>
+        /// <param name="httpMethod">HTTP 方法（GET/POST 等）</param>
+        Task<bool> HasApiPermissionAsync(long userId, PlatformType platformType, string controllerName, string actionName, string httpMethod);
 
         /// <summary>
         /// 修改角色权限

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -82,14 +82,6 @@ namespace NexusStack.Core.Filters
             #region 记录日志
 
             var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
-            //获取API的描述
-            var commentsInfo = DocsHelper.GetMethodComments(actionDescriptor.ControllerTypeInfo.Assembly.GetName().Name, actionDescriptor.MethodInfo);
-
-            var menuCode = "";
-            if (context.HttpContext.Request.Headers.ContainsKey("Menu-Code"))
-            {
-                menuCode = context.HttpContext.Request.Headers["Menu-Code"];
-            }
             //获取请求的接口
             var apiPath = context.HttpContext.Request.Path;
             //获取请求的User-Agent
@@ -168,18 +160,6 @@ namespace NexusStack.Core.Filters
             #endregion
 
             var jsonPara = JsonConvert.SerializeObject(resultModel.Message);
-            //var model = new CreateOperationLogDto()
-            //{
-            //    IpAddress = ipAddress,
-            //    OperationMenu = apiPath,
-            //    OperationContent = commentsInfo,
-            //    UserAgent = userAgent,
-            //    MenuCode = menuCode,
-            //    Remark = jsonParameters,
-            //    LogType = LogType.Error,
-            //    ErrorTracker = jsonPara,
-            //};
-            //await operationLogService.ExceptionLogAsync(model, currentUser.UserId);
 
             var method = context.HttpContext.Request.Method;
 

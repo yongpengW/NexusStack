@@ -1,39 +1,39 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace NexusStack.Infrastructure.Enums
 {
     /// <summary>
-    /// 系统平台
-    /// 用于配置菜单权限等
+    /// 系统平台（支持按位组合，用于配置菜单/角色/Token 等）
     /// </summary>
+    [Flags]
     public enum PlatformType
     {
         /// <summary>
-        /// 传0获取所有
+        /// 表示所有平台（特殊值，一般用于查询过滤；不要与具体平台组合存库）
         /// </summary>
         All = 0,
 
         /// <summary>
         /// 超管平台
         /// </summary>
-        Admin = 1,
+        Admin = 1 << 0,   // 1
 
         /// <summary>
         /// PC业务系统
         /// </summary>
-        Pc = 2,
+        Pc = 1 << 1,      // 2
 
         /// <summary>
         /// 微信小程序
         /// </summary>
-        Mini = 3,
+        Mini = 1 << 2,    // 4
 
         /// <summary>
         /// POS机App
         /// </summary>
-        Android = 4,
+        Android = 1 << 3, // 8
     }
 
     /// <summary>

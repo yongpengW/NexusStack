@@ -1,4 +1,4 @@
-﻿using NexusStack.Infrastructure.Dtos;
+using NexusStack.Infrastructure.Dtos;
 using NexusStack.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
@@ -39,22 +39,8 @@ namespace NexusStack.Core.Dtos.Roles
         public bool IsEnable { get; set; }
 
         /// <summary>
-        /// 所属平台
+        /// 所属平台（Flags 枚举，可多选）
         /// </summary>
-        public PlatformType PlatformType { get; set; }
-
-        public string Platforms { get; set; }
-
-        public int[] PlatformArray
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(Platforms))
-                {
-                    return Array.Empty<int>();
-                }
-                return Platforms.Split(',').Select(int.Parse).ToArray();
-            }
-        }
+        public PlatformType Platforms { get; set; }
     }
 }

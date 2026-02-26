@@ -1,4 +1,4 @@
-﻿using LinqKit;
+using LinqKit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -110,10 +110,10 @@ namespace NexusStack.WebAPI.Controllers
         [HttpGet("permission")]
         public async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(PlatformType platformType)
         {
-            return await GetCurrentUserPermissionAsync(CurrentUser.UserId, CurrentUser.Roles, platformType);
+            return await GetCurrentUserPermissionAsync(CurrentUser.UserId, platformType);
         }
 
-        private async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(long userId, long[] roles, PlatformType platformType)
+        private async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(long userId, PlatformType platformType)
         {
             var menuFilter = PredicateBuilder.New<Menu>(true).And(a => a.PlatformType == platformType);
             var query = (from p in permissionService.GetQueryable()
@@ -121,7 +121,6 @@ namespace NexusStack.WebAPI.Controllers
                          join ur in userRoleService.GetQueryable() on p.RoleId equals ur.RoleId
                          join r in userService.GetQueryable() on ur.UserId equals r.Id
                          where ur.UserId == userId
-                         && roles.Contains(ur.RoleId)
                          && m.IsVisible
                          select new RolePermissionDto
                          {
@@ -155,175 +154,15 @@ namespace NexusStack.WebAPI.Controllers
         }
 
         /// <summary>
-        /// 切换当前用户角色
+        /// 切换当前用户角色（已废弃：V1 RBAC 采用多角色权限并集，不再支持切换角色）
         /// </summary>
         /// <param name="platformType"></param>
         /// <param name="userRoleId">用户角色Id(不是roleId)</param>
         /// <returns></returns>
         [HttpGet("switchrole/{platformType}/{userRoleId}")]
-        public async Task<bool> SwitchRoleAsync(PlatformType platformType, long userRoleId)
+        public Task<bool> SwitchRoleAsync(PlatformType platformType, long userRoleId)
         {
-            var userId = base.CurrentUser.UserId;
-
-            var roles = await userRoleService.GetUserRoles(userId, platformType);
-
-            var role = roles.FirstOrDefault(a => a.Id == userRoleId);
-
-            if (role is null)
-            {
-                throw new BusinessException("你要切换的角色已不存在");
-            }
-
-            if (await permissionService.GetCountAsync(item => item.RoleId == role.RoleId) == 0)
-            {
-                throw new BusinessException("该角色下没有任何权限");
-            }
-
-            var tokenHash = StringExtensions.EncodeMD5(this.CurrentUser.Token);
-
-            var token = await userTokenService.GetAsync(a => a.TokenHash == tokenHash);
-
-            if (token is null)
-            {
-                throw new BusinessException("请先登录");
-            }
-
-            token.RoleId = role.RoleId;
-            //token.RegionId = role.RegionId;
-
-            await userRoleService.ChangeDefaultRoleAsync(userRoleId, userId, platformType);
-
-            //修改userToken 角色信息
-            await userTokenService.UpdateAsync(token);
-
-            //token.User = await userService.GetAsync(a => a.Id == token.UserId, includes: a => a.Include(c => c.UserRoles).ThenInclude(c => c.Role));
-
-            var cacheData = this.Mapper.Map<UserTokenCacheDto>(token);
-
-            await redisService.SetAsync(CoreRedisConstants.UserToken.Format(token.TokenHash), cacheData, token.ExpirationDate - DateTime.Now);
-
-            return true;
-        }
-
-        [HttpGet("authUserLogin")]
-        public async Task<StatusCodeResult> AuthUserLogin()
-        {
-            await AuthUserLoginAsync(new List<int> { 0, 1, 2 });
-            return Ok();
-        }
-
-        private async Task AuthUserLoginAsync(List<int> allowedPlatforms)
-        {
-            if (CurrentUser.IsAuthenticated)
-            {
-                //检查用户是否存在(包含POS管理页面中删除的用户)
-                if (!await userService.CheckUserExists(CurrentUser.UserId))
-                {
-                    var newuUer = Mapper.Map<User>(new CreateUserDto()
-                    {
-                        UserName = CurrentUser.UserName,
-                        Mobile = string.Empty,
-                        Email = CurrentUser.Email,
-                        NickName = CurrentUser.UserName,
-                        RealName = CurrentUser.UserName,
-                        Gender = Gender.Unknown
-                    });
-                    newuUer.Id = CurrentUser.UserId;
-                    newuUer.Password = newuUer.PasswordSalt = Guid.NewGuid().ToString().Replace("-", string.Empty);
-                    newuUer.Avatar = newuUer.SignatureUrl = newuUer.Remark = string.Empty;
-                    newuUer.LastLoginTime = newuUer.CreatedAt = newuUer.UpdatedAt = DateTime.Now;
-                    newuUer.IsEnable = true;
-                    newuUer.IsDeleted = false;
-                    newuUer.Remark = "由SSO创建，系统自动生成";
-                    var createUser = await userService.InsertAsync(newuUer);
-                    var newUserRole = new UserRole
-                    {
-                        UserId = createUser.Id,
-                        RoleId = SystemRoleConstants.DefaultRoleId,
-                        IsDefault = true
-                    };
-                    //检查系统默认角色是否已存在
-                    var existRoles = await userRoleService.CheckUserRoleExists(createUser.Id, SystemRoleConstants.DefaultRoleId);
-                    if (!existRoles) await userRoleService.InsertAsync(newUserRole);
-                }
-
-                var user = await userService.GetAsync(x => x.Id == CurrentUser.UserId) ?? throw new ForbiddenException($"用户不存在或已删除, 请联系IT管理员处理");
-
-                if (string.IsNullOrEmpty(user?.DepartmentIds))
-                {
-                    throw new ForbiddenException($"该用户[{user?.UserName}]未分配区域和门店信息, 请联系IT管理员配置");
-                }
-
-                if (!user.IsEnable)
-                {
-                    throw new ForbiddenException($"该用户[{user?.UserName}]已被禁用, 请联系IT管理员处理");
-                }
-
-                var departmentIds = new List<long>();
-                foreach (var segment in user.DepartmentIds.Split('.', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    if (!long.TryParse(segment, out var id))
-                    {
-                        throw new ForbiddenException($"该用户[{user?.UserName}]的区域和门店信息配置不正确, 请联系IT管理员处理");
-                    }
-                    departmentIds.Add(id);
-                }
-                if (departmentIds == null || !departmentIds.Any())
-                {
-                    throw new ForbiddenException($"该用户[{user?.UserName}]未分配区域和门店信息, 请联系IT管理员配置");
-                }
-
-                var userRoles = await userRoleService.GetUserRoles(CurrentUser.UserId);
-                //剔除禁用的用户角色
-                userRoles = userRoles.Where(x => x.Role.IsEnable).ToList();
-                if (userRoles.Count == 0)
-                {
-                    throw new ForbiddenException($"该用户[{user?.UserName}]未分配任何有效角色, 请联系IT管理员配置");
-                }
-
-                var platforms = new HashSet<int>();
-                foreach (var role in userRoles)
-                {
-                    foreach (var part in role.Role.Platforms.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        if (int.TryParse(part, out var platformId))
-                        {
-                            platforms.Add(platformId);
-                        }
-                    }
-                }
-                //var allowedPlatforms = new List<int> { 0, 1, 2 }; //允许登录的平台类型
-                //判断是否有权限登录当前平台
-                if (!platforms.Any(x => allowedPlatforms != null && allowedPlatforms.Contains(x)))
-                {
-                    throw new ForbiddenException($"该用户[{user?.UserName}]没有权限登录当前平台");
-                }
-
-                var regions = await regionService.GetListAsync(x => departmentIds.Contains(x.Id));
-                //var shops = await shopService.GetListAsync(x => departmentIds.Contains(x.Id));
-                var regionIds = regions.Select(x => x.Id).ToList();
-                var childRegionIds = new List<long>();
-
-                // Fetch all child regions in a single query to avoid N+1 queries
-                var regionIdStrings = regionIds.Select(id => id.ToString()).ToList();
-                var childRegions = await regionService.GetListAsync(x => regionIdStrings.Any(s => x.IdSequences.Contains(s)));
-                childRegionIds.AddRange(childRegions.Select(x => x.Id));
-                regionIds.AddRange(childRegionIds);
-                regionIds = regionIds.Distinct().ToList();
-
-                //var regionShops = await shopService.GetListAsync(x => regionIds.Contains(x.RegionId));
-                //shops.AddRange(regionShops);
-
-                //以Hash格式向redis中保存当前用户角色信息
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.UserId, CurrentUser.UserId, CoreRedisConstants.DefaultExpireSeconds);
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.UserName, CurrentUser.UserName, CoreRedisConstants.DefaultExpireSeconds);
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.Email, CurrentUser.Email, CoreRedisConstants.DefaultExpireSeconds);
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.PlatForms, string.Join(',', platforms.Distinct()), CoreRedisConstants.DefaultExpireSeconds);
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.Roles, string.Join(',', userRoles.Select(x => x.Role.Id).Distinct()), CoreRedisConstants.DefaultExpireSeconds);
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.Regions, string.Join(',', regions.Select(x => x.Id).Distinct()), CoreRedisConstants.DefaultExpireSeconds);
-                //await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.Shops, string.Join(',', shops.Select(x => x.Id).Distinct()), CoreRedisConstants.DefaultExpireSeconds);
-                await redisService.HSetAsync(CoreRedisConstants.CurrentUserCache.Format(CurrentUser.UserId), CoreClaimTypes.IsEnable, user.IsEnable == true ? "1" : "0", CoreRedisConstants.DefaultExpireSeconds);
-            }
+            throw new BusinessException("系统已不再支持切换角色，权限由用户全部有效角色的并集决定。");
         }
 
         [HttpGet("getLoginUserInfo")]
@@ -382,7 +221,7 @@ namespace NexusStack.WebAPI.Controllers
             userInfo.UserRoles = userRoles.Select(a => new UserRoleDto
             {
                 Id = a.Id,
-                Platforms = a.Role.Platforms,
+                Platforms = a.Role.Platforms.ToString(),
                 RoleId = a.RoleId,
                 RoleName = a.Role.Name,
                 //RegionId = a.RegionId,

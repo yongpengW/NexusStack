@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.EFCore.Entities;
 using System;
 using System.Collections.Generic;
@@ -27,19 +27,14 @@ namespace NexusStack.Core.Entities.Users
         public DataRange DataRange { get; set; }
 
         /// <summary>
-        /// 是否拥有权限
-        /// </summary>
-        public bool HasPermission { get; set; }
-
-        /// <summary>
         /// 菜单
         /// </summary>
-        public virtual Menu Menu { get; set; }
+        public virtual Menu? Menu { get; set; }
 
         /// <summary>
         /// 角色
         /// </summary>
-        public virtual Role Role { get; set; }
+        public virtual Role? Role { get; set; }
     }
 
     /// <summary>
@@ -48,8 +43,8 @@ namespace NexusStack.Core.Entities.Users
     public enum DataRange
     {
         All = 0,
-        CurrentLevel = 1,
-        CurrentAndSubLevels = 2,
+        CurrentAndSubLevels = 1,
+        CurrentLevel = 2,
         CurrentAndParentLevels = 3,
         Self = 4,
     }

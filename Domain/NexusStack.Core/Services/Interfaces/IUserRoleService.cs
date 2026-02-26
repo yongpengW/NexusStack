@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Entities.Users;
+using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure.Enums;
 using System;
@@ -13,13 +13,6 @@ namespace NexusStack.Core.Services.Interfaces
     public interface IUserRoleService : IServiceBase<UserRole>
     {
         /// <summary>
-        /// 获取用户默认角色
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        Task<UserRole> GetUserDefaultRole(long userId);
-
-        /// <summary>
         /// 获取用户下所有的角色
         /// </summary>
         /// <param name="userId"></param>
@@ -28,15 +21,6 @@ namespace NexusStack.Core.Services.Interfaces
         Task<List<UserRole>> GetUserRoles(long userId, PlatformType platformType);
 
         Task<List<UserRole>> GetUserRoles(long userId);
-
-        /// <summary>
-        /// 修改用户默认角色
-        /// </summary>
-        /// <param name="userRoleId"></param>
-        /// <param name="userId"></param>
-        /// <param name="platformType"></param>
-        /// <returns></returns>
-        Task ChangeDefaultRoleAsync(long userRoleId, long userId, PlatformType platformType);
 
         /// <summary>
         /// 检查用户角色是否存在

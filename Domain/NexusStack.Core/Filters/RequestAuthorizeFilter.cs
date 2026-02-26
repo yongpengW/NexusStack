@@ -12,11 +12,10 @@ using System.Text;
 namespace NexusStack.Core.Filters
 {
     /// <summary>
-    /// 请求接口权限过滤器而AuthenticationHandler则是用户认证，token认证
+    /// 请求接口权限过滤器：AuthenticationHandler 负责身份认证（Token），本过滤器负责基于 RBAC 的权限校验
     /// </summary>
     public class RequestAuthorizeFilter(IPermissionService permissionService,
-        ICurrentUser currentUser, IUserService userService,
-        IHttpContextAccessor httpContextAccessor) : IAsyncAuthorizationFilter
+        ICurrentUser currentUser, IUserService userService) : IAsyncAuthorizationFilter
     {
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
@@ -26,6 +25,7 @@ namespace NexusStack.Core.Filters
                 return;
             }
 
+            // 系统开放给第三方调用的接口（如 OpenAPI）可能会使用特定的认证方案（如 OpenAPIAuthentication），如果接口上标记了该认证方案，则只进行身份认证，不进行 RBAC 权限校验
             var authorizeAttributes = context.ActionDescriptor.EndpointMetadata
               .OfType<AuthorizeAttribute>()
               .ToList();
@@ -47,64 +47,40 @@ namespace NexusStack.Core.Filters
                 return;
             }
 
-            // 其他需要登录验证的，则通过AuthenticationHandler进行用户认证
-            if (context.HttpContext.User == null && context.HttpContext.User?.Identity?.IsAuthenticated == false)
+            // 未通过身份认证（Token 无效或未传）
+            if (context.HttpContext.User.Identity?.IsAuthenticated != true)
             {
                 context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status401Unauthorized, "请先登录", null));
                 return;
             }
 
-            // 如果用户被禁用
-            if (currentUser == null || !currentUser.IsEnable)
+            // 如果用户被禁用（从数据库实时检查）
+            var user = await userService.GetAsync(a => a.Id == currentUser.UserId);
+            if (user == null || !user.IsEnable)
             {
-                context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status403Forbidden, $"该用户[{currentUser?.UserName}]已被禁用, 请联系IT管理员处理", null));
+                context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status403Forbidden, $"该用户[{user?.UserName}]已被禁用, 请联系IT管理员处理", null));
                 return;
             }
 
-            #region 废弃代码
-            //else if (!(await userService.CheckCurrentExists(new CurrentUser(httpContextAccessor))))
-            //{
-            //    context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status401Unauthorized, "请重新登录", null));
-            //    return;
-            //}
+            // RBAC 权限校验：根据当前用户 + 平台 + 控制器/Action/HttpMethod 判断是否拥有访问权限
+            var cad = context.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
+            if (cad == null)
+            {
+                // 非 MVC Action（如 Razor Page），默认放行或按需调整
+                return;
+            }
 
-            // 通过Menu-Code判断接口权限 暂未实现
-            //if (context.ActionDescriptor is not null && context.ActionDescriptor is ControllerActionDescriptor descriptor)
-            //{
-            //    var namespaceStr = descriptor.ControllerTypeInfo.Namespace;
-            //    var controllerName = descriptor.ControllerName;
-            //    var actionName = descriptor.ActionName;
+            var controllerName = cad.ControllerName;
+            var actionName = cad.ActionName;
+            var httpMethod = context.HttpContext.Request.Method;
+            var platform = (Infrastructure.Enums.PlatformType)currentUser.PlatformType;
 
-            //    var code = $"{namespaceStr}.{controllerName}.{actionName}";
-
-            //    var menuCode = string.Empty;
-            //    if (context.HttpContext.Request.Headers.ContainsKey("Menu-Code") && !string.IsNullOrEmpty(context.HttpContext.Request.Headers["Menu-Code"]))
-            //    {
-            //        menuCode = context.HttpContext.Request.Headers["Menu-Code"].ToString();
-            //    }
-
-            //    // 通过menuCode找到菜单Id，通过code找到接口Id 
-            //    var hasPermission = false;
-
-            //    //有些操作是不在菜单下面的，则默认有访问接口的权限 
-            //    if (string.IsNullOrEmpty(menuCode))
-            //    {
-            //        hasPermission = true;
-            //    }
-            //    else
-            //    {
-            //        hasPermission = true; // await permissionService.JudgeHasPermissionAsync(code, menuCode);
-            //    }
-
-            //    if (hasPermission)
-            //    {
-            //        return;
-            //    }
-
-            //    context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status403Forbidden, "暂无权限", null));
-            //    await Task.CompletedTask;
-            //}
-            #endregion
+            var hasPermission = await permissionService.HasApiPermissionAsync(currentUser.UserId, platform, controllerName, actionName, httpMethod);
+            if (!hasPermission)
+            {
+                context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status401Unauthorized, "暂无访问该接口的权限", null));
+                return;
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using NexusStack.Core.Dtos.Users;
@@ -136,15 +136,15 @@ namespace NexusStack.Core.Services.Users
                 LastLoginTime = DateTime.Now
             });
 
-            var ipAddress = httpContextAccessor.HttpContext.Request.GetRemoteIpAddress();
-            var userAgent = httpContextAccessor.HttpContext.Request.Headers.UserAgent.ToString();
+            var ipAddress = httpContextAccessor.HttpContext?.Request.GetRemoteIpAddress();
+            var userAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
 
             var token = new UserToken()
             {
                 ExpirationDate = DateTime.Now.AddHours(10),
-                IpAddress = ipAddress.ToString(),
+                IpAddress = ipAddress?.ToString() ?? string.Empty,
                 PlatformType = platform,
-                UserAgent = userAgent,
+                UserAgent = userAgent ?? string.Empty,
                 UserId = user.Id,
                 LoginType = LoginType.Login,
                 RefreshTokenIsAvailable = true
@@ -153,14 +153,6 @@ namespace NexusStack.Core.Services.Users
             token.Token = StringExtensions.GenerateToken(user.Id.ToString(), token.ExpirationDate);
             token.TokenHash = StringExtensions.EncodeMD5(token.Token);
             token.RefreshToken = StringExtensions.GenerateToken(token.Token, token.ExpirationDate.AddMonths(1));
-
-            // 获取用户默认角色信息
-            var role = await userRoleService.GetUserDefaultRole(user.Id);
-            if (role != null)
-            {
-                token.RoleId = role.RoleId;
-                //token.RegionId = role.RegionId;
-            }
 
             await InsertAsync(token);
 
@@ -176,13 +168,30 @@ namespace NexusStack.Core.Services.Users
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public virtual async Task<UserTokenCacheDto> ValidateTokenAsync(string token)
+        public virtual async Task<UserTokenCacheDto?> ValidateTokenAsync(string token)
         {
             var tokenHash = StringExtensions.EncodeMD5(token);
             var cacheValue = await redisService.GetAsync<UserTokenCacheDto>(CoreRedisConstants.UserToken.Format(tokenHash));
+            if (cacheValue != null)
+            {
+                return cacheValue;
+            }
 
-            // 如果 Redis 中没有数据，是否需要查询一次数据库？
-            return cacheValue;
+            // Redis 未命中（重启/过期）时回落到数据库，避免全量用户被强制下线
+            var userToken = await GetAsync(a => a.TokenHash == tokenHash
+                                             && a.ExpirationDate > DateTime.Now
+                                             && a.LoginType != LoginType.logout);
+            if (userToken == null)
+            {
+                return null;
+            }
+
+            // 重新写入 Redis，剩余有效期与 DB 中的过期时间对齐
+            var cacheData = Mapper.Map<UserTokenCacheDto>(userToken);
+            var remaining = userToken.ExpirationDate - DateTime.Now;
+            await redisService.SetAsync(CoreRedisConstants.UserToken.Format(tokenHash), cacheData, remaining);
+
+            return cacheData;
         }
 
         /// <summary>

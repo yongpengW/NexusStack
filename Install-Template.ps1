@@ -6,18 +6,6 @@ Write-Host "NexusStack Solution Template Installer" -ForegroundColor Cyan
 Write-Host "=====================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 自动定位项目根目录
-$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$rootPath = $scriptPath
-
-# 检查当前目录是否是 Docs 目录
-if ((Split-Path -Leaf $scriptPath) -eq "Docs") {
-    # 如果在 Docs 目录，切换到上一级（项目根目录）
-    $rootPath = Split-Path -Parent $scriptPath
-    Write-Host "检测到脚本在 Docs 目录，切换到项目根目录..." -ForegroundColor Yellow
-    Set-Location $rootPath
-}
-
 # 验证是否在正确的目录
 if (!(Test-Path ".\NexusStack.Template.csproj")) {
     Write-Host "错误: 找不到 NexusStack.Template.csproj 文件！" -ForegroundColor Red
@@ -207,26 +195,15 @@ switch ($choice) {
         $currentPath = (Get-Location).Path
 
         # 1. 卸载旧模板
-        Write-Host "步骤 1/4: 卸载旧模板..." -ForegroundColor Yellow
+        Write-Host "步骤 1/5: 卸载旧模板..." -ForegroundColor Yellow
         Write-Host "  卸载路径: $currentPath" -ForegroundColor Gray
         dotnet new uninstall $currentPath 2>$null
         dotnet new uninstall . 2>$null
         Write-Host "  旧模板已卸载" -ForegroundColor Gray
 
         # 2. 清理无效的模板引用
-        Write-Host "步骤 2/4: 清理无效的模板引用..." -ForegroundColor Yellow
-        $invalidPaths = @(
-            "D:\Leo\TestTemplate",
-            "D:\Leo\MineGuard_Backend"
-        )
-        foreach ($path in $invalidPaths) {
-            try {
-                dotnet new uninstall $path 2>$null | Out-Null
-                Write-Host "  已移除引用: $path" -ForegroundColor Gray
-            } catch {
-                # 忽略错误
-            }
-        }
+        Write-Host "步骤 2/5: 清理无效的模板引用..." -ForegroundColor Yellow
+        dotnet new uninstall $currentPath 2>$null | Out-Null
 
         # 3. 清理模板缓存
         Write-Host "步骤 3/5: 清理模板缓存..." -ForegroundColor Yellow

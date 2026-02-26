@@ -1,4 +1,5 @@
 ﻿using NexusStack.Infrastructure.Dtos;
+using NexusStack.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,13 +19,8 @@ namespace NexusStack.Core.Dtos.Users
         public string RoleName { get; set; }
 
         /// <summary>
-        /// 是否默认角色
+        /// 所属业务平台（Flags 枚举，可多选）
         /// </summary>
-        public bool IsDefault { get; set; }
-
-        /// <summary>
-        /// 所属业务平台
-        /// </summary>
-        public string Platforms { get; set; }
+        public PlatformType Platforms { get; set; }
     }
 }

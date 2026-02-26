@@ -1,5 +1,5 @@
 ﻿{
-  "$schema": "http://json.schemastore.org/template",
+  "$schema": "https://json.schemastore.org/template",
   "author": "Leo Wang",
   "classifications": [ "Web", "API", "Microservices", "NexusStack" ],
   "identity": "NexusStack.Solution.Template",
@@ -14,38 +14,49 @@
   "preferNameDirectory": true,
   "primaryOutputs": [
     {
-      "path": "NexusStack.sln",
-      "condition": "(true)"
+      "path": "NexusStack.sln"
     },
     {
-      "path": "NexusStack_Backend.slnx",
-      "condition": "(true)"
+      "path": "NexusStack_Backend.slnx"
     }
   ],
+  "guids": [
+    "11111111-1111-1111-1111-111111111111",
+    "22222222-2222-2222-2222-222222222222",
+    "33333333-3333-3333-3333-333333333333",
+    "44444444-4444-4444-4444-444444444444",
+    "A1111111-1111-1111-1111-111111111111",
+    "A2222222-2222-2222-2222-222222222222",
+    "A2222222-2222-2222-2222-222222222223",
+    "A2222222-2222-2222-2222-222222222224",
+    "A2222222-2222-2222-2222-222222222225",
+    "A2222222-2222-2222-2222-222222222226",
+    "A2222222-2222-2222-2222-222222222227",
+    "A2222222-2222-2222-2222-222222222228",
+    "A3333333-3333-3333-3333-333333333333",
+    "A3333333-3333-3333-3333-333333333334",
+    "A4444444-4444-4444-4444-444444444444",
+    "A4444444-4444-4444-4444-444444444445",
+    "41bd184c-836b-4942-badc-029cf644e91d"
+  ],
   "symbols": {
-    "EnableSignalR": {
-      "type": "parameter",
-      "datatype": "bool",
-      "defaultValue": "true",
-      "description": "启用 SignalR 支持"
-    },
-    "EnableRabbitMQ": {
-      "type": "parameter",
-      "datatype": "bool",
-      "defaultValue": "true",
-      "description": "启用 RabbitMQ 支持"
-    },
-    "EnableRedis": {
-      "type": "parameter",
-      "datatype": "bool",
-      "defaultValue": "true",
-      "description": "启用 Redis 支持"
-    },
     "IncludeGateway": {
       "type": "parameter",
       "datatype": "bool",
       "defaultValue": "true",
       "description": "包含 API 网关项目"
+    },
+    "IncludeMQService": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "包含消息队列后台服务"
+    },
+    "IncludePlanTaskService": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "包含计划任务服务"
     },
     "DatabaseProvider": {
       "type": "parameter",
@@ -67,17 +78,19 @@
       "defaultValue": "PostgreSQL",
       "description": "选择数据库提供程序"
     },
-    "IncludeMQService": {
-      "type": "parameter",
-      "datatype": "bool",
-      "defaultValue": "true",
-      "description": "包含消息队列后台服务"
-    },
-    "IncludePlanTaskService": {
-      "type": "parameter",
-      "datatype": "bool",
-      "defaultValue": "true",
-      "description": "包含计划任务服务"
+    "DbExtensionMethod": {
+      "type": "generated",
+      "generator": "switch",
+      "parameters": {
+        "evaluator": "C++",
+        "datatype": "string",
+        "cases": [
+          { "condition": "(DatabaseProvider == 'PostgreSQL')", "value": "AddEFCoreAndPostgreSQL" },
+          { "condition": "(DatabaseProvider == 'MySQL')", "value": "AddEFCoreAndMySql" },
+          { "condition": "(DatabaseProvider == 'SqlServer')", "value": "AddEFCoreAndSqlServer" }
+        ]
+      },
+      "replaces": "AddEFCoreAndPostgreSQL"
     },
     "TargetFramework": {
       "type": "parameter",
@@ -144,10 +157,10 @@
       "continueOnError": true
     },
     {
-      "description": "Open Solution",
+      "description": "打开解决方案",
       "manualInstructions": [
         {
-          "text": "Open the solution file in Visual Studio"
+          "text": "请使用 Visual Studio 打开解决方案文件"
         }
       ],
       "actionId": "84C0DA21-51C8-4541-9940-6CA19AF04EE6",

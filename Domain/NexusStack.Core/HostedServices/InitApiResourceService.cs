@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
@@ -69,9 +69,10 @@ namespace NexusStack.Core.HostedServices
                     }
 
                     var httpMethod = descriptor.EndpointMetadata.FirstOrDefault(a => a.GetType() == typeof(HttpMethodMetadata));
-                    if (httpMethod != null && httpMethod is HttpMethodMetadata metadata)
+                    if (httpMethod is HttpMethodMetadata metadata)
                     {
-                        resource.RequestMethod = metadata.HttpMethods.FirstOrDefault();
+                        // 统一使用大写，便于与运行时 Request.Method 对比
+                        resource.RequestMethod = metadata.HttpMethods.FirstOrDefault()?.ToUpperInvariant();
                     }
 
                     // 生成接口 API 唯一 Code

@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Dtos.Roles;
+using NexusStack.Core.Dtos.Roles;
 using NexusStack.Core.Entities.Users;
 using System;
 using System.Collections.Generic;
@@ -49,9 +49,9 @@ namespace NexusStack.Core.Dtos.Users
         public List<CreateUserRoleDto> UserRoles { get; set; }
 
         /// <summary>
-        /// 所属区域门店
+        /// 所属组织单元 Id 集合（当前指向 Region.Id）
         /// </summary>
-        public string[] DepartmentIds { get; set; } = [];
+        public long[] DepartmentIds { get; set; } = [];
 
 
         /// <summary>

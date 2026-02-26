@@ -13,13 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\dvs-swagger.html" />
-    <EmbeddedResource Include="Resources\dvs-swagger.js" />
-    <EmbeddedResource Include="Resources\dvs-swagger.css" />
+    <EmbeddedResource Include="Resources\nexusstack-swagger.js" />
+    <EmbeddedResource Include="Resources\nexusstack-swagger.css" />
   </ItemGroup>
 
   <ItemGroup>

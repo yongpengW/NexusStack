@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using DynamicLocalizer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -150,7 +150,7 @@ namespace NexusStack.Core
                     var primaryHubName = hubNames.FirstOrDefault();
                     if (string.IsNullOrEmpty(primaryHubName))
                     {
-                        Console.WriteLine($"  ⚠️ 路径 {hubPath} 没有配置Hub名称");
+                        Console.WriteLine($"路径 {hubPath} 没有配置Hub名称");
                         continue;
                     }
 
@@ -164,21 +164,21 @@ namespace NexusStack.Core
                                 genericMethod.Invoke(null, [app, hubPath]);
 
                                 mappedHubsCount++;
-                                Console.WriteLine($"  ✓ 成功映射Hub: {primaryHubName} -> {hubPath}");
+                                Console.WriteLine($"成功映射Hub: {primaryHubName} -> {hubPath}");
                             }
                             else
                             {
-                                Console.WriteLine($"  ✗ 找不到MapHub方法，无法映射Hub: {primaryHubName}");
+                                Console.WriteLine($"找不到MapHub方法，无法映射Hub: {primaryHubName}");
                             }
                         }
                         catch (Exception hubMapEx)
                         {
-                            Console.WriteLine($"  ✗ 映射Hub失败: {primaryHubName} -> {hubPath}, 错误: {hubMapEx.Message}");
+                            Console.WriteLine($"映射Hub失败: {primaryHubName} -> {hubPath}, 错误: {hubMapEx.Message}");
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"  ⚠️ 找不到Hub类型: {primaryHubName}，跳过路径 {hubPath}");
+                        Console.WriteLine($"找不到Hub类型: {primaryHubName}，跳过路径 {hubPath}");
                     }
                 }
 

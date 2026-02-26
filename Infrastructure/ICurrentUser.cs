@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
@@ -12,21 +12,15 @@ namespace NexusStack.Infrastructure
         /// </summary>
         long UserId { get; }
 
+        /// <summary>
+        /// 用户名
+        /// </summary>
         string UserName { get; }
 
         /// <summary>
-        /// 当前登录用户角色池
+        /// 邮箱
         /// </summary>
-        long[] Roles { get; }
-
         string Email { get; }
-
-        /// <summary>
-        /// 当前登录用户所属店铺池
-        /// </summary>
-        long[] Shops { get; }
-
-        long[] Regions { get; }
 
         /// <summary>
         /// 是否通过认证
@@ -34,37 +28,26 @@ namespace NexusStack.Infrastructure
         bool IsAuthenticated { get; }
 
         /// <summary>
-        /// 用户状态 是否启用
-        /// </summary>
-        bool IsEnable { get; }
-        /// <summary>
-        /// 当前 Token
+        /// 当前 Token 字符串
         /// </summary>
         string Token { get; }
 
         /// <summary>
-        /// UserToken Id
+        /// UserToken 主键 Id
         /// </summary>
         long TokenId { get; }
 
         /// <summary>
-        ///  所属系统Id 也可以是SSO分发的ClientId
+        /// 当前登录平台（从 Token 中解析）
         /// </summary>
-        //long SystemId { get; }
+        int PlatformType { get; }
 
         /// <summary>
-        /// 所属租户Id
+        /// 原始 ClaimsPrincipal
         /// </summary>
-        //long TenantId { get; set; }
-
-        /// <summary>
-        /// 当前登录用户所属平台池
-        /// </summary>
-        int[] PlatForms { get; }
-
         ClaimsPrincipal RawClaimsPrincipal { get; }
 
-        //微信小程序相关
+        // 微信小程序相关（会员端）
         string CustomerId { get; }
 
         string CustomerPhone { get; }

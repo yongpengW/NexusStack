@@ -28,11 +28,11 @@ namespace NexusStack.Core.Services.Interfaces
         Task<bool> ValidateCaptchaAsync(string captchaCode, string captchaKey);
 
         /// <summary>
-        /// 验证用户Token
+        /// 验证用户Token，Token 无效或不存在时返回 null
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task<UserTokenCacheDto> ValidateTokenAsync(string token);
+        Task<UserTokenCacheDto?> ValidateTokenAsync(string token);
 
         /// <summary>
         /// 通过账号密码登录

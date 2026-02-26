@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Utils;
 using System;
@@ -14,21 +14,9 @@ namespace NexusStack.Core
 
         public const string UserName = "userName";
 
-        public const string Roles = "roles";
-
         public const string Email = "email";
 
         public const string ClientId = "clientId";
-
-        public const string RegionId = "regionId";
-
-        public const string Regions = "regions";
-
-        public const string Shops = "shops";
-
-        public const string ShopId = "shopId";
-
-        public const string RoleId = "roleId";
 
         public const string Token = "token";
 
@@ -37,8 +25,6 @@ namespace NexusStack.Core
         public const string PlatFormType = "platFormType";
 
         public const string PlatForms = "platForms";
-
-        public const string IsEnable = "isEnable";
     }
 
     public static class CustomerClaimTypes
@@ -68,22 +54,12 @@ namespace NexusStack.Core
 
         public string UserName => this.FindClaimValue(CoreClaimTypes.UserName);
 
-        public long[] Roles => GetUserArryInfo(CoreClaimTypes.Roles);
         public string Email => this.FindClaimValue(CoreClaimTypes.Email);
-
-        public long[] Shops => GetUserArryInfo(CoreClaimTypes.Shops);
-
-        public long[] Regions => GetUserArryInfo(CoreClaimTypes.Regions);
 
         /// <summary>
         /// 是否通过认证
         /// </summary>
         public bool IsAuthenticated => this.httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
-
-        /// <summary>
-        /// 用户状态 (是否启用)
-        /// </summary>
-        public bool IsEnable => this.FindClaimBoolValue(CoreClaimTypes.IsEnable);
 
         public string Token => this.FindClaimValue(CoreClaimTypes.Token);
 
@@ -93,7 +69,7 @@ namespace NexusStack.Core
 
         //public long TenantId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public int[] PlatForms => GetPlatFormInfo(CoreClaimTypes.PlatForms);
+        public int PlatformType => this.FindClaimValue<int>(CoreClaimTypes.PlatFormType);
 
         public string CustomerId => this.FindClaimValue(CustomerClaimTypes.CustomerId);
 
@@ -133,34 +109,6 @@ namespace NexusStack.Core
             return value.To<T>();
         }
 
-        public virtual long[] GetUserArryInfo(string claimType)
-        {
-            var value = FindClaimValue(claimType);
-            if (string.IsNullOrEmpty(value))
-            {
-                return [];
-            }
-            return value.Split(',').Select(x => long.Parse(x)).ToArray();
-        }
-
-        public virtual int[] GetPlatFormInfo(string claimType)
-        {
-            var value = FindClaimValue(claimType);
-            if (string.IsNullOrEmpty(value))
-            {
-                return [];
-            }
-            return value.Split(',').Select(x => int.Parse(x)).ToArray();
-        }
-
-        public virtual bool FindClaimBoolValue(string claimType)
-        {
-            var value = FindClaimValue(claimType);
-            if (string.IsNullOrEmpty(value))
-            {
-                return false;
-            }
-            return value == "1" ? true : false;
-        }
+        // 其余复杂信息（角色、区域、门店等）不再从 Claims 读取，而是通过业务服务或权限缓存按需查询
     }
 }
