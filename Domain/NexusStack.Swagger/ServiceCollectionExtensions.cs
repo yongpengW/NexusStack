@@ -110,7 +110,7 @@ namespace NexusStack.Swagger
                 var cssContent = ReadEmbeddedResource("NexusStack.Swagger.Resources.dvs-swagger.css");
 
                 // 直接在 HeadContent 中内联 JavaScript 和 CSS
-                var hostScript = $"var dvs = dvs || {{}};dvs.host='{commonOptions!.Value.Host}'?'{commonOptions.Value.Host}':location.origin;";
+                var hostScript = $"var dvs = dvs || {{}};dvs.host='{commonOptions!.Value.Host}'||location.origin;";
                 options.HeadContent = $"<script type='text/javascript'>{hostScript}{jsContent}</script><style>{cssContent}</style>";
 
                 options.Interceptors.RequestInterceptorFunction = "function(request){{if(window.dvs && dvs.auth && dvs.auth.requestInterceptor){{return dvs.auth.requestInterceptor(request);}}return request;}}";
