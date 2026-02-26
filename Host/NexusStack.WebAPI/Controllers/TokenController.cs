@@ -332,10 +332,6 @@ namespace NexusStack.WebAPI.Controllers
             }
 
             var departmentIds = user?.DepartmentIds?.Split('.').Select(x => long.Parse(x)).ToList();
-            if (departmentIds == null || !departmentIds.Any())
-            {
-                throw new ForbiddenException($"当前用户[{user?.UserName}]未分配区域和门店信息, 请联系IT管理员配置");
-            }
 
             var userInfo = new UserDto()
             {
