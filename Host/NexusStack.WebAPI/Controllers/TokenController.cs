@@ -304,13 +304,10 @@ namespace NexusStack.WebAPI.Controllers
                 var regionIds = regions.Select(x => x.Id).ToList();
                 var childRegionIds = new List<long>();
 
-                foreach (var id in regionIds)
-                {
-                    var childRegions = await regionService.GetListAsync(x => x.IdSequences.Contains(id.ToString()));
-
-                    childRegionIds.AddRange(childRegions.Select(x => x.Id));
-                }
-
+                // Fetch all child regions in a single query to avoid N+1 queries
+                var regionIdStrings = regionIds.Select(id => id.ToString()).ToList();
+                var childRegions = await regionService.GetListAsync(x => regionIdStrings.Any(s => x.IdSequences.Contains(s)));
+                childRegionIds.AddRange(childRegions.Select(x => x.Id));
                 regionIds.AddRange(childRegionIds);
                 regionIds = regionIds.Distinct().ToList();
 
