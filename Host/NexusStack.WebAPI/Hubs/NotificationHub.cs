@@ -219,7 +219,7 @@ namespace NexusStack.WebAPI.Hubs
                 Message = message,
                 Content = message,
                 Type = "info",
-                Timestamp = DateTimeOffset.Now,
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 UserId = userId,
                 SentBy = currentUserId
             };

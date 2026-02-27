@@ -29,7 +29,7 @@ namespace NexusStack.Core.Dtos.ScheduleTasks
         /// <summary>
         /// 上次执行时间
         /// </summary>
-        public DateTimeOffset LastExecuteTime { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset LastExecuteTime { get; set; } = DateTimeOffset.UtcNow;
 
         /// <summary>
         /// 下一次执行时间
