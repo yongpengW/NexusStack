@@ -29,11 +29,11 @@ namespace NexusStack.Core.Dtos.ScheduleTasks
         /// <summary>
         /// 上次执行时间
         /// </summary>
-        public DateTime LastExecuteTime { get; set; } = DateTime.Now;
+        public DateTimeOffset LastExecuteTime { get; set; } = DateTimeOffset.Now;
 
         /// <summary>
         /// 下一次执行时间
         /// </summary>
-        public DateTime NextExecuteTime { get; set; }
+        public DateTimeOffset NextExecuteTime { get; set; }
     }
 }

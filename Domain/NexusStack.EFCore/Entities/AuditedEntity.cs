@@ -28,7 +28,7 @@ namespace NexusStack.EFCore.Entities
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
 
         /// <summary>
         /// 创建人id
@@ -38,7 +38,7 @@ namespace NexusStack.EFCore.Entities
         /// <summary>
         /// 修改时间
         /// </summary>
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
 
         /// <summary>
         /// 修改人id

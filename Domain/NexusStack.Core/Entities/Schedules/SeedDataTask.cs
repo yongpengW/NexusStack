@@ -15,7 +15,7 @@ namespace NexusStack.Core.Entities.Schedules
         /// <summary>
         /// 最后一次的文件修改时间
         /// </summary>
-        public DateTime LastWriteTime { get; set; }
+        public DateTimeOffset LastWriteTime { get; set; }
 
         /// <summary>
         /// 任务名称
@@ -38,7 +38,7 @@ namespace NexusStack.Core.Entities.Schedules
         /// <summary>
         /// 执行时间
         /// </summary>
-        public DateTime ExecuteTime { get; set; }
+        public DateTimeOffset ExecuteTime { get; set; }
 
         /// <summary>
         /// 任务执行状态

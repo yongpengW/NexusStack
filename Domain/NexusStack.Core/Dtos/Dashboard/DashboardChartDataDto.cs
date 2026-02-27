@@ -13,7 +13,7 @@ namespace NexusStack.Core.Dtos.Dashboard
 
     public class DashboardChartItem
     {
-        public DateTime? Date { get; set; }
+        public DateTimeOffset? Date { get; set; }
         public decimal? SalesAmount { get; set; }
         public int? Orders { get; set; }
     }

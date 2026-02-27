@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NexusStack.Core.Dtos.OpenApiConfigs
 {
-    public class OpenApiConfigQueryDto : PagedQueryModelBase
+    public class AppConfigQueryDto : PagedQueryModelBase
     {
         public string? AppName { get; set; }
     }

@@ -75,7 +75,7 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// 最后登录时间
         /// </summary>
-        public DateTime LastLoginTime { get; set; }
+        public DateTimeOffset LastLoginTime { get; set; }
 
         /// <summary>
         /// 签名url

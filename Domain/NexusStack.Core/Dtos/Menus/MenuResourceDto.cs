@@ -30,6 +30,6 @@ namespace NexusStack.Core.Dtos.Menus
         /// <summary>
         /// 操作
         /// </summary>
-        public List<MenuResourceDto> Operations { get; set; }
+        public List<MenuResourceDto>? Operations { get; set; }
     }
 }

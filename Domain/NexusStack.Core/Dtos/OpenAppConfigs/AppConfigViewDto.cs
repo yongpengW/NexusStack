@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NexusStack.Core.Dtos.OpenApiConfigs
+namespace NexusStack.Core.Dtos.OpenAppConfigs
 {
-    public class OpenApiConfigViewDto
+    public class AppConfigViewDto
     {
         public long Id { get; set; }
         public string? AppName { get; set; }
@@ -19,8 +19,8 @@ namespace NexusStack.Core.Dtos.OpenApiConfigs
 
     public class OpenApiConfigDetailDto
     {
-        public List<ApiNotificationConfigDto>? ApiNotificationConfig { get; set; }
-        public List<ApiEventConfigDto>? ApiEventConfig { get; set; }
-        public List<WebhookConfigDto>? WebhookConfig { get; set; }
+        public List<AppNotificationConfigDto>? ApiNotificationConfig { get; set; }
+        public List<AppEventConfigDto>? ApiEventConfig { get; set; }
+        public List<AppWebhookConfigDto>? WebhookConfig { get; set; }
     }
 }

@@ -41,7 +41,7 @@ namespace NexusStack.Core.Dtos.ScheduleTasks
         /// <summary>
         /// 更新时间
         /// </summary>
-        public DateTime UpdatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
 
         /// <summary>
         /// 业务扩展ID

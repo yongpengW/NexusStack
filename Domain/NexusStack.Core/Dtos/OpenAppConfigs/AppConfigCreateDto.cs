@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NexusStack.Core.Dtos.OpenApiConfigs
+namespace NexusStack.Core.Dtos.OpenAppConfigs
 {
-    public class OpenApiConfigCreateDto
+    public class AppConfigCreateDto
     {
         public long Id { get; set; }
         public string? AppName { get; set; }

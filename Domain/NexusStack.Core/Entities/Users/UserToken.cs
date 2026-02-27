@@ -42,7 +42,7 @@ namespace NexusStack.Core.Entities.Users
         /// <summary>
         /// 过期时间
         /// </summary>
-        public DateTime ExpirationDate { get; set; }
+        public DateTimeOffset ExpirationDate { get; set; }
 
         /// <summary>
         /// 获取 Token IP 地址

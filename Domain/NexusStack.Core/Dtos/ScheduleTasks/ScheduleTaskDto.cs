@@ -30,12 +30,12 @@ namespace NexusStack.Core.Dtos.ScheduleTasks
         /// <summary>
         /// 下一次执行时间
         /// </summary>
-        public DateTime NextExecuteTime { get; set; }
+        public DateTimeOffset NextExecuteTime { get; set; }
 
         /// <summary>
         /// 最后一次执行时间
         /// </summary>
-        public DateTime LastExecuteTime { get; set; }
+        public DateTimeOffset LastExecuteTime { get; set; }
 
 
     }

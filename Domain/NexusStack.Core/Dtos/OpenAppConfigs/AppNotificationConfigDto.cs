@@ -3,22 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NexusStack.Core.Dtos.OpenApiConfigs
+namespace NexusStack.Core.Dtos.OpenAppConfigs
 {
-    public class ApiEventConfigDto
+    public class AppNotificationConfigDto
     {
         public long? Id { get; set; }
         public long AppId { get; set; }
 
         public required string Name { get; set; }
 
-        public string? Method { get; set; }
+        public ApiNoticeType Type { get; set; }
 
-        public string? EventCode { get; set; }
+        public string? Phones { get; set; }
 
-        public string? HookUrl { get; set; }
-
-        public WebHookType Type { get; set; }
+        public string? NoticeUrl { get; set; }
 
         public bool IsEnabled { get; set; }
     }
