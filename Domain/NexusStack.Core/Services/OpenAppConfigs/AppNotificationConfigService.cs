@@ -9,10 +9,10 @@ using System.Text;
 
 namespace NexusStack.Core.Services.OpenAppConfigs
 {
-    public interface IApiNotificationConfigService : IServiceBase<AppNotificationConfig>
+    public interface IAppNotificationConfigService : IServiceBase<AppNotificationConfig>
     {
     }
-    public class ApiNotificationConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<AppNotificationConfig>(dbContext, mapper), IApiNotificationConfigService, IScopedDependency
+    public class AppNotificationConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<AppNotificationConfig>(dbContext, mapper), IAppNotificationConfigService, IScopedDependency
     {
     }
 }

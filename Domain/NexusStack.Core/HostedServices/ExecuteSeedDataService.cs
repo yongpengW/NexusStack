@@ -54,10 +54,13 @@ namespace NexusStack.Core.HostedServices
                 // 判断json文件是否保存过，通过最后保存时间来判断
                 var file = new FileInfo(currentConfigPath);
 
-                //将日期转换为秒数，读取的文件的日期中的毫秒数位数为7，写入到mysql数据库的位数只能为6
-                if ((long)model.LastWriteTime.TimeOfDay.TotalSeconds < (long)file.LastWriteTime.TimeOfDay.TotalSeconds)
+                // 将文件的本地时间转换为 UTC，确保与数据库中的时间一致
+                var fileLastWriteTimeUtc = new DateTimeOffset(file.LastWriteTime, TimeZoneInfo.Local.GetUtcOffset(file.LastWriteTime)).ToUniversalTime();
+                
+                // 比较完整的时间戳，而不是只比较时间部分
+                if (model.LastWriteTime < fileLastWriteTimeUtc)
                 {
-                    model.LastWriteTime = file.LastWriteTime;
+                    model.LastWriteTime = fileLastWriteTimeUtc;
                     return true;
                 }
 
@@ -122,7 +125,7 @@ namespace NexusStack.Core.HostedServices
                         {
                             await seed.ApplyAsync(model);
                             model.ExecuteStatus = ExecuteStatus.Success;
-                            model.ExecuteTime = DateTime.Now;
+                            model.ExecuteTime = DateTimeOffset.UtcNow;
                         }
 
                         logger.LogInformation($"[{code}]执行完成");
@@ -132,7 +135,7 @@ namespace NexusStack.Core.HostedServices
                 catch (Exception ex)
                 {
                     model.ExecuteStatus = ExecuteStatus.Fail;
-                    model.ExecuteTime = DateTime.Now;
+                    model.ExecuteTime = DateTimeOffset.UtcNow;
                     logger.LogError(ex, ex.Message);
                 }
                 finally

@@ -23,7 +23,7 @@ namespace NexusStack.Core.Authentication
         ILoggerFactory logger,
         UrlEncoder encoder,
         ISystemClock clock,
-        IOpenApiConfigService openApiConfigService
+        IAppConfigService openApiConfigService
     ) : AuthenticationHandler<RequestAuthenticationSchemeOptions>(options, logger, encoder, clock)
     {
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()

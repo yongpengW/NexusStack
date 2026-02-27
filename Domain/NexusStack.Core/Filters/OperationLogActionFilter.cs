@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.Controllers;
+﻿using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NexusStack.Core.Attributes;
 using NexusStack.Core.EventData;
@@ -80,7 +80,7 @@ namespace NexusStack.Core.Filters
                 pushData.UserId = currentUser.UserId;
                 pushData.IpAddress = context.HttpContext.Request.GetRemoteIpAddress();
                 pushData.UserAgent = context.HttpContext.Request.Headers.UserAgent!;
-                pushData.Method = $"{method} {apiPath}";
+                pushData.Method = $"{method}: {apiPath}";
                 pushData.LogType = LogType.Request;
 
                 publisher.Publish(pushData);
