@@ -13,7 +13,7 @@ namespace NexusStack.Infrastructure.Dtos
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         /// <summary>
         /// 创建人id
@@ -28,7 +28,7 @@ namespace NexusStack.Infrastructure.Dtos
         /// <summary>
         /// 修改时间
         /// </summary>
-        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         /// <summary>
         /// 修改人id
