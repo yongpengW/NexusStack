@@ -42,7 +42,7 @@ namespace NexusStack.Infrastructure.Models
         /// <summary>
         /// 时间戳
         /// </summary>
-        public long Timestamp { get; set; } = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        public long Timestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     }
 
     /// <summary>

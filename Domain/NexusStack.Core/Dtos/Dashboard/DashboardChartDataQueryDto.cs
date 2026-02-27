@@ -6,7 +6,7 @@ namespace NexusStack.Core.Dtos.Dashboard
 {
     public class DashboardChartDataQueryDto
     {
-        public DateTime? Month { get; set; }
-        public DateTime? Year { get; set; }
+        public DateTimeOffset? Month { get; set; }
+        public DateTimeOffset? Year { get; set; }
     }
 }

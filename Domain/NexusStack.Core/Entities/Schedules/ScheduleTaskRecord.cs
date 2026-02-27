@@ -25,17 +25,17 @@ namespace NexusStack.Core.Entities.Schedules
         /// <summary>
         /// 执行开始时间
         /// </summary>
-        public DateTime ExecuteStartTime { get; set; }
+        public DateTimeOffset ExecuteStartTime { get; set; }
 
         /// <summary>
         /// 表达式计算时间
         /// </summary>
-        public DateTime ExpressionTime { get; set; }
+        public DateTimeOffset ExpressionTime { get; set; }
 
         /// <summary>
         /// 执行结束时间
         /// </summary>
-        public DateTime ExecuteEndTime { get; set; }
+        public DateTimeOffset ExecuteEndTime { get; set; }
 
         /// <summary>
         /// 定时任务

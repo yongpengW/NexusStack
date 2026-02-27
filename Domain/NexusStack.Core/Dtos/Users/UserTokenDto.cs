@@ -36,7 +36,7 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 过期时间
         /// </summary>
-        public DateTime ExpirationDate { get; set; }
+        public DateTimeOffset ExpirationDate { get; set; }
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 登录时间
         /// </summary>
-        public DateTime loginAt { get; set; }
+        public DateTimeOffset loginAt { get; set; }
 
         /// <summary>
         /// 登录平台

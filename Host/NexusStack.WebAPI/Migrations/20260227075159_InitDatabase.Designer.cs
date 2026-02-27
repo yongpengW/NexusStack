@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NexusStack.WebAPI.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20260226154546_InitDatabase")]
+    [Migration("20260227075159_InitDatabase")]
     partial class InitDatabase
     {
         /// <inheritdoc />
@@ -40,7 +40,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(64)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -77,7 +77,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -111,7 +111,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -141,7 +141,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(128)")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -166,7 +166,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -190,7 +190,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -223,7 +223,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -271,7 +271,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -309,7 +309,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -337,7 +337,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -353,7 +353,7 @@ namespace NexusStack.WebAPI.Migrations
                         });
                 });
 
-            modelBuilder.Entity("NexusStack.Core.Entities.OpenAppConfig.AppConfig", b =>
+            modelBuilder.Entity("NexusStack.Core.Entities.OpenAppConfigs.AppConfig", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -383,7 +383,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -415,7 +415,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -444,7 +444,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -489,7 +489,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -518,7 +518,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -558,7 +558,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -587,7 +587,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -627,7 +627,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -669,7 +669,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("boolean")
                         .HasComment("");
 
-                    b.Property<DateTime>("LastExecuteTime")
+                    b.Property<DateTimeOffset>("LastExecuteTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -679,7 +679,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasComment("");
 
-                    b.Property<DateTime>("NextExecuteTime")
+                    b.Property<DateTimeOffset>("NextExecuteTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -704,15 +704,15 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("ExecuteEndTime")
+                    b.Property<DateTimeOffset>("ExecuteEndTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
-                    b.Property<DateTime>("ExecuteStartTime")
+                    b.Property<DateTimeOffset>("ExecuteStartTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
-                    b.Property<DateTime>("ExpressionTime")
+                    b.Property<DateTimeOffset>("ExpressionTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -760,7 +760,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("ExecuteTime")
+                    b.Property<DateTimeOffset>("ExecuteTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -772,7 +772,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("boolean")
                         .HasComment("");
 
-                    b.Property<DateTime>("LastWriteTime")
+                    b.Property<DateTimeOffset>("LastWriteTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -814,7 +814,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -856,7 +856,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -881,7 +881,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -921,7 +921,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -964,7 +964,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(128)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1024,7 +1024,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1063,7 +1063,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1085,7 +1085,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1125,7 +1125,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(256)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1189,7 +1189,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("integer")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1225,7 +1225,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1245,7 +1245,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1274,7 +1274,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1320,7 +1320,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1350,7 +1350,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1376,7 +1376,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1412,7 +1412,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(64)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1461,7 +1461,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(64)")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1486,7 +1486,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1514,7 +1514,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1549,7 +1549,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(64)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1591,7 +1591,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1621,7 +1621,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(512)")
                         .HasComment("");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1647,7 +1647,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("boolean")
                         .HasComment("");
 
-                    b.Property<DateTime>("LastLoginTime")
+                    b.Property<DateTimeOffset>("LastLoginTime")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1687,7 +1687,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(512)")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1718,7 +1718,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1738,7 +1738,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("text")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1771,7 +1771,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1791,7 +1791,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1824,7 +1824,7 @@ namespace NexusStack.WebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1832,7 +1832,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("bigint")
                         .HasComment("");
 
-                    b.Property<DateTime>("ExpirationDate")
+                    b.Property<DateTimeOffset>("ExpirationDate")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 
@@ -1884,7 +1884,7 @@ namespace NexusStack.WebAPI.Migrations
                         .HasColumnType("character varying(32)")
                         .HasComment("");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasComment("");
 

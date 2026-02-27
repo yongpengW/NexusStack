@@ -12,6 +12,6 @@ namespace NexusStack.Core.Dtos.DownloadCenter
         public long Size { get; set; }
         public string key { get; set; }
         public ExportState State { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
     }
 }

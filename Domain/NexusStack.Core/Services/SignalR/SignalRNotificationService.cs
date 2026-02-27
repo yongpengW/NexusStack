@@ -261,7 +261,7 @@ namespace NexusStack.Core.Services.SignalR
                     Content = message, // 兼容前端
                     Type = notificationType,
                     UserId = userId,
-                    Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     ServerTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
 
@@ -291,7 +291,7 @@ namespace NexusStack.Core.Services.SignalR
                     Message = message,
                     Content = message, // 兼容前端
                     Type = notificationType,
-                    Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     ServerTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
 

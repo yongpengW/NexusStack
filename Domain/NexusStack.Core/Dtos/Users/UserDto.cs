@@ -1,4 +1,4 @@
-using NexusStack.Core.Entities.SystemManagement;
+﻿using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Infrastructure.Dtos;
 using NexusStack.Infrastructure.Enums;
@@ -48,7 +48,7 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 最后登录时间
         /// </summary>
-        public DateTime LastLoginTime { get; set; }
+        public DateTimeOffset LastLoginTime { get; set; }
 
         /// <summary>
         /// 头像

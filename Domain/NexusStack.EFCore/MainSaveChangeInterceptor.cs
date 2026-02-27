@@ -91,8 +91,8 @@ namespace NexusStack.EFCore
                     switch (entry.State)
                     {
                         case Microsoft.EntityFrameworkCore.EntityState.Added:
-                            entity?.UpdatedAt = DateTime.UtcNow;
-                            entity?.CreatedAt = DateTime.UtcNow;
+                            entity?.UpdatedAt = DateTimeOffset.UtcNow;
+                            entity?.CreatedAt = DateTimeOffset.UtcNow;
                             if (currentUser != null && currentUser.IsAuthenticated)
                             {
                                 entity?.CreatedBy = currentUser.UserId;
@@ -102,7 +102,7 @@ namespace NexusStack.EFCore
 
                         case Microsoft.EntityFrameworkCore.EntityState.Modified:
                         case Microsoft.EntityFrameworkCore.EntityState.Deleted:
-                            entity?.UpdatedAt = DateTime.UtcNow;
+                            entity?.UpdatedAt = DateTimeOffset.UtcNow;
                             if (currentUser != null && currentUser.IsAuthenticated)
                             {
                                 entity?.UpdatedBy = currentUser.UserId;

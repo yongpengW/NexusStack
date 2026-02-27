@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NexusStack.Core.Dtos.OpenApiConfigs
+namespace NexusStack.Core.Dtos.OpenAppConfigs
 {
-    public class OpenApiConfigDto : AuditedDtoBase
+    public class AppConfigDto : AuditedDtoBase
     {
         public required string AppKey { get; set; }
 
@@ -21,6 +21,6 @@ namespace NexusStack.Core.Dtos.OpenApiConfigs
 
         public bool IsEnabled { get; set; }
 
-        public long? ShopId { get; set; }
+        //public long? ShopId { get; set; }
     }
 }

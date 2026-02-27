@@ -23,7 +23,7 @@ namespace NexusStack.Core.Dtos.Messages
 
         public IEnumerable<InternalMessageRecipientDto?> Recipients { get; set; }
 
-        public DateTime CreateAt { get; set; }
+        public DateTimeOffset CreateAt { get; set; }
     }
 
     public class InternalMessageInboxDto
@@ -46,8 +46,8 @@ namespace NexusStack.Core.Dtos.Messages
         public long StoreId { get; set; }
         public string StoreName { get; set; }
 
-        public DateTime UpdateAt { get; set; }
-        public DateTime CreateAt { get; set; }
+        public DateTimeOffset UpdateAt { get; set; }
+        public DateTimeOffset CreateAt { get; set; }
         public bool IsRead { get; set; }
     }
 
@@ -60,8 +60,8 @@ namespace NexusStack.Core.Dtos.Messages
         public long StoreId { get; set; }
         public string StoreName { get; set; }
 
-        public DateTime UpdateAt { get; set; }
-        public DateTime CreateAt { get; set; }
+        public DateTimeOffset UpdateAt { get; set; }
+        public DateTimeOffset CreateAt { get; set; }
 
         public bool IsRead
         {

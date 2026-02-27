@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace NexusStack.Core.Entities.OpenAppConfig
+namespace NexusStack.Core.Entities.OpenAppConfigs
 {
     /// <summary>
     /// 平台开放应用配置

@@ -12,7 +12,7 @@ namespace NexusStack.EFCore.Entities
         /// <summary>
         /// 创建时间
         /// </summary>
-        DateTime CreatedAt { get; set; }
+        DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
         /// 创建人id
@@ -22,7 +22,7 @@ namespace NexusStack.EFCore.Entities
         /// <summary>
         /// 修改时间
         /// </summary>
-        DateTime UpdatedAt { get; set; }
+        DateTimeOffset UpdatedAt { get; set; }
 
         /// <summary>
         /// 修改人id

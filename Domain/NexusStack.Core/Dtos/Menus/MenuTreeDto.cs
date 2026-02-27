@@ -9,6 +9,6 @@ namespace NexusStack.Core.Dtos.Menus
         /// <summary>
         /// 下级菜单
         /// </summary>
-        public List<MenuTreeDto> Children { get; set; } = new List<MenuTreeDto>();
+        public List<MenuTreeDto>? Children { get; set; } = new List<MenuTreeDto>();
     }
 }

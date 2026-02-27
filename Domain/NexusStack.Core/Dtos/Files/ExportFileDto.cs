@@ -8,9 +8,9 @@ namespace NexusStack.Core.Dtos.Files
     public class ExportFileDto : DtoBase
     {
         public string? Name { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public DateTime? ExpireDate { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
+        public DateTimeOffset? ExpireDate { get; set; }
         public int State { get; set; }
         public string? StateName { get; set; }
         public decimal? Percent { get; set; }

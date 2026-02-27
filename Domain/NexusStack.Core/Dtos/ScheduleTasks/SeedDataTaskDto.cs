@@ -15,7 +15,7 @@ namespace NexusStack.Core.Dtos.ScheduleTasks
         /// <summary>
         /// 最后一次执行时间
         /// </summary>
-        public DateTime LastWriteTime { get; set; }
+        public DateTimeOffset LastWriteTime { get; set; }
 
         /// <summary>
         /// 是否启用
@@ -25,7 +25,7 @@ namespace NexusStack.Core.Dtos.ScheduleTasks
         /// <summary>
         /// 执行时间
         /// </summary>
-        public DateTime ExecuteTime { get; set; }
+        public DateTimeOffset ExecuteTime { get; set; }
 
         /// <summary>
         /// 执行状态

@@ -56,11 +56,11 @@ namespace NexusStack.Core.Dtos.Permissions
         /// <summary>
         /// 下级
         /// </summary>
-        public List<PermissionDto> Children { get; set; }
+        public virtual List<PermissionDto>? Children { get; set; }
 
         /// <summary>
         /// 操作
         /// </summary>
-        public List<PermissionDto> Operations { get; set; }
+        public virtual List<PermissionDto>? Operations { get; set; }
     }
 }

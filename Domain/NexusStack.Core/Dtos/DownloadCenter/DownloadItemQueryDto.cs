@@ -8,8 +8,8 @@ namespace NexusStack.Core.Dtos.DownloadCenter
 {
     public class DownloadItemQueryDto : PagedQueryModelBase
     {
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public DateTimeOffset? StartDate { get; set; }
+        public DateTimeOffset? EndDate { get; set; }
         public ExportState? State { get; set; }
     }
 }

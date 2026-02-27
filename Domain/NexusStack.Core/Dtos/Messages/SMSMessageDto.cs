@@ -21,6 +21,6 @@ namespace NexusStack.Core.Dtos.Messages
 
         public string Body { get; set; }
 
-        public DateTime SendTime { get; set; }
+        public DateTimeOffset SendTime { get; set; }
     }
 }

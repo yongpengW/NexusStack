@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NexusStack.Core.Dtos.OpenApiConfigs
+namespace NexusStack.Core.Dtos.OpenAppConfigs
 {
-    public class WebhookConfigDto
+    public class AppEventConfigDto
     {
         public long? Id { get; set; }
         public long AppId { get; set; }
@@ -13,6 +13,8 @@ namespace NexusStack.Core.Dtos.OpenApiConfigs
         public required string Name { get; set; }
 
         public string? Method { get; set; }
+
+        public string? EventCode { get; set; }
 
         public string? HookUrl { get; set; }
 

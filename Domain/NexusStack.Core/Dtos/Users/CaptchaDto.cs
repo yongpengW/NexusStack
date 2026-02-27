@@ -22,6 +22,6 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 验证码过期时间
         /// </summary>
-        public DateTime ExpireTime { get; set; }
+        public DateTimeOffset ExpireTime { get; set; }
     }
 }
