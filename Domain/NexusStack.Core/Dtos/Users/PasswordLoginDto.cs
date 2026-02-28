@@ -18,16 +18,6 @@ namespace NexusStack.Core.Dtos.Users
         public string UserName { get; set; }
 
         /// <summary>
-        /// 验证码
-        /// </summary>
-        public string Captcha { get; set; }
-
-        /// <summary>
-        /// 验证码 Key
-        /// </summary>
-        public string CaptchaKey { get; set; }
-
-        /// <summary>
         /// 登录平台
         /// </summary>
         public PlatformType PlatformType { get; set; }

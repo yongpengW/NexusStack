@@ -35,28 +35,14 @@ namespace NexusStack.WebAPI.Controllers
     ) : BaseController
     {
         /// <summary>
-        /// 获取图片验证码
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("captcha"), AllowAnonymous]
-        public Task<CaptchaDto> GetCaptchaAsync()
-        {
-            return userTokenService.GenerateCaptchaAsync();
-        }
-
-        /// <summary>
         /// 账号密码登录
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost("password"), AllowAnonymous]
-        public async Task<UserTokenDto> PostAsync(PasswordLoginDto model)
+        public Task<UserTokenDto> PostAsync(PasswordLoginDto model)
         {
-            if (!await userTokenService.ValidateCaptchaAsync(model.Captcha, model.CaptchaKey))
-            {
-                throw new BusinessException("验证码错误");
-            }
-            return await userTokenService.LoginWithPasswordAsync(model.UserName, model.Password, model.PlatformType);
+            return userTokenService.LoginWithPasswordAsync(model.UserName, model.Password, model.PlatformType);
         }
 
         /// <summary>
@@ -77,7 +63,7 @@ namespace NexusStack.WebAPI.Controllers
             var userToken = await userTokenService.GetAsync(a => a.TokenHash == tokenHash && a.UserId == this.CurrentUser.UserId);
             if (userToken != null)
             {
-                userToken.ExpirationDate = DateTime.Now;
+                userToken.ExpirationDate = DateTimeOffset.UtcNow;
                 userToken.LoginType = LoginStatus.logout;
                 await userTokenService.UpdateAsync(userToken);
                 // 删除 Redis 中的缓存
