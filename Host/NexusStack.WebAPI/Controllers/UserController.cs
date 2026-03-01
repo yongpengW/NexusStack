@@ -1,4 +1,4 @@
-using LinqKit;
+﻿using LinqKit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Attributes;
@@ -61,7 +61,6 @@ namespace NexusStack.WebAPI.Controllers
                     RealName = u.RealName,
                     Gender = u.Gender,
                     IsEnable = u.IsEnable,
-                    Remark = u.Remark,
                     LastLoginTime = u.LastLoginTime,
                     Avatar = u.Avatar,
                 });

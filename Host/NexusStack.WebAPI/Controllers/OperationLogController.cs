@@ -46,7 +46,7 @@ namespace NexusStack.WebAPI.Controllers
             }
             if (!string.IsNullOrEmpty(model.MenuCode))
             {
-                filter.And(a => a.OperationMenu.Contains(model.MenuCode));
+                filter.And(a => a.MenuCode.Contains(model.MenuCode));
             }
             if (model.UserId.HasValue)
             {
