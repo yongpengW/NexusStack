@@ -241,16 +241,19 @@ public class UserToken : AuditedEntity
 
 ## 五、方案二权限校验流程
 
-### 5.1 登录阶段
+### 5.1 登录阶段（已落地实现）
 
 ```
 POST /api/Token/password  { userName, password, platformType }
   ↓
-1. 验证账号密码
-2. 筛选 UserRole 中 Role 的 Platforms 包含 platformType 的角色
-3. 如果没有任何角色有当前平台权限 → 403 无权限登录此平台
-4. 生成 Token，写入 UserToken(UserId, PlatformType)
-5. 将 (UserId, PlatformType) 对应的权限集合写入 Redis 缓存
+1. 查找用户（用户名 / 手机号）
+2. 验证密码（EncodePassword + Salt）
+3. 校验 user.IsEnable → false → 抛出"该账号已禁用"
+   ↑ 此步骤必须在平台角色校验之前，避免向禁用账号暴露角色信息
+4. 筛选 UserRole 中 r.IsEnable = true 且 (r.Platforms & platformType) != 0 的角色
+5. 如果没有任何可用角色 → 抛出"在当前平台下未分配任何角色，无权限登录"
+6. 生成 Token，写入 UserToken(UserId, PlatformType)，存入 Redis（TTL 10h）
+7. GetOrSetAsync(UserId, PlatformType) 预热 UserContextCacheDto（首次命中时从 DB 构建）
 ```
 
 ### 5.2 请求阶段（RequestAuthorizeFilter）
@@ -418,12 +421,14 @@ public class Menu : AuditedEntity
 
 ### 6.2 ApiResource（API 资源）表
 
-- **职责**：为每个需要做权限控制的后端 API 建立**稳定的资源编号**。  
-- **关键字段建议**：
+- **职责**：为每个需要做权限控制的后端 API 建立**稳定的资源编号**，由 `InitApiResourceService` 在应用启动时自动扫描注册。  
+- **关键字段说明**：
   - `Id`：主键  
-  - `Code`：稳定编码（如 `user.get`, `user.create`），便于审计日志与菜单关联  
-  - `ControllerName` / `ActionName` / `RequestMethod`：用于构建校验用的 `apiKey`  
-  - `RouteTemplate`：可选，用于调试与文档生成  
+  - `Code`：唯一标识，格式为 `RoutePattern.ToLower():RequestMethod`（如 `api/role:POST`），由 `InitApiResourceService` 自动生成，**不应手动维护**  
+  - `RoutePattern`：路由模板（如 `api/role/permission/{roleId}`），与 `RequestMethod` 共同构成权限校验的 `apiKey`  
+  - `RequestMethod`：HTTP 方法（大写，如 `GET` / `POST`）  
+  - `ControllerName` / `ActionName`：保留用于 UI 展示和分组，**不再参与鉴权 Key 的构建**  
+  - `GroupName`：控制器注释，用于 UI 分组展示  
 
 **当前实现示例（`ApiResource` 实体）：**
 
