@@ -62,7 +62,7 @@ namespace NexusStack.Core.Services.Users
                 return;
             }
 
-            foreach (var p in Enum.GetValues<PlatformType>().Where(p => p != default))
+            foreach (var p in Enum.GetValues<PlatformType>())
                 await redisService.DeleteAsync(CacheKey(userId, p));
         }
 
