@@ -8,6 +8,16 @@ namespace NexusStack.Infrastructure
     public interface ICurrentUser
     {
         /// <summary>
+        /// 当前平台下该用户拥有的角色 Id 列表（来自用户上下文缓存，鉴权成功后由 Handler 写入 HttpContext.Items）
+        /// </summary>
+        IReadOnlyList<long> RoleIds { get; }
+
+        /// <summary>
+        /// 用户所属组织/地区 Id 列表（来自 UserDepartment，当前指向 Region.Id）
+        /// </summary>
+        IReadOnlyList<long> RegionIds { get; }
+
+        /// <summary>
         /// 用户编号
         /// </summary>
         long UserId { get; }

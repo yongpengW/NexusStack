@@ -1,4 +1,4 @@
-using NexusStack.Infrastructure.Enums;
+﻿using NexusStack.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;

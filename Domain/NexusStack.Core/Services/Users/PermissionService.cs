@@ -15,7 +15,7 @@ using NexusStack.Core.Services.Interfaces;
 
 namespace NexusStack.Core.Services.Users
 {
-    public class PermissionService(MainContext dbContext, IMapper mapper, IMenuService menuService, IServiceBase<ApiResource> apiResourceService, IServiceBase<MenuResource> menuResourceService, IRoleService roleService) : ServiceBase<Permission>(dbContext, mapper), IPermissionService, IScopedDependency
+    public class PermissionService(MainContext dbContext, IMapper mapper, IMenuService menuService, IServiceBase<ApiResource> apiResourceService, IServiceBase<MenuResource> menuResourceService, IRoleService roleService, IUserContextCacheService userContextCacheService) : ServiceBase<Permission>(dbContext, mapper), IPermissionService, IScopedDependency
     {
         /// <summary>
         /// 修改角色权限
@@ -38,7 +38,6 @@ namespace NexusStack.Core.Services.Users
             await BatchDeleteAsync(a => a.RoleId == model.RoleId && oldMenuIds.Contains(a.MenuId));
 
             var menus = await menuService.GetListAsync(x => model.Menus.Contains(x.Id));
-            //var parentIds = menus.Where(x=> x.ParentId > 0).Select(x => x.ParentId).Distinct().ToArray();
             var parentIds = new List<long>();
 
             foreach (var item in menus)
@@ -64,6 +63,16 @@ namespace NexusStack.Core.Services.Users
             }));
 
             await InsertAsync(permissions.Distinct());
+
+            // 角色权限变更后，使所有拥有该角色的用户的权限缓存失效
+            var affectedUserIds = await dbContext.Set<UserRole>()
+                .Where(ur => ur.RoleId == model.RoleId)
+                .Select(ur => ur.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var userId in affectedUserIds)
+                await userContextCacheService.InvalidateAsync(userId);
         }
 
         /// <summary>
@@ -94,7 +103,7 @@ namespace NexusStack.Core.Services.Users
                             HasPermission = pm != null ? true : false,
                             RoleId = pm != null ? pm.RoleId : roleId,
                             Id = pm != null ? pm.Id : 0,
-                            MenuUrl = m.Url
+                            MenuUrl = m.Url ?? string.Empty,
                         };
 
             var permissions = await query.ToListAsync();
@@ -168,11 +177,8 @@ namespace NexusStack.Core.Services.Users
 
         public async Task<List<MenuTreeDto>> GetUserMenuTreeListAsync(ICurrentUser currentUser, PlatformType platformType)
         {
-            // 根据当前用户，先拿到所有角色，再按平台过滤菜单权限
-            var roleIds = await dbContext.Set<UserRole>()
-                .Where(ur => ur.UserId == currentUser.UserId)
-                .Select(ur => ur.RoleId)
-                .ToListAsync();
+            // 直接使用认证阶段按平台过滤并缓存的 RoleIds，无需再查 DB
+            var roleIds = currentUser.RoleIds.ToList();
 
             if (!roleIds.Any())
             {
@@ -224,50 +230,5 @@ namespace NexusStack.Core.Services.Users
             return await menuResourceService.ExistsAsync(a => a.MenuId == menu.Id && a.ApiResourceId == resource.Id);
         }
 
-        /// <summary>
-        /// 判断指定用户在指定平台下，是否拥有某个 API 的访问权限
-        /// </summary>
-        public async Task<bool> HasApiPermissionAsync(long userId, PlatformType platformType, string controllerName, string actionName, string httpMethod)
-        {
-            // 规范化 HTTP 方法，确保与 InitApiResourceService 中保存的一致（大写）
-            httpMethod = httpMethod.ToUpperInvariant();
-
-            // 1. 拿到用户在该平台下的所有角色
-            var roleIds = await dbContext.Set<UserRole>()
-                .Join(roleService.GetQueryable(), ur => ur.RoleId, r => r.Id, (ur, r) => new { ur, r })
-                .Where(x => x.ur.UserId == userId
-                            && (platformType == PlatformType.All || (x.r.Platforms & platformType) != 0))
-                .Select(x => x.ur.RoleId)
-                .Distinct()
-                .ToListAsync();
-
-            if (!roleIds.Any())
-            {
-                return false;
-            }
-
-            // 2. 这些角色拥有的菜单
-            var menuIds = await dbContext.Set<Permission>()
-                .Where(p => roleIds.Contains(p.RoleId))
-                .Select(p => p.MenuId)
-                .Distinct()
-                .ToListAsync();
-
-            if (!menuIds.Any())
-            {
-                return false;
-            }
-
-            // 3. 菜单关联到的 API 中，是否存在匹配当前控制器/Action/Method 的资源
-            var hasPermission = await dbContext.Set<MenuResource>()
-                .Join(dbContext.Set<ApiResource>(), mr => mr.ApiResourceId, ar => ar.Id, (mr, ar) => new { mr, ar })
-                .AnyAsync(x =>
-                    menuIds.Contains(x.mr.MenuId)
-                    && x.ar.ControllerName == controllerName
-                    && x.ar.ActionName == actionName
-                    && x.ar.RequestMethod == httpMethod);
-
-            return hasPermission;
-        }
     }
 }

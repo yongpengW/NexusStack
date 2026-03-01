@@ -75,8 +75,9 @@ namespace NexusStack.Core.HostedServices
                         resource.RequestMethod = metadata.HttpMethods.FirstOrDefault()?.ToUpperInvariant();
                     }
 
-                    // 生成接口 API 唯一 Code
-                    resource.Code = $"{resource.NameSpace}.{resource.ControllerName}.{resource.ActionName}";
+                    // 以 RouteTemplate:HttpMethod 作为唯一 Code，彻底解决同控制器同名重载 Action 相互覆盖问题。
+                    // 例：api/role:POST  vs  api/role/permission/{roleId}:POST，两者 Code 不同，各自独立存储。
+                    resource.Code = $"{resource.RoutePattern?.ToLowerInvariant()}:{resource.RequestMethod}";
 
                     await apiResourceService.InsertOrUpdateAsync(resource, a => a.Code == resource.Code);
                 }

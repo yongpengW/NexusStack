@@ -1,5 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
@@ -32,6 +33,7 @@ namespace NexusStack.Core.Services.Users
         IRedisService redisService,
         IUserService userService,
         IUserRoleService userRoleService,
+        IUserContextCacheService userContextCacheService,
         IHttpContextAccessor httpContextAccessor,
         IHostEnvironment hostEnvironment) : ServiceBase<UserToken>(dbContext, mapper), IUserTokenService, IScopedDependency
     {
@@ -114,6 +116,18 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("账号或密码错误");
             }
 
+            if (!user.IsEnable)
+            {
+                throw new BusinessException("该账号已禁用");
+            }
+
+            // 检查用户在该平台下是否有可用角色（方案二：平台上下文驱动权限）
+            var platformRoles = await userRoleService.GetUserRoles(user.Id, platform);
+            if (platformRoles.Count == 0)
+            {
+                throw new BusinessException("该账号在当前平台下未分配任何角色，无权限登录");
+            }
+
             return await GenerateUserTokenAsync(user, platform);
         }
 
@@ -160,6 +174,10 @@ namespace NexusStack.Core.Services.Users
 
             // 将 Token 信息存储到 Redis，有效期 10 小时
             await redisService.SetAsync(CoreRedisConstants.UserToken.Format(token.TokenHash), cacheData, TimeSpan.FromHours(10));
+
+            // 预热用户上下文缓存（Roles、Regions），供鉴权后从 Redis 读取
+            _ = await userContextCacheService.GetOrSetAsync(user.Id, platform, TimeSpan.FromHours(10));
+
             return Mapper.Map<UserTokenDto>(token);
         }
 
@@ -220,6 +238,10 @@ namespace NexusStack.Core.Services.Users
             }
 
             var user = await userService.GetAsync(a => a.Id == userToken.UserId);
+            if (user is null)
+            {
+                throw new BusinessException("用户不存在，无法刷新 Token");
+            }
 
             // 生成 Token
             var token = await GenerateUserTokenAsync(user, userToken.PlatformType);

@@ -1,4 +1,5 @@
-﻿using NexusStack.Core.Entities.SystemManagement;
+﻿using NexusStack.Core.Dtos.Roles;
+using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Infrastructure.Dtos;
 using NexusStack.Infrastructure.Enums;
@@ -60,12 +61,20 @@ namespace NexusStack.Core.Dtos.Users
         /// </summary>
         public string Email { get; set; }
 
-        public string? Remark { get; set; }
-
         /// <summary>
         /// 用户所属组织单元（当前指向 Region）
         /// </summary>
-        public List<UserDepartmentDto> Departments { get; set; } = new List<UserDepartmentDto>();
+        public List<UserDepartmentDto> Departments { get; set; } = [];
+
+        /// <summary>
+        /// 用户所有角色
+        /// </summary>
+        public List<RoleDto> Roles { get; set; } = [];
+
+        /// <summary>
+        /// 角色用户关系数据
+        /// </summary>
+        public List<UserRoleDto> UserRoles { get; set; } = [];
     }
 
     public class CurrentUserDto : UserDto
@@ -73,6 +82,6 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 当前登录用户的扩展信息（可按业务需要继续扩展）
         /// </summary>
-        public string SignatureUrl { get; set; }
+        public string? SignatureUrl { get; set; }
     }
 }

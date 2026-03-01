@@ -1,7 +1,7 @@
 # NexusStack RBAC 权限系统设计文档
 
-> 文档状态：**V1 设计已定稿（可迭代优化）**  
-> 最后更新：2026-02  
+> 文档状态：**V1 实现已完成**  
+> 最后更新：2026-03  
 > 涉及分支：`dev`
 
 ---
@@ -61,6 +61,9 @@ NexusStack 是一个全新架构的后端框架模板，**不存在历史数据�
 
 `UserToken.RoleId` 只记录一个"当前激活角色"，与"用户可拥有多角色"的设计矛盾，
 是 **Switch Role** 功能的遗留设计，在方案二中需要调整。
+
+> ✅ **已解决**：`UserToken.RoleId` 字段已在实现中完全移除，Token 仅绑定 `UserId + PlatformType`，
+> 权限由 `(UserId, PlatformType)` 对应的 Redis 缓存驱动，不再依赖单一激活角色。
 
 ---
 
@@ -238,16 +241,19 @@ public class UserToken : AuditedEntity
 
 ## 五、方案二权限校验流程
 
-### 5.1 登录阶段
+### 5.1 登录阶段（已落地实现）
 
 ```
 POST /api/Token/password  { userName, password, platformType }
   ↓
-1. 验证账号密码
-2. 筛选 UserRole 中 Role 的 Platforms 包含 platformType 的角色
-3. 如果没有任何角色有当前平台权限 → 403 无权限登录此平台
-4. 生成 Token，写入 UserToken(UserId, PlatformType)
-5. 将 (UserId, PlatformType) 对应的权限集合写入 Redis 缓存
+1. 查找用户（用户名 / 手机号）
+2. 验证密码（EncodePassword + Salt）
+3. 校验 user.IsEnable → false → 抛出"该账号已禁用"
+   ↑ 此步骤必须在平台角色校验之前，避免向禁用账号暴露角色信息
+4. 筛选 UserRole 中 r.IsEnable = true 且 (r.Platforms & platformType) != 0 的角色
+5. 如果没有任何可用角色 → 抛出"在当前平台下未分配任何角色，无权限登录"
+6. 生成 Token，写入 UserToken(UserId, PlatformType)，存入 Redis（TTL 10h）
+7. GetOrSetAsync(UserId, PlatformType) 预热 UserContextCacheDto（首次命中时从 DB 构建）
 ```
 
 ### 5.2 请求阶段（RequestAuthorizeFilter）
@@ -255,59 +261,107 @@ POST /api/Token/password  { userName, password, platformType }
 ```
 请求到达（携带 Token）
   ↓
-1. [AllowAnonymous] → 直接放行
-2. Token 认证 → 解析 UserId + PlatformType
-3. IsAuthenticated != true → 401
-4. IsEnable == false → 403 用户已禁用
-5. 读取权限缓存 key = (UserId, PlatformType)
-   └─ 缓存未命中 → 从 DB 构建缓存
-6. 当前 API (ControllerName + ActionName + HttpMethod)
-   是否在权限集合中 → 否 → 403 暂无权限
-7. 放行
+RequestAuthenticationTokenHandler（身份认证）
+  ├─ 读 Authorization Header → ValidateTokenAsync (Redis → DB fallback)
+  ├─ Token 无效 → AuthenticateResult.Fail
+  ├─ GetOrSetAsync(UserId, PlatformType) → 拉取/构建 UserContextCacheDto
+  └─ 写入 HttpContext.Items["NexusStack.UserContext"]
+  ↓
+RequestAuthorizeFilter（权限校验，纯内存，不查 DB）
+  ├─ [AllowAnonymous] → 直接放行
+  ├─ OpenAPI 专属 Scheme → 只验身份，放行
+  ├─ IsAuthenticated != true → 401 请先登录
+  ├─ Items 中无 UserContextCacheDto → 401 用户上下文缺失
+  ├─ userContext.IsEnable == false → 403 用户已禁用
+  ├─ apiKey = RouteTemplate.ToLower() + ":" + HttpMethod.ToUpper()
+  │         （例：api/role/permission/{roleId}:POST）
+  └─ ApiPermissionKeys.Contains(apiKey) → 否 → 403 暂无权限 / 是 → 放行
 ```
 
-### 5.3 权限缓存结构
+> **关键设计**：`RequestAuthorizeFilter` 不注入任何 Service，完全依赖
+> `RequestAuthenticationTokenHandler` 预写入 `HttpContext.Items` 的 `UserContextCacheDto`，
+> 鉴权热路径为纯内存操作，O(1) 时间复杂度。
+
+### 5.3 权限缓存结构（已落地实现）
 
 ```csharp
-// Redis Key: "nexusstack:perms:{userId}:{platformType}"
-// Value: HashSet<string> apiKeys = { "User:GetAsync:GET", "User:PostAsync:POST", ... }
+// Redis Key: "{CoreRedisConstants.UserContext.Format(userId, (int)platformType)}:v2"
+// 版本后缀 :v2 用于在 Key 格式升级时自动淘汰旧缓存，无需手动清空 Redis。
 
-// 构建逻辑：
-var roleIds = UserRole
-    .Where(ur => ur.UserId == userId && ur.Role.Platforms 包含 platformType)
-    .Select(ur => ur.RoleId);
+// Value: UserContextCacheDto（JSON 序列化后存储）
+public class UserContextCacheDto
+{
+    public string          UserName          { get; set; }  // 用于禁用提示等
+    public string          Email             { get; set; }
+    public bool            IsEnable          { get; set; }  // 鉴权时直接判断，无需查 DB
+    public List<long>      RoleIds           { get; set; }  // 当前平台下的角色集合（并集）
+    public List<long>      RegionIds         { get; set; }  // 组织/地区 Id 列表
+    public HashSet<string> ApiPermissionKeys { get; set; }  // 预计算 API 白名单
+    // ApiPermissionKeys 格式："routetemplate:HTTPMETHOD"（全小写路由:大写方法）
+    // 示例：{ "api/role:GET", "api/role:POST", "api/role/permission/{roleId}:POST", ... }
+}
 
-var menuIds = Permission
-    .Where(p => roleIds.Contains(p.RoleId))  // 有记录即授权
-    .Select(p => p.MenuId)
-    .Distinct();
+// 构建逻辑（UserContextCacheService.BuildFromDbAsync）：
+var user = dbContext.Set<User>()
+    .Where(u => u.Id == userId)
+    .Select(u => new { u.UserName, u.Email, u.IsEnable })
+    .FirstOrDefault();
 
-var apiKeys = MenuResource
-    .Where(mr => menuIds.Contains(mr.MenuId))
-    .Join(ApiResource, mr => mr.ApiResourceId, ar => ar.Id, (mr, ar) =>
-        $"{ar.ControllerName}:{ar.ActionName}:{ar.RequestMethod}")
-    .ToHashSet();
+// 平台过滤 + 仅取启用角色（r.IsEnable 为 true 且 r.Platforms 包含 platformType）
+var roleIds = userRoleService.GetUserRoles(userId, platformType)
+    .Select(ur => ur.RoleId).Distinct().ToList();
+
+var regionIds = dbContext.Set<UserDepartment>()
+    .Where(ud => ud.UserId == userId)
+    .Select(ud => ud.DepartmentId).ToList();
+
+// 多角色并集：Role → Permission → Menu → MenuResource → ApiResource
+var menuIds = dbContext.Set<Permission>()
+    .Where(p => roleIds.Contains(p.RoleId))
+    .Select(p => p.MenuId).Distinct().ToList();
+
+var apiPermissionKeys = (
+    from mr in dbContext.Set<MenuResource>()
+    join ar in dbContext.Set<ApiResource>() on mr.ApiResourceId equals ar.Id
+    where menuIds.Contains(mr.MenuId)
+          && ar.RoutePattern != null && ar.RequestMethod != null
+    select ar.RoutePattern.ToLower() + ":" + ar.RequestMethod.ToUpper()
+).Distinct().ToHashSet(StringComparer.OrdinalIgnoreCase);
 ```
 
-#### 5.3.1 权限缓存 Key 设计补充说明
+#### 5.3.1 权限缓存 Key 格式说明
 
 - **Key 维度**：`(UserId, PlatformType)`，不直接以 `RoleId` 为 Key，原因：  
   - 平台上下文会影响可用角色集合；  
   - 用户多角色并集后的结果远比单一角色更贴近真实权限视角。  
-- **Value 内容**：  
-  - API 粒度的白名单（`Controller:Action:Method`）；  
-  - 后续如需支持前端按钮/字段级权限，可扩展为：  
-    - 再加一组 `HashSet<string> uiPermissions`，由前端约定编码（如 `user.create`, `user.resetPassword`）；  
-    - 但仍建议所有后端鉴权以 API 粒度为准，UI 权限仅作为展示/交互约束。
+- **API 权限 Key 格式（`routetemplate:METHOD`）**：  
+  - 使用 **路由模板** 而非 `ControllerName:ActionName`，可正确区分同控制器内同名重载 Action；  
+  - 例：`RoleController` 同时有 `POST api/role`（新增角色）和 `POST api/role/permission/{roleId}`（修改权限），旧格式均为 `Role:PostAsync:POST`（冲突），新格式为 `api/role:POST` 与 `api/role/permission/{roleId}:POST`（唯一）；  
+  - 与 `InitApiResourceService` 写入 `ApiResource.Code` 的格式、`RequestAuthorizeFilter` 构造 `apiKey` 的逻辑三方保持完全一致。  
+- **缓存版本控制**：Key 末尾附加 `:v2`，后续如 Key 格式再次升级，只需改版本号即可自动淘汰全量旧缓存。  
+- **Value 内容扩展建议**：  
+  - 后续如需支持前端按钮/字段级权限，可在 `UserContextCacheDto` 中新增 `HashSet<string> UiPermissions`，由前端约定编码（如 `user.create`）；  
+  - 后端鉴权始终以 API 粒度为准，UI 权限仅作展示/交互约束。
 
-### 5.4 缓存失效时机
+### 5.4 缓存失效矩阵（已落地实现）
 
-| 触发事件 | 失效范围 |
-|---|---|
-| 管理员修改角色权限 | 所有拥有该角色的用户的缓存 |
-| 管理员给用户增减角色 | 该用户的缓存 |
-| 用户被禁用 | 该用户所有 Token |
-| 菜单/ApiResource 变更 | 全量缓存失效 |
+所有失效操作均调用 `IUserContextCacheService.InvalidateAsync(userId)`，精准删除对应 Redis Key，避免全量清除。
+
+| 触发操作 | 失效范围 | 实现位置 |
+|---|---|---|
+| 修改角色权限（菜单-角色关联变更） | 该角色所有用户，全平台 | `PermissionService.ChangeRolePermissionAsync` |
+| 修改角色属性（含 `Platforms`/`IsEnable`） | 该角色所有用户，全平台 | `RoleController.PutAsync` |
+| 修改用户角色或组织绑定 | 该用户，全平台 | `UserController.PutAsync` |
+| 用户启用 | 该用户，全平台 | `UserController.EnableAsync` |
+| 用户禁用 | 该用户，全平台 | `UserController.DisableAsync` |
+| 用户删除 | 该用户，全平台（删除前执行） | `UserController.DeleteAsync` |
+| 修改菜单属性（`IsVisible`/`PlatformType` 等） | 持有该菜单权限的所有用户 | `MenuController.PutAsync` |
+| 删除菜单 | 持有该菜单权限的所有用户（**删除前**查询，防级联清除后无法溯源） | `MenuController.DeleteAsync` |
+| 菜单绑定/解绑 API 资源 | 持有该菜单权限的所有用户 | `MenuController.BindResourceAsync` |
+| 退出登录 | 该用户，当前平台（精准单平台） | `TokenController.SignoutAsync` |
+
+> **受影响用户查询链**（用于菜单类操作）：  
+> `menuId → Permission.RoleId → UserRole.UserId`，再对每个 `userId` 调用 `InvalidateAsync`。
 
 ---
 
@@ -367,12 +421,14 @@ public class Menu : AuditedEntity
 
 ### 6.2 ApiResource（API 资源）表
 
-- **职责**：为每个需要做权限控制的后端 API 建立**稳定的资源编号**。  
-- **关键字段建议**：
+- **职责**：为每个需要做权限控制的后端 API 建立**稳定的资源编号**，由 `InitApiResourceService` 在应用启动时自动扫描注册。  
+- **关键字段说明**：
   - `Id`：主键  
-  - `Code`：稳定编码（如 `user.get`, `user.create`），便于审计日志与菜单关联  
-  - `ControllerName` / `ActionName` / `RequestMethod`：用于构建校验用的 `apiKey`  
-  - `RouteTemplate`：可选，用于调试与文档生成  
+  - `Code`：唯一标识，格式为 `RoutePattern.ToLower():RequestMethod`（如 `api/role:POST`），由 `InitApiResourceService` 自动生成，**不应手动维护**  
+  - `RoutePattern`：路由模板（如 `api/role/permission/{roleId}`），与 `RequestMethod` 共同构成权限校验的 `apiKey`  
+  - `RequestMethod`：HTTP 方法（大写，如 `GET` / `POST`）  
+  - `ControllerName` / `ActionName`：保留用于 UI 展示和分组，**不再参与鉴权 Key 的构建**  
+  - `GroupName`：控制器注释，用于 UI 分组展示  
 
 **当前实现示例（`ApiResource` 实体）：**
 
@@ -432,31 +488,37 @@ public class MenuResource : AuditedEntity
 
 ---
 
-## 七、ICurrentUser 接口调整
+## 七、ICurrentUser 接口（已落地实现）
 
-基于方案二，`ICurrentUser` 的关键字段应调整为：
+基于方案二，`ICurrentUser` 仅从 Claims 读取身份标识，**权限相关数据（角色、组织）统一从 `HttpContext.Items` 中的 `UserContextCacheDto` 读取**：
 
 ```csharp
 public interface ICurrentUser
 {
-    long   UserId       { get; }   // 用户 ID
-    string UserName     { get; }
-    string Email        { get; }
-    bool   IsAuthenticated { get; }
-    bool   IsEnable     { get; }
-    string Token        { get; }
-    long   TokenId      { get; }
-    int    PlatformType { get; }   // 当前登录平台（核心）
+    long   UserId          { get; }   // 从 Claim 读取
+    string UserName        { get; }   // 从 Claim 读取
+    string Email           { get; }   // 从 Claim 读取
+    bool   IsAuthenticated { get; }   // 从 ClaimsPrincipal.Identity 读取
+    string Token           { get; }   // 从 Claim 读取
+    long   TokenId         { get; }   // 从 Claim 读取
+    int    PlatformType    { get; }   // 从 Claim 读取（存储为整数字符串，如 "1" 对应 Admin）
 
-    // 以下由权限缓存动态提供，不存储在 Claims 中
-    // → 去掉 Roles[], Shops[], Regions[] 等从 Claims 读取的字段
-    //    改为通过 IPermissionCacheService 按需查询
+    // 以下从 HttpContext.Items["NexusStack.UserContext"] 读取（不走 Claims / DB）
+    IReadOnlyList<long> RoleIds    { get; }   // 当前平台下的有效角色 Id 列表
+    IReadOnlyList<long> RegionIds  { get; }   // 用户所属组织/地区 Id 列表
 }
 ```
 
-> ⚠️ 注意：当前 `Roles[]`、`Shops[]`、`Regions[]` 是从 Claims 读取的，
-> 但认证 Handler 实际上从未正确写入这些 Claims（已知问题）。
-> 方案二不再依赖 Claims 传递权限数据，统一走 Redis 缓存。
+**Claims 与 HttpContext.Items 分工**：
+
+| 数据 | 存储位置 | 写入时机 |
+|---|---|---|
+| UserId / TokenId / PlatformType / UserName / Email | JWT Claims | `RequestAuthenticationTokenHandler` 认证成功后 |
+| RoleIds / RegionIds / IsEnable / ApiPermissionKeys | `HttpContext.Items["NexusStack.UserContext"]` | 同上，写入 `UserContextCacheDto`（来自 Redis 缓存） |
+
+> `PlatformType` Claim 存储为**整数字符串**（如 `"1"` 对应 `PlatformType.Admin`），
+> `CurrentUser.PlatformType` 通过 `FindClaimValue<int>()` 解析，
+> 与 `((int)userToken.PlatformType).ToString()` 的写入格式完全匹配。
 
 ---
 
@@ -473,17 +535,24 @@ public interface ICurrentUser
 
 ---
 
-## 九、与当前代码的对比
+## 九、设计目标与落地状态对比
 
-| 当前实现 | 方案二调整 |
-|---|---|
-| `UserToken.RoleId`（单激活角色） | 移除，改由 `PlatformType` 驱动多角色并集 |
-| `Role.Platforms` 字符串 | 改为 `[Flags]` enum 或后续演进为 `RolePlatform` 关联表 |
-| `User.DepartmentIds` 字符串 | 改为 `UserDepartment` 关联表 |
-| `SwitchRole` API | 移除 |
-| 权限缓存 key = `roleId` | 改为 `(userId, platformType)` |
-| Claims 携带 Roles/Regions 等 | 简化 Claims，权限数据走 Redis 缓存 |
-| `RequestAuthorizeFilter` 无权限校验 | 实现完整 API 级权限校验 |
+| 设计目标 | 落地状态 | 说明 |
+|---|---|---|
+| 移除 `UserToken.RoleId`（单激活角色） | ✅ 已完成 | Token 仅绑定 `UserId + PlatformType` |
+| `Role.Platforms` 改为 `[Flags]` enum | ✅ 已完成 | 使用位运算过滤 `(r.Platforms & platformType) != 0` |
+| `User.DepartmentIds` 改为 `UserDepartment` 关联表 | ✅ 已完成 | `UserDepartment(UserId, DepartmentId)` |
+| 移除 `SwitchRole` API | ✅ 已完成 | 权限始终为多角色并集，无切换概念 |
+| 权限缓存 Key 改为 `(UserId, PlatformType)` | ✅ 已完成 | 附加版本号 `:v2`，支持平滑升级 |
+| Claims 简化，权限数据走 Redis 缓存 | ✅ 已完成 | `RoleIds`/`RegionIds` 从 `HttpContext.Items` 读取 |
+| `RequestAuthorizeFilter` 实现完整 API 级权限校验 | ✅ 已完成 | 纯内存 O(1) 校验，不访问 DB |
+| 登录时校验平台角色存在 | ✅ 已完成 | `LoginWithPasswordAsync` 中验密后立即校验 |
+| 禁用角色不参与权限计算 | ✅ 已完成 | `UserRoleService.GetUserRoles` 过滤 `r.IsEnable` |
+| 禁用用户立即生效 | ✅ 已完成 | `IsEnable` 写入缓存，禁用时触发缓存失效 |
+| 全链路缓存失效覆盖 | ✅ 已完成 | 见第 5.4 节失效矩阵 |
+| API 资源自动注册 | ✅ 已完成 | `InitApiResourceService` 启动时扫描路由，`Code = RouteTemplate:Method` |
+| 解决同名 Action 冲突 | ✅ 已完成 | `Code` 使用路由模板而非 ActionName，全局唯一 |
+| 移除 SSO 遗留集成 | ✅ 已完成 | `UserController.DeleteAsync` 中的 SSO HTTP 调用已删除 |
 
 ---
 
@@ -504,3 +573,74 @@ public interface ICurrentUser
 - **性能与稳定性**：  
   - 鉴权失败路径同样要尽量轻量：权限缓存未命中时的 DB 查询逻辑需优化索引；  
   - 缓存重建失败时应采取**安全优先**策略（宁可 403 也不要放行），并在日志中显式记录。
+
+---
+
+## 十一、实现落地说明
+
+### 11.1 核心组件一览
+
+| 组件 | 职责 | 文件路径 |
+|---|---|---|
+| `RequestAuthenticationTokenHandler` | 认证：验 Token → 构建/读取缓存 → 写 `HttpContext.Items` | `Domain/NexusStack.Core/Authentication/` |
+| `RequestAuthorizeFilter` | 授权：从 `Items` 读 `UserContextCacheDto`，O(1) 校验 | `Domain/NexusStack.Core/Filters/` |
+| `UserContextCacheService` | 缓存构建/读取/失效，Key = `usercontext:{userId}:{platform}:v2` | `Domain/NexusStack.Core/Services/Users/` |
+| `UserContextCacheDto` | 缓存数据结构：`IsEnable` + `RoleIds` + `RegionIds` + `ApiPermissionKeys` | `Domain/NexusStack.Core/Dtos/Users/` |
+| `InitApiResourceService` | 启动时扫描路由，`InsertOrUpdate` `ApiResource`，`Code = RouteTemplate:Method` | `Domain/NexusStack.Core/HostedServices/` |
+| `UserRoleService.GetUserRoles` | 平台过滤 + 仅返回 `r.IsEnable = true` 的角色 | `Domain/NexusStack.Core/Services/Users/` |
+| `UserTokenService` | 登录：验密 → 判禁用 → 判平台角色 → 生成 Token → 预热缓存 | `Domain/NexusStack.Core/Services/Users/` |
+
+### 11.2 ApiResource.Code 唯一性策略
+
+```
+旧格式（已废弃）：{Namespace}.{ControllerName}.{ActionName}
+  → 同控制器同名重载 Action（如两个 PostAsync）Code 相同，导致 DB 覆盖和鉴权 Key 冲突。
+
+新格式（当前实现）：{RoutePattern?.ToLowerInvariant()}:{RequestMethod}
+  示例：api/role:POST          ← RoleController.PostAsync（新增角色）
+        api/role/permission/{roleId}:POST  ← RoleController.PostAsync（修改角色权限）
+  → 基于路由模板全局唯一，彻底解决同名重载冲突。
+```
+
+三方格式对齐（必须保持一致）：
+
+| 环节 | Key 构造 | 位置 |
+|---|---|---|
+| 写入 `ApiResource.Code` | `RoutePattern?.ToLowerInvariant():RequestMethod` | `InitApiResourceService` |
+| 构建 `ApiPermissionKeys` | `ar.RoutePattern.ToLower():ar.RequestMethod.ToUpper()` | `UserContextCacheService.BuildFromDbAsync` |
+| 鉴权时构造 `apiKey` | `Template.ToLowerInvariant():Request.Method.ToUpperInvariant()` | `RequestAuthorizeFilter` |
+
+### 11.3 缓存版本管理
+
+当 `UserContextCacheDto` 结构或 `ApiPermissionKeys` Key 格式发生变更时，只需修改 `UserContextCacheService` 中的常量：
+
+```csharp
+private const string CacheVersion = "v2";  // 升级此值即可自动淘汰全量旧缓存
+```
+
+旧版本的 Redis Key 不再被读取，自然过期（TTL = 10h），无需手动执行 `FLUSHDB`。
+
+### 11.4 登录前置校验顺序
+
+```
+1. 查找用户（用户名 / 手机号）
+2. 验证密码
+3. 校验 IsEnable（账号是否被禁用）       ← 先于平台角色校验，避免给禁用用户暴露角色信息
+4. 校验当前平台下是否有启用角色          ← GetUserRoles 已过滤 r.IsEnable
+5. GenerateUserTokenAsync → 预热 UserContextCacheDto
+```
+
+### 11.5 已解决的关键问题清单
+
+| # | 问题 | 修复位置 |
+|---|---|---|
+| 1 | `PostAsync` 创建用户时 `UserId = 0` 被写入 `UserRole` | `UserController.PostAsync`：先 Insert User 再绑定角色 |
+| 2 | `GetListAsync` 使用 INNER JOIN 导致无角色用户被排除 | 改为子查询 `Contains` |
+| 3 | `RequestAuthorizeFilter` 每次查 DB，鉴权热路径性能低 | 改为纯读缓存，O(1) |
+| 4 | 权限变更后缓存未失效（Role/Menu/Permission 各操作） | 全链路补充 `InvalidateAsync` 调用 |
+| 5 | `PlatformType` Claim 存为枚举名字符串，解析时 `FormatException` | 改为 `((int)PlatformType).ToString()` |
+| 6 | 禁用角色仍参与权限计算 | `UserRoleService.GetUserRoles` 增加 `r.IsEnable` 过滤 |
+| 7 | `RoleController.PutAsync` 中 AutoMapper 绕过 `IsSystem` 保护 | Mapper.Map 前增加前置 `IsSystem` 检查 |
+| 8 | 同名重载 Action 的 `ApiResource.Code` 冲突 | Code 改为 `RouteTemplate:Method` 格式 |
+| 9 | `UserController.PutAsync` catch 块吞掉原始异常类型 | 改为 `catch { throw; }` |
+| 10 | 登录禁用用户返回"无角色"而非"已禁用"的语义错误 | 密码验证后立即检查 `IsEnable`，优先于平台角色校验 |

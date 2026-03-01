@@ -61,8 +61,6 @@ namespace NexusStack.Swagger
                 // 加载 XML 注释文档
                 Directory.GetFiles(AppContext.BaseDirectory, "*.xml").ToList()
                     .ForEach(comment => options.IncludeXmlComments(comment, true));
-
-                options.OperationFilter<HttpHeaderFilter>(Array.Empty<object>());
             });
 
             return services;

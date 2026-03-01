@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using NexusStack.Core.Dtos.Users;
 using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Utils;
 using System;
@@ -25,6 +26,11 @@ namespace NexusStack.Core
         public const string PlatFormType = "platFormType";
 
         public const string PlatForms = "platForms";
+
+        /// <summary>
+        /// HttpContext.Items 中存放用户上下文的 Key（Roles、Regions 等，由认证 Handler 写入）
+        /// </summary>
+        public const string UserContextItemsKey = "NexusStack.UserContext";
     }
 
     public static class CustomerClaimTypes
@@ -80,6 +86,23 @@ namespace NexusStack.Core
         public string CustomerTokenHash => this.FindClaimValue(CustomerClaimTypes.CustomerTokenHash);
 
         public ClaimsPrincipal RawClaimsPrincipal => httpContextAccessor.HttpContext?.User;
+
+        /// <summary>
+        /// 当前平台下该用户拥有的角色 Id 列表（从 HttpContext.Items 中的用户上下文读取）
+        /// </summary>
+        public IReadOnlyList<long> RoleIds => GetUserContext()?.RoleIds ?? (IReadOnlyList<long>)Array.Empty<long>();
+
+        /// <summary>
+        /// 用户所属组织/地区 Id 列表（从 HttpContext.Items 中的用户上下文读取）
+        /// </summary>
+        public IReadOnlyList<long> RegionIds => GetUserContext()?.RegionIds ?? (IReadOnlyList<long>)Array.Empty<long>();
+
+        private UserContextCacheDto GetUserContext()
+        {
+            if (httpContextAccessor.HttpContext?.Items.TryGetValue(CoreClaimTypes.UserContextItemsKey, out var value) == true && value is UserContextCacheDto ctx)
+                return ctx;
+            return null;
+        }
 
         public virtual Claim FindClaim(string claimType)
         {

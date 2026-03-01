@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -18,22 +18,22 @@ namespace NexusStack.Infrastructure.Enums
         /// <summary>
         /// 超管平台
         /// </summary>
-        Admin = 1 << 0,   // 1
+        Admin = 1 << 0,   // 1 (2^0)
 
         /// <summary>
         /// PC业务系统
         /// </summary>
-        Pc = 1 << 1,      // 2
+        Pc = 1 << 1,      // 2 (2^1)
 
         /// <summary>
         /// 微信小程序
         /// </summary>
-        Mini = 1 << 2,    // 4
+        Mini = 1 << 2,    // 4 (2^2)
 
         /// <summary>
         /// POS机App
         /// </summary>
-        Android = 1 << 3, // 8
+        Android = 1 << 3, // 8 (2^3)
     }
 
     /// <summary>

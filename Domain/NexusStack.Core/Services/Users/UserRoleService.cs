@@ -23,6 +23,7 @@ namespace NexusStack.Core.Services.Users
             var query = from ur in GetQueryable()
                         join r in roleService.GetQueryable() on ur.RoleId equals r.Id
                         where ur.UserId == userId
+                              && r.IsEnable
                               && (platformType == PlatformType.All || (r.Platforms & platformType) != 0)
                         select ur;
 

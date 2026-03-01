@@ -32,13 +32,13 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// <summary>
         /// 操作
         /// </summary>
-        public string? OperationContent { get; set; }
+        public string OperationContent { get; set; } = string.Empty;
 
         /// <summary>
         /// 菜单代码
         /// </summary>
         [MaxLength(128)]
-        public string? MenuCode { get; set; }
+        public string MenuCode { get; set; } = string.Empty;
 
         /// <summary>
         /// 错误Tracker
@@ -48,11 +48,11 @@ namespace NexusStack.Core.Entities.SystemManagement
         /// <summary>
         /// 操作菜单
         /// </summary>
-        public string? OperationMenu { get; set; }
+        public string OperationMenu { get; set; } = string.Empty;
 
         /// <summary>
         /// 请求方法
         /// </summary>
-        public string? Method { get; set; }
+        public string Method { get; set; } = string.Empty;
     }
 }

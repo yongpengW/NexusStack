@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NexusStack.WebAPI.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20260227075159_InitDatabase")]
+    [Migration("20260301070258_InitDatabase")]
     partial class InitDatabase
     {
         /// <inheritdoc />
@@ -1300,19 +1300,23 @@ namespace NexusStack.WebAPI.Migrations
                         .HasComment("");
 
                     b.Property<string>("MenuCode")
+                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)")
                         .HasComment("");
 
                     b.Property<string>("Method")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasComment("");
 
                     b.Property<string>("OperationContent")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasComment("");
 
                     b.Property<string>("OperationMenu")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasComment("");
 

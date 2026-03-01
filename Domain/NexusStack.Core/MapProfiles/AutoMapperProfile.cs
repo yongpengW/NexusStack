@@ -28,6 +28,43 @@ namespace NexusStack.Core.MapProfiles
     {
         public AutoMapperProfile()
         {
+            #region User & Role
+
+            CreateMap<User, UserDto>()
+               //.ForMember(a => a.Roles, a => a.MapFrom(c => c.UserRoles))
+               .ForMember(a => a.HasPassword, a => a.MapFrom(c => !string.IsNullOrWhiteSpace(c.Password)));
+
+            CreateMap<UserDepartment, UserDepartmentDto>();
+
+            CreateMap<Role, RoleDto>();
+
+            CreateMap<UserRole, UserRoleDto>()
+                //.ForMember(a => a.RegionName, a => a.MapFrom(c => c.Region.Name))
+                //.ForMember(a => a.RoleName, a => a.MapFrom(c => c.Role.Name))
+                .ForMember(a => a.Platforms, a => a.MapFrom(c => c.Role.Platforms.ToString()));
+
+            CreateMap<UserToken, UserTokenDto>();
+
+            CreateMap<UserTokenCacheDto, UserTokenDto>();
+
+            CreateMap<Permission, RolePermissionDto>();
+
+            CreateMap<User, CurrentUserDto>()
+                //.ForMember(a => a.Roles, a => a.MapFrom(c => c.UserRoles))
+                .ForMember(a => a.HasPassword, a => a.MapFrom(c => !string.IsNullOrWhiteSpace(c.Password)));
+
+            CreateMap<UserToken, UserTokenCacheDto>();
+            //.ForMember(a => a.Roles, a => a.MapFrom(c => c.User.UserRoles.Select(r => r.Role.Code).ToList()));
+            //.ForMember(a => a.PopulationId, a => a.MapFrom(c => c.User.PopulationId));
+
+            CreateMap<UserToken, UserTokenLogDto>()
+                .ForMember(a => a.loginUser, a => a.MapFrom(c => c.User != null ? (c.User.RealName ?? c.User.UserName) : string.Empty))
+                .ForMember(a => a.loginAt, a => a.MapFrom(c => c.CreatedAt))
+                .ForMember(a => a.RoleIds, a => a.Ignore())
+                .ForMember(a => a.RegionIds, a => a.Ignore());
+
+            #endregion
+
             CreateMap<Menu, MenuDto>()
                 .ForMember(a => a.IsLeaf, a => a.MapFrom(c => c.Children.Count == 0));
 
@@ -52,18 +89,7 @@ namespace NexusStack.Core.MapProfiles
 
             CreateMap<ApiResourceDto, MenuResourceDto>();
 
-            CreateMap<Role, RoleDto>();
-
             CreateMap<File, FileDto>();
-
-            CreateMap<User, UserDto>()
-                //.ForMember(a => a.Roles, a => a.MapFrom(c => c.UserRoles))
-                .ForMember(a => a.HasPassword, a => a.MapFrom(c => !string.IsNullOrWhiteSpace(c.Password)));
-
-            CreateMap<UserRole, UserRoleDto>()
-                //.ForMember(a => a.RegionName, a => a.MapFrom(c => c.Region.Name))
-                //.ForMember(a => a.RoleName, a => a.MapFrom(c => c.Role.Name))
-                .ForMember(a => a.Platforms, a => a.MapFrom(c => c.Role.Platforms.ToString()));
 
             CreateMap<Region, RegionDto>();
 
@@ -76,19 +102,9 @@ namespace NexusStack.Core.MapProfiles
 
             CreateMap<ScheduleTaskExecuteDto, ScheduleTask>();
 
-            CreateMap<UserToken, UserTokenCacheDto>();
-            //.ForMember(a => a.Roles, a => a.MapFrom(c => c.User.UserRoles.Select(r => r.Role.Code).ToList()));
-            //.ForMember(a => a.PopulationId, a => a.MapFrom(c => c.User.PopulationId));
+            
 
-            CreateMap<UserToken, UserTokenDto>();
-
-            CreateMap<UserTokenCacheDto, UserTokenDto>();
-
-            CreateMap<Permission, RolePermissionDto>();
-
-            CreateMap<User, CurrentUserDto>()
-                //.ForMember(a => a.Roles, a => a.MapFrom(c => c.UserRoles))
-                .ForMember(a => a.HasPassword, a => a.MapFrom(c => !string.IsNullOrWhiteSpace(c.Password)));
+            
 
             CreateMap<AsyncTask, AsyncTaskDto>();
 

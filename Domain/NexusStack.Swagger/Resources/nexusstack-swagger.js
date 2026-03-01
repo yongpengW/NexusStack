@@ -105,9 +105,6 @@
         // password
         createInput(formWrapper, 'password', '密码', 'password');
 
-        // captcha
-        createCaptcha(formWrapper, 'captcha', '验证码');
-
         document.getElementsByClassName('swagger-ui')[1].appendChild(authDialog);
 
         authDialog.querySelector('.btn-done.modal-btn').onclick = function () {
@@ -127,9 +124,6 @@
         authDialog.querySelector('.close-modal').onclick = function () {
             nexusstack.swagger.closeAuthDialog();
         };
-
-        // 加载验证码
-        loadCaptcha();
     };
 
     nexusstack.swagger.closeAuthDialog = function () {
@@ -143,17 +137,11 @@
             userName: document.getElementById('username').value,
             // 密码暂时前端通过base64进行转码加密，swagger这里做特殊处理
             password: "swagger" + document.getElementById('password').value,
-            captcha: document.getElementById('captcha').value,
-            captchaKey: document.getElementById('captcha-image').dataset.key,
             platform: 0,
         };
 
         if (data.userName === "" || data.password === "") {
             alert("账号或密码不能为空");
-            return;
-        }
-        if (data.captcha === "") {
-            alert("验证码不能为空")
             return;
         }
 
@@ -172,8 +160,6 @@
                     callback();
                 } else {
                     alert(response.message);
-                    document.getElementById('captcha').value = "";
-                    await loadCaptcha();
                 }
             });
     };
@@ -181,48 +167,6 @@
     nexusstack.swagger.logout = function () {
         nexusstack.auth.clearToken();
     };
-
-    function createCaptcha(container, id, title) {
-        var wrapper = document.createElement('div');
-        wrapper.className = 'form-item';
-
-        var label = document.createElement('label');
-        label.innerText = title;
-        label.className = 'form-item-label';
-        wrapper.appendChild(label);
-
-        var section = document.createElement('section');
-        section.className = 'form-item-control';
-        wrapper.appendChild(section);
-
-        var input = document.createElement('input');
-        input.id = id;
-        input.type = 'text';
-        section.appendChild(input);
-
-        var image = document.createElement('img');
-        image.id = 'captcha-image';
-        image.onclick = async () => {
-            await loadCaptcha();
-        };
-        section.appendChild(image);
-
-        container.appendChild(wrapper);
-    }
-
-    async function loadCaptcha() {
-        fetch(`${nexusstack.host}/api/Token/captcha`)
-            .then((response) => response.json())
-            .then((response) => {
-                console.log('Captcha:', response);
-
-                if (response.code == 200) {
-                    var captcha = document.getElementById('captcha-image');
-                    captcha.src = response.data.captcha;
-                    captcha.dataset.key = response.data.key;
-                }
-            });
-    }
 
     function createInput(container, id, title, type) {
         var wrapper = document.createElement('div');

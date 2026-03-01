@@ -25,6 +25,11 @@ namespace NexusStack.Infrastructure.Constants
         public static string UserToken = $"{currentAssembly}:UserToken:{{0}}";
 
         /// <summary>
+        /// 用户上下文缓存 Key（UserId + PlatformType），存 Roles/Regions 等，供鉴权后按需读取
+        /// </summary>
+        public static string UserContext = $"{currentAssembly}:UserContext:{{0}}:{{1}}";
+
+        /// <summary>
         /// 会员Token缓存 Key
         /// </summary>
         public static string CustomerToken = $"{currentAssembly}:CustomerToken:{{0}}";
