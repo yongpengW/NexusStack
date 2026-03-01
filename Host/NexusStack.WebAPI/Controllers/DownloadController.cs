@@ -30,7 +30,7 @@ namespace NexusStack.WebAPI.Controllers
             {
                 spec.Query.Where(x => x.CreatedAt >= model.StartDate);
             }
-            if (model.StartDate.HasValue)
+            if (model.EndDate.HasValue)
             {
                 spec.Query.Where(x => x.CreatedAt <= model.EndDate);
             }
