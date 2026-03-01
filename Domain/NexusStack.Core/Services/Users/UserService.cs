@@ -1,19 +1,17 @@
-﻿using AutoMapper;
+using AutoMapper;
 using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure;
-using NexusStack.Infrastructure.Enums;
 using NexusStack.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Infrastructure.Utils;
 using StringExtensions = NexusStack.Infrastructure.Utils.StringExtensions;
-using NexusStack.Core.Services.SystemManagement;
 using NexusStack.Core.Services.Interfaces;
 
 namespace NexusStack.Core.Services.Users
 {
-    public class UserService(MainContext dbContext, IMapper mapper, IRegionService regionService, IRoleService roleService, CurrentUser currentUser) : ServiceBase<User>(dbContext, mapper), IUserService, IScopedDependency
+    public class UserService(MainContext dbContext, IMapper mapper, CurrentUser currentUser) : ServiceBase<User>(dbContext, mapper), IUserService, IScopedDependency
     {
         public async Task<bool> CheckCurrentExists(CurrentUser user)
         {
@@ -58,11 +56,9 @@ namespace NexusStack.Core.Services.Users
         }
 
         /// <summary>
-        /// 重置密码
+        /// 重置密码（重置为手机号后 6 位）
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
         public async Task ResetPasswordAsync(long id)
         {
             var user = await GetByIdAsync(id);
@@ -76,6 +72,12 @@ namespace NexusStack.Core.Services.Users
             {
                 throw new BusinessException("请先为用户设置手机号码");
             }
+
+            // 重置为手机号后 6 位，与创建时默认密码策略一致
+            user.PasswordSalt = StringExtensions.GeneratePassworldSalt();
+            user.Password = user.Mobile![^6..].EncodePassword(user.PasswordSalt);
+
+            await UpdateAsync(user);
         }
 
 

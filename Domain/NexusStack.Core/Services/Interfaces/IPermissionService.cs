@@ -32,16 +32,6 @@ namespace NexusStack.Core.Services.Interfaces
         Task<List<MenuTreeDto>> GetUserMenuTreeListAsync(ICurrentUser currentUser, PlatformType platformType);
 
         /// <summary>
-        /// 判断指定用户在指定平台下，是否拥有当前 API 的访问权限
-        /// </summary>
-        /// <param name="userId">用户 Id</param>
-        /// <param name="platformType">平台</param>
-        /// <param name="controllerName">控制器名称</param>
-        /// <param name="actionName">Action 名称</param>
-        /// <param name="httpMethod">HTTP 方法（GET/POST 等）</param>
-        Task<bool> HasApiPermissionAsync(long userId, PlatformType platformType, string controllerName, string actionName, string httpMethod);
-
-        /// <summary>
         /// 修改角色权限
         /// </summary>
         /// <param name="model"></param>
@@ -49,11 +39,10 @@ namespace NexusStack.Core.Services.Interfaces
         Task ChangeRolePermissionAsync(ChangeRolePermissionDto model);
 
         /// <summary>
-        /// 获取当前菜单是否拥有接口权限
+        /// 判断指定菜单是否已绑定某个 API 资源权限。
         /// </summary>
-        /// <param name="code">控制器action</param>
-        /// <param name="menuCode">当前菜单或者操作的code</param>
-        /// <returns></returns>
+        /// <param name="code">ApiResource.Code，格式为 "routetemplate:HTTPMETHOD"（例：api/role:POST）</param>
+        /// <param name="menuCode">菜单 Code</param>
         Task<bool> JudgeHasPermissionAsync(string code, string menuCode);
     }
 }

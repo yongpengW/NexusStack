@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Dtos.Users;
+using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
@@ -26,8 +27,12 @@ namespace NexusStack.Core.Services.Users
     {
         private static readonly TimeSpan DefaultExpire = TimeSpan.FromHours(10);
 
+        // v2：权限 Key 格式由 ControllerName:ActionName:Method 变更为 RouteTemplate:Method，
+        //      升级版本号可使所有旧格式缓存自动失效，无需手动清空 Redis。
+        private const string CacheVersion = "v2";
+
         private static string CacheKey(long userId, PlatformType platformType) =>
-            CoreRedisConstants.UserContext.Format(userId, (int)platformType);
+            $"{CoreRedisConstants.UserContext.Format(userId, (int)platformType)}:{CacheVersion}";
 
         public async Task<UserContextCacheDto> GetOrSetAsync(long userId, PlatformType platformType, TimeSpan? expire = null, CancellationToken cancellationToken = default)
         {
@@ -57,7 +62,7 @@ namespace NexusStack.Core.Services.Users
                 return;
             }
 
-            foreach (var p in new[] { PlatformType.Admin, PlatformType.Pc, PlatformType.Mini, PlatformType.Android })
+            foreach (var p in Enum.GetValues<PlatformType>().Where(p => p != default))
                 await redisService.DeleteAsync(CacheKey(userId, p));
         }
 
@@ -65,7 +70,7 @@ namespace NexusStack.Core.Services.Users
         {
             var user = await dbContext.Set<User>()
                 .Where(u => u.Id == userId)
-                .Select(u => new { u.UserName, u.Email })
+                .Select(u => new { u.UserName, u.Email, u.IsEnable })
                 .FirstOrDefaultAsync(cancellationToken);
 
             var roleIds = (await userRoleService.GetUserRoles(userId, platformType))
@@ -78,12 +83,39 @@ namespace NexusStack.Core.Services.Users
                 .Select(ud => ud.DepartmentId)
                 .ToListAsync(cancellationToken);
 
+            // 预计算当前平台下该用户拥有的 API 权限集合，鉴权时直接读缓存，无需每次查 DB
+            var apiPermissionKeys = new HashSet<string>();
+            if (roleIds.Count > 0)
+            {
+                var menuIds = await dbContext.Set<Permission>()
+                    .Where(p => roleIds.Contains(p.RoleId))
+                    .Select(p => p.MenuId)
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
+
+                if (menuIds.Count > 0)
+                {
+                    var keys = await (
+                        from mr in dbContext.Set<MenuResource>()
+                        join ar in dbContext.Set<ApiResource>() on mr.ApiResourceId equals ar.Id
+                        where menuIds.Contains(mr.MenuId)
+                              && ar.RoutePattern != null
+                              && ar.RequestMethod != null
+                        select ar.RoutePattern.ToLower() + ":" + ar.RequestMethod.ToUpper()
+                    ).Distinct().ToListAsync(cancellationToken);
+
+                    apiPermissionKeys = new HashSet<string>(keys, StringComparer.OrdinalIgnoreCase);
+                }
+            }
+
             return new UserContextCacheDto
             {
                 UserName = user?.UserName ?? string.Empty,
                 Email = user?.Email ?? string.Empty,
+                IsEnable = user?.IsEnable ?? false,
                 RoleIds = roleIds,
-                RegionIds = regionIds
+                RegionIds = regionIds,
+                ApiPermissionKeys = apiPermissionKeys
             };
         }
     }

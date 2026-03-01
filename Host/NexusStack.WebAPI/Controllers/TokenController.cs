@@ -1,14 +1,11 @@
 using LinqKit;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
 using NexusStack.Core;
 using NexusStack.Core.Dtos.Roles;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.SystemManagement;
-using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.Infrastructure.Constants;
 using NexusStack.Infrastructure.Enums;
@@ -22,17 +19,12 @@ namespace NexusStack.WebAPI.Controllers
     /// <summary>
     /// Token 管理(本地测试)
     /// </summary>
-    public class TokenController(IUserTokenService userTokenService,
-        IUserRoleService userRoleService,
-        IUserService userService,
+    public class TokenController(
+        IUserTokenService userTokenService,
         IRedisService redisService,
         IUserContextCacheService userContextCacheService,
         IPermissionService permissionService,
-        IMenuService menuService,
-        IRegionService regionService,
-        IClaimsTransformation claimsTransformation,
-        IConfiguration configuration,
-        IRoleService roleService
+        IMenuService menuService
     ) : BaseController
     {
         /// <summary>
@@ -87,19 +79,21 @@ namespace NexusStack.WebAPI.Controllers
         }
 
         /// <summary>
-        /// 获取当前用户拥有的菜单权限列表
+        /// 获取当前用户拥有的菜单权限列表（仅返回当前登录平台下的有效权限）
         /// </summary>
         /// <returns></returns>
         [HttpGet("permission")]
         public async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(PlatformType platformType)
         {
+            // 直接使用认证阶段按平台过滤并缓存的 RoleIds，确保只返回当前平台下的权限
+            var platformRoleIds = CurrentUser.RoleIds.ToList();
+            if (platformRoleIds.Count == 0)
+                return new List<RolePermissionDto>();
+
             var menuFilter = PredicateBuilder.New<Menu>(true).And(a => a.PlatformType == platformType);
             var query = (from p in permissionService.GetQueryable()
                          join m in menuService.GetExpandable().Where(menuFilter) on p.MenuId equals m.Id
-                         join ur in userRoleService.GetQueryable() on p.RoleId equals ur.RoleId
-                         join r in userService.GetQueryable() on ur.UserId equals r.Id
-                         where ur.UserId == CurrentUser.UserId
-                         && m.IsVisible
+                         where platformRoleIds.Contains(p.RoleId) && m.IsVisible
                          select new RolePermissionDto
                          {
                              MenuId = m.Id,

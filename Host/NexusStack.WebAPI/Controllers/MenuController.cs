@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Ardalis.Specification;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Attributes;
 using NexusStack.Core.Dtos;
 using NexusStack.Core.Dtos.Menus;
@@ -6,7 +8,6 @@ using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure.Enums;
-using Ardalis.Specification;
 
 namespace NexusStack.WebAPI.Controllers
 {
@@ -14,9 +15,11 @@ namespace NexusStack.WebAPI.Controllers
     /// 系统菜单管理
     /// </summary>
     public class MenuController(IMenuService menuService,
-        IApiResrouceCoreService apiResourceService, 
-        IServiceBase<MenuResource> menuResourceService, 
-        IPermissionService permissionService) : BaseController
+        IApiResrouceCoreService apiResourceService,
+        IServiceBase<MenuResource> menuResourceService,
+        IPermissionService permissionService,
+        IUserRoleService userRoleService,
+        IUserContextCacheService userContextCacheService) : BaseController
     {
         /// <summary>
         /// 获取菜单树
@@ -46,26 +49,15 @@ namespace NexusStack.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("selector"), NoLogging]
-        public List<SelectOptionDto> GetMenuSelectorListAsync()
+        public async Task<List<SelectOptionDto>> GetMenuSelectorListAsync()
         {
             var spec = Specifications<Menu>.Create();
             spec.Query.Where(x => x.IsVisible && !x.IsDeleted && x.Type < MenuType.Operation).OrderBy(a => a.Order);
 
-            var menus = menuService.GetListAsync<MenuDto>(spec).Result;
+            var menus = await menuService.GetListAsync<MenuDto>(spec);
 
-            var selectorList = new List<SelectOptionDto>();
-            selectorList.Add(new SelectOptionDto
-            {
-                label = "无",
-                value = 0
-            });
-
-            selectorList.AddRange(menus.Select(x => new SelectOptionDto
-            {
-                label = x.Name,
-                value = x.Id
-            }).ToList());
-
+            var selectorList = new List<SelectOptionDto> { new() { label = "无", value = 0 } };
+            selectorList.AddRange(menus.Select(x => new SelectOptionDto { label = x.Name, value = x.Id }));
             return selectorList;
         }
 
@@ -104,6 +96,9 @@ namespace NexusStack.WebAPI.Controllers
         {
             await menuService.PutAsync(id, model);
 
+            // 菜单属性（IsVisible / PlatformType 等）变更后，使持有该菜单权限的用户缓存失效
+            await InvalidateMenuUsersAsync(id);
+
             return Ok();
         }
 
@@ -117,7 +112,13 @@ namespace NexusStack.WebAPI.Controllers
         [OperationLogAction("删除菜单，菜单Id为:{id}，菜单Code为{model.Code}", "菜单管理")]
         public async Task<StatusCodeResult> DeleteAsync(long id)
         {
+            // 必须在删除前查询受影响用户（删除后 Permission 记录可能被级联清除）
+            var affectedUserIds = await GetMenuAffectedUserIdsAsync(id);
+
             await menuService.DeleteAsync(id);
+
+            foreach (var userId in affectedUserIds)
+                await userContextCacheService.InvalidateAsync(userId);
 
             return Ok();
         }
@@ -177,7 +178,43 @@ namespace NexusStack.WebAPI.Controllers
 
             await menuResourceService.InsertAsync(newResources);
 
+            // 菜单绑定的 API 资源变更后，ApiPermissionKeys 缓存失效
+            await InvalidateMenuUsersAsync(id);
+
             return Ok();
+        }
+
+        // ── 私有辅助方法 ──────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// 查询持有指定菜单权限的所有用户 Id
+        /// </summary>
+        private async Task<List<long>> GetMenuAffectedUserIdsAsync(long menuId)
+        {
+            var roleIds = await permissionService.GetQueryable()
+                .Where(p => p.MenuId == menuId)
+                .Select(p => p.RoleId)
+                .Distinct()
+                .ToListAsync();
+
+            if (roleIds.Count == 0)
+                return new List<long>();
+
+            return await userRoleService.GetQueryable()
+                .Where(ur => roleIds.Contains(ur.RoleId))
+                .Select(ur => ur.UserId)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// 使持有指定菜单权限的所有用户缓存失效
+        /// </summary>
+        private async Task InvalidateMenuUsersAsync(long menuId)
+        {
+            var userIds = await GetMenuAffectedUserIdsAsync(menuId);
+            foreach (var userId in userIds)
+                await userContextCacheService.InvalidateAsync(userId);
         }
     }
 }

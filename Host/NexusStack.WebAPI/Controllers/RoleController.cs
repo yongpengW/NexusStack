@@ -1,5 +1,6 @@
-﻿using Ardalis.Specification;
+using Ardalis.Specification;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Attributes;
 using NexusStack.Core.Dtos;
 using NexusStack.Core.Dtos.Permissions;
@@ -23,7 +24,8 @@ namespace NexusStack.WebAPI.Controllers
     /// <param name="permissionService"></param>
     public class RoleController(IRoleService roleService,
         IUserRoleService userRoleService,
-        IPermissionService permissionService) : BaseController
+        IPermissionService permissionService,
+        IUserContextCacheService userContextCacheService) : BaseController
     {
         /// <summary>
         /// 获取角色分页数据
@@ -39,8 +41,7 @@ namespace NexusStack.WebAPI.Controllers
 
             if (platformType > 0)
             {
-                var platformStr = ((int)platformType).ToString();
-                spec.Query.Where(a => a.Platforms == platformType);
+                spec.Query.Where(a => (a.Platforms & platformType) != 0);
             }
 
             // 当前用户角色不是超级管理员时，不允许查看超级管理员角色
@@ -71,18 +72,16 @@ namespace NexusStack.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("selector"), NoLogging]
-        public List<SelectOptionDto> GetRoleSelectorListAsync()
+        public async Task<List<SelectOptionDto>> GetRoleSelectorListAsync()
         {
             var spec = Specifications<Role>.Create();
             spec.Query.Where(x => x.IsEnable).OrderBy(a => a.Order);
-            var roles = roleService.GetListAsync<RoleDto>(spec).Result;
-            var selectorList = new List<SelectOptionDto>();
-            selectorList.AddRange(roles.Select(x => new SelectOptionDto
+            var roles = await roleService.GetListAsync<RoleDto>(spec);
+            return roles.Select(x => new SelectOptionDto
             {
                 label = x.Name,
                 value = x.Id
-            }).ToList());
-            return selectorList;
+            }).ToList();
         }
 
         /// <summary>
@@ -124,6 +123,12 @@ namespace NexusStack.WebAPI.Controllers
                 throw new BusinessException("你要修改的数据不存在");
             }
 
+            // 必须在 Mapper.Map 之前检查，否则 CreateRoleDto.IsSystem=false 会覆盖实体值，导致保护失效
+            if (entity.IsSystem)
+            {
+                throw new BusinessException("禁止修改系统内置角色");
+            }
+
             if (!model.IsEnable)
             {
                 var userroles = await userRoleService.GetLongCountAsync(a => a.RoleId == id);
@@ -136,6 +141,16 @@ namespace NexusStack.WebAPI.Controllers
             entity = this.Mapper.Map(model, entity);
 
             await roleService.UpdateAsync(entity);
+
+            // 角色属性（含 Platforms）变更后，使所有持有该角色用户的权限缓存失效
+            var affectedUserIds = await userRoleService.GetQueryable()
+                .Where(ur => ur.RoleId == id)
+                .Select(ur => ur.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var userId in affectedUserIds)
+                await userContextCacheService.InvalidateAsync(userId);
 
             return Ok();
         }
