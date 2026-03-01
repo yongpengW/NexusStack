@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Utils;
@@ -131,7 +131,5 @@ namespace NexusStack.Core
             }
             return value.To<T>();
         }
-
-        // 其余复杂信息（角色、区域、门店等）不再从 Claims 读取，而是通过业务服务或权限缓存按需查询
     }
 }
