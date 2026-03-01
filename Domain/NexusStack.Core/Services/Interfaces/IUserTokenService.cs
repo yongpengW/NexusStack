@@ -5,7 +5,6 @@ using NexusStack.Infrastructure.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using X.PagedList;
 
 namespace NexusStack.Core.Services.Interfaces
 {
