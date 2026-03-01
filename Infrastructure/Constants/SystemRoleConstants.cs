@@ -25,7 +25,7 @@ namespace NexusStack.Infrastructure.Constants
 
         /// <summary>
         /// 系统默认区域Id
-/// </summary>
+        /// </summary>
         public const long DefaultRegionId = 0;
 
         /// <summary>

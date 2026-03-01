@@ -22,6 +22,6 @@ namespace NexusStack.Infrastructure.Models
         /// <summary>
         /// 搜索关键字
         /// </summary>
-        public string? Keyword { get; set; }
+        public string Keyword { get; set; } = string.Empty;
     }
 }
