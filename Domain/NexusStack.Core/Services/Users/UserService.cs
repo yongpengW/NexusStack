@@ -73,9 +73,14 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("请先为用户设置手机号码");
             }
 
+            if (user.Mobile!.Length < 6)
+            {
+                throw new BusinessException("用户手机号长度不足 6 位，无法重置密码");
+            }
+
             // 重置为手机号后 6 位，与创建时默认密码策略一致
             user.PasswordSalt = StringExtensions.GeneratePassworldSalt();
-            user.Password = user.Mobile![^6..].EncodePassword(user.PasswordSalt);
+            user.Password = user.Mobile[^6..].EncodePassword(user.PasswordSalt);
 
             await UpdateAsync(user);
         }
