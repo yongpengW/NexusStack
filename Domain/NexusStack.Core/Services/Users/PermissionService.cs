@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Dtos.Menus;
@@ -94,7 +94,7 @@ namespace NexusStack.Core.Services.Users
                             HasPermission = pm != null ? true : false,
                             RoleId = pm != null ? pm.RoleId : roleId,
                             Id = pm != null ? pm.Id : 0,
-                            MenuUrl = m.Url
+                            MenuUrl = m.Url ?? string.Empty,
                         };
 
             var permissions = await query.ToListAsync();

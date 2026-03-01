@@ -1,4 +1,4 @@
-﻿using LinqKit;
+using LinqKit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +26,7 @@ namespace NexusStack.WebAPI.Controllers
         IUserRoleService userRoleService,
         IUserService userService,
         IRedisService redisService,
+        IUserContextCacheService userContextCacheService,
         IPermissionService permissionService,
         IMenuService menuService,
         IRegionService regionService,
@@ -68,6 +69,7 @@ namespace NexusStack.WebAPI.Controllers
                 await userTokenService.UpdateAsync(userToken);
                 // 删除 Redis 中的缓存
                 await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(userToken.TokenHash));
+                await userContextCacheService.InvalidateAsync(CurrentUser.UserId, (PlatformType)CurrentUser.PlatformType);
             }
 
             return Ok();

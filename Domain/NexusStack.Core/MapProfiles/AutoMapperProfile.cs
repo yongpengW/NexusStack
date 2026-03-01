@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using NexusStack.Core.Dtos;
 using NexusStack.Core.Dtos.DownloadCenter;
 using NexusStack.Core.Dtos.Files;
@@ -56,6 +56,12 @@ namespace NexusStack.Core.MapProfiles
             CreateMap<UserToken, UserTokenCacheDto>();
             //.ForMember(a => a.Roles, a => a.MapFrom(c => c.User.UserRoles.Select(r => r.Role.Code).ToList()));
             //.ForMember(a => a.PopulationId, a => a.MapFrom(c => c.User.PopulationId));
+
+            CreateMap<UserToken, UserTokenLogDto>()
+                .ForMember(a => a.loginUser, a => a.MapFrom(c => c.User != null ? (c.User.RealName ?? c.User.UserName) : string.Empty))
+                .ForMember(a => a.loginAt, a => a.MapFrom(c => c.CreatedAt))
+                .ForMember(a => a.RoleIds, a => a.Ignore())
+                .ForMember(a => a.RegionIds, a => a.Ignore());
 
             #endregion
 

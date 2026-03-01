@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
@@ -32,6 +33,7 @@ namespace NexusStack.Core.Services.Users
         IRedisService redisService,
         IUserService userService,
         IUserRoleService userRoleService,
+        IUserContextCacheService userContextCacheService,
         IHttpContextAccessor httpContextAccessor,
         IHostEnvironment hostEnvironment) : ServiceBase<UserToken>(dbContext, mapper), IUserTokenService, IScopedDependency
     {
@@ -160,6 +162,10 @@ namespace NexusStack.Core.Services.Users
 
             // 将 Token 信息存储到 Redis，有效期 10 小时
             await redisService.SetAsync(CoreRedisConstants.UserToken.Format(token.TokenHash), cacheData, TimeSpan.FromHours(10));
+
+            // 预热用户上下文缓存（Roles、Regions），供鉴权后从 Redis 读取
+            _ = await userContextCacheService.GetOrSetAsync(user.Id, platform, TimeSpan.FromHours(10));
+
             return Mapper.Map<UserTokenDto>(token);
         }
 

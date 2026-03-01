@@ -62,12 +62,12 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 登录角色
         /// </summary>
-        public string RoleName { get; set; }
+        public string RoleIds { get; set; }
 
         /// <summary>
         /// 登录角色所属区域
         /// </summary>
-        public string RegionName { get; set; }
+        public string RegionIds { get; set; }
 
         /// <summary>
         /// IP地址

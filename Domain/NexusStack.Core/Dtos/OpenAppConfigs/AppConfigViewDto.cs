@@ -19,8 +19,8 @@ namespace NexusStack.Core.Dtos.OpenAppConfigs
 
     public class OpenApiConfigDetailDto
     {
-        public List<AppNotificationConfigDto>? ApiNotificationConfig { get; set; }
-        public List<AppEventConfigDto>? ApiEventConfig { get; set; }
-        public List<AppWebhookConfigDto>? WebhookConfig { get; set; }
+        public List<AppNotificationConfigDto>? AppNotificationConfig { get; set; }
+        public List<AppEventConfigDto>? AppEventConfig { get; set; }
+        public List<AppWebhookConfigDto>? AppWebhookConfig { get; set; }
     }
 }

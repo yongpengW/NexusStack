@@ -1,6 +1,7 @@
 ﻿using LinqKit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Ardalis.Specification;
 using NexusStack.Core.Attributes;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
@@ -124,7 +125,7 @@ namespace NexusStack.WebAPI.Controllers
         }
 
         /// <summary>
-        /// 创建用户 目前POS用户全部有SSO来创建 不使用POS新增用户
+        /// 创建用户
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>

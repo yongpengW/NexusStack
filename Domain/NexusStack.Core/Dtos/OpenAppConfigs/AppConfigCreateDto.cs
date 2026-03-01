@@ -7,7 +7,7 @@ namespace NexusStack.Core.Dtos.OpenAppConfigs
     public class AppConfigCreateDto
     {
         public long Id { get; set; }
-        public string? AppName { get; set; }
+        public required string AppName { get; set; }
         public long? AccessValidTime { get; set; }
         public bool IsEnabled { get; set; }
         public string? Remark { get; set; }
