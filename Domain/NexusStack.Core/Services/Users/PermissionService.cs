@@ -41,7 +41,7 @@ namespace NexusStack.Core.Services.Users
                 .Select(x => x.Id)
                 .ToListAsync();
 
-            // 删除原有数据（该平台下所有菜单权限）
+            // 删除原有数据（该平台下所有可见菜单权限）
             await BatchDeleteAsync(a => a.RoleId == model.RoleId && oldMenuIds.Contains(a.MenuId));
 
             if (model.Menus is not { Length: > 0 })
