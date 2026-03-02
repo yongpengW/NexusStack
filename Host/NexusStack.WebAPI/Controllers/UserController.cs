@@ -1,4 +1,4 @@
-﻿using LinqKit;
+using LinqKit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -157,7 +157,6 @@ namespace NexusStack.WebAPI.Controllers
         /// 创建用户
         /// </summary>
         [HttpPost]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<long> PostAsync(CreateUserDto model)
         {
             if (model.UserName.IsNullOrEmpty())
@@ -214,7 +213,6 @@ namespace NexusStack.WebAPI.Controllers
         /// 修改用户信息
         /// </summary>
         [HttpPut("{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> PutAsync(long id, CreateUserDto model)
         {
             var entity = await userService.GetAsync(item => item.Id == id);
@@ -280,7 +278,6 @@ namespace NexusStack.WebAPI.Controllers
         /// 启用用户
         /// </summary>
         [HttpPut("enable/{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> EnableAsync(long id)
         {
             var entity = await userService.GetByIdAsync(id);
@@ -298,7 +295,6 @@ namespace NexusStack.WebAPI.Controllers
         /// 禁用用户
         /// </summary>
         [HttpPut("disable/{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> DisableAsync(long id)
         {
             if (CurrentUser.UserId == id)
@@ -367,7 +363,6 @@ namespace NexusStack.WebAPI.Controllers
         /// 重置密码
         /// </summary>
         [HttpPut("reset/{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> ResetPasswordAsync(long id)
         {
             await userService.ResetPasswordAsync(id);
