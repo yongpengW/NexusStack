@@ -30,39 +30,88 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("要授权的角色不存在");
             }
 
-            var oldMenuIds = await menuService.GetQueryable()
-                .Where(a => a.PlatformType == model.PlatformType && a.IsVisible)
-                .Select(x => x.Id).ToListAsync();
+            // 平台上下文：如未显式指定，则按角色 Platforms 过滤可见菜单
+            var platform = model.PlatformType;
 
-            // 删除原有数据
+            var oldMenuIds = await menuService.GetQueryable()
+                .Where(a => a.IsVisible
+                            && (!platform.HasValue
+                                ? (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)
+                                : a.PlatformType == platform.Value))
+                .Select(x => x.Id)
+                .ToListAsync();
+
+            // 删除原有数据（该平台下所有可见菜单权限）
             await BatchDeleteAsync(a => a.RoleId == model.RoleId && oldMenuIds.Contains(a.MenuId));
 
-            var menus = await menuService.GetListAsync(x => model.Menus.Contains(x.Id));
+            if (model.Menus is not { Length: > 0 })
+            {
+                // 没有任何菜单被勾选，直接清空权限并失效缓存
+
+                var emptyAffectedUserIds = await dbContext.Set<UserRole>()
+                    .Where(ur => ur.RoleId == model.RoleId)
+                    .Select(ur => ur.UserId)
+                    .Distinct()
+                    .ToListAsync();
+
+                foreach (var userId in emptyAffectedUserIds)
+                    await userContextCacheService.InvalidateAsync(userId);
+
+                return;
+            }
+
+            // 前端提交的菜单 Id 集合（去重）
+            var submittedMenuIds = model.Menus.Select(m => m.MenuId).ToArray();
+            var distinctSubmittedMenuIds = submittedMenuIds.Distinct().ToArray();
+
+            // 校验前端提交的菜单是否全部存在且属于当前平台上下文
+            var validMenuQuery = menuService.GetQueryable()
+                .Where(a => a.IsVisible
+                            && distinctSubmittedMenuIds.Contains(a.Id)
+                            && (!platform.HasValue
+                                ? (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)
+                                : a.PlatformType == platform.Value));
+
+            var menus = await validMenuQuery.ToListAsync();
+
+            var validMenuIds = menus.Select(m => m.Id).ToHashSet();
+            var invalidSubmittedIds = distinctSubmittedMenuIds.Where(id => !validMenuIds.Contains(id)).ToArray();
+            if (invalidSubmittedIds.Length > 0)
+            {
+                // 提交了不存在或不属于当前平台的菜单
+                throw new BusinessException("存在无效或跨平台的菜单Id，变更已取消。");
+            }
             var parentIds = new List<long>();
 
             foreach (var item in menus)
             {
-                if (!model.Menus.Contains(item.ParentId) && item.ParentId != 0)
+                if (!submittedMenuIds.Contains(item.ParentId) && item.ParentId != 0)
                 {
                     parentIds.Add(item.ParentId);
                 }
             }
 
-            parentIds = parentIds.Distinct().ToList();
+            // 构建 menuId -> DataRange 映射；父级节点固定使用 DataRange.All
+            var menuDataRangeMap = model.Menus
+                .GroupBy(m => m.MenuId)
+                .ToDictionary(g => g.Key, g => g.First().DataRange);
 
-            var permissions = parentIds.Select(a => new Permission
+            foreach (var parentId in parentIds.Distinct())
             {
-                MenuId = a,
-                RoleId = model.RoleId
+                if (!menuDataRangeMap.ContainsKey(parentId))
+                {
+                    menuDataRangeMap[parentId] = DataRange.All;
+                }
+            }
+
+            var permissions = menuDataRangeMap.Select(kv => new Permission
+            {
+                MenuId = kv.Key,
+                RoleId = model.RoleId,
+                DataRange = kv.Value
             }).ToList();
 
-            permissions.AddRange(model.Menus.Select(a => new Permission
-            {
-                MenuId = a,
-                RoleId = model.RoleId
-            }));
-
-            await InsertAsync(permissions.Distinct());
+            await InsertAsync(permissions);
 
             // 角色权限变更后，使所有拥有该角色的用户的权限缓存失效
             var affectedUserIds = await dbContext.Set<UserRole>()
@@ -100,10 +149,11 @@ namespace NexusStack.Core.Services.Users
                             MenuParentId = m.ParentId,
                             MenuType = m.Type,
                             MenuOrder = m.Order,
-                            HasPermission = pm != null ? true : false,
+                            HasPermission = pm != null,
                             RoleId = pm != null ? pm.RoleId : roleId,
                             Id = pm != null ? pm.Id : 0,
                             MenuUrl = m.Url ?? string.Empty,
+                            DataRange = pm != null ? pm.DataRange : DataRange.All
                         };
 
             var permissions = await query.ToListAsync();
@@ -163,10 +213,11 @@ namespace NexusStack.Core.Services.Users
                                 MenuParentId = m.ParentId,
                                 MenuType = m.Type,
                                 MenuOrder = m.Order,
-                                HasPermission = pm != null ? true : false,
+                                HasPermission = pm != null,
                                 RoleId = pm != null ? pm.RoleId : role.Id,
                                 Id = pm != null ? pm.Id : 0,
-                                MenuUrl = m.Url
+                                MenuUrl = m.Url ?? string.Empty,
+                                DataRange = pm != null ? pm.DataRange : DataRange.All
                             };
 
                 permissions.AddRange(await query.ToListAsync());

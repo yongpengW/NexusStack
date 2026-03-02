@@ -1,8 +1,7 @@
-﻿using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Entities.Users;
 using NexusStack.Infrastructure.Dtos;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace NexusStack.Core.Dtos.Permissions
 {
@@ -25,13 +24,14 @@ namespace NexusStack.Core.Dtos.Permissions
 
         /// <summary>
         /// 权限数据范围
+        /// 仅 Menu / Operation 类型节点有实际意义；Directory / Subsystem 固定为 All。
         /// </summary>
-        //public DataRange DataRange { get; set; }
+        public DataRange DataRange { get; set; } = DataRange.All;
 
         /// <summary>
         /// 菜单名称
         /// </summary>
-        public string MenuName { get; set; }
+        public string MenuName { get; set; } = string.Empty;
 
         /// <summary>
         /// 父级菜单 Id
@@ -41,7 +41,7 @@ namespace NexusStack.Core.Dtos.Permissions
         /// <summary>
         /// 菜单 Url
         /// </summary>
-        public string MenuUrl { get; set; }
+        public string MenuUrl { get; set; } = string.Empty;
 
         /// <summary>
         /// 菜单类型

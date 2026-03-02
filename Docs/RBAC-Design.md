@@ -161,7 +161,8 @@ public class Role : AuditedEntity
 > - 当前平台数量有限，且暂不需要为"角色-平台"关系单独挂载元数据，选择 **B1：`[Flags]` 枚举**：  
 >   ```csharp
 >   [Flags]
->   public enum PlatformType { Web = 1, Android = 2, WeChat = 4, iOS = 8 }
+>   public enum PlatformType { Admin = 1, Pc = 2, Mini = 4, Android = 8 }
+>   // Admin=1 超管端；Pc=2 PC 管理端（前端固定传此值）；Mini=4 微信小程序；Android=8 App
 >   public PlatformType Platforms { get; set; }
 >   ```  
 > - 如后续需要为不同平台配置细粒度策略（例如 `MinVersion`、灰度标记、启用状态等），可演进为 **B2：`RolePlatform` 关联表**，迁移路径为：  
@@ -212,6 +213,13 @@ public enum DataRange
 > - 这样与"权限取并集"的核心语义一致：**多给角色只会扩大、不会缩小用户能看到的数据范围**；  
 > - 运营侧需配合一条治理约束：  
 >   - 同一平台下，如某些角色本身就要求极严格的数据范围（如审计员），应避免与"极宽松"角色（如超级管理员）给同一用户组合使用，必要时通过独立账号解决。
+>
+> ✅ **DataRange 前端已实现（V1 落地）**：  
+> - 前端 `PermissionDto` 包含 `dataRange: DataRange` 字段；  
+> - `ChangeRolePermissionDto.menus` 类型为 `{ menuId: number; dataRange: DataRange }[]`；  
+> - 权限配置页（Permission Management）对 **Menu / Operation** 类型节点在勾选时显示数据范围 Select；  
+> - **Directory / Subsystem** 类型的目录节点不展示 Select，保存时固定传 `DataRange.All`；  
+> - 角色管理的轻量 PermissionDrawer 不展示 DataRange UI，但会**还原并携带**已配置的数据范围值提交，避免覆盖权限管理页设置的精细配置。
 
 ### 4.6 UserToken 表（调整）
 
@@ -530,7 +538,7 @@ public interface ICurrentUser
 | B | `Role.Platforms` 的存储方式 | ✅ 采用 `[Flags] enum`，后续可演进为 `RolePlatform` | 当前平台有限且无复杂元数据需求，保持模型简单 |
 | C | 多角色 `DataRange` 冲突 | ✅ 采用"最宽松"策略（取数值最小的 `DataRange`） | 与权限并集语义一致，更多角色 = 更大可见范围 |
 | D | `UserToken.RoleId` 是否保留 | ✅ 鉴权语义完全移除，仅在需要时通过其他字段表达"主身份" | Token 只关心 User + Platform，降低耦合 |
-| E | `Permission.HasPermission` bool 是否保留 | ✅ 删除 `HasPermission`，有记录即有权限 | 简化模型，避免"存在记录但 HasPermission=false"等含糊状态 |
+| E | `Permission.HasPermission` bool 是否保留 | ✅ **数据库层**删除 `HasPermission` 字段，有记录即有权限 | 简化模型，避免"存在记录但 HasPermission=false"等含糊状态。注意：**API 响应层的 `PermissionDto` 仍保留 `hasPermission` 计算字段**（值 = 该角色在 Permission 表中是否存在对应记录），前端权限树依赖此字段初始化勾选状态，**禁止从 DTO 中移除**。 |
 | F | 是否单独创建 `Department` 表 | ✅ 暂不单独建表，由 `Region` 统一承载组织树 | 降低模型复杂度，后续如有需要可演进为 `OrgUnit/Department` 体系 |
 
 ---

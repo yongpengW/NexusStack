@@ -1,4 +1,4 @@
-﻿using Ardalis.Specification;
+using Ardalis.Specification;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NexusStack.Core.Attributes;
@@ -24,7 +24,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpGet("list"), NoLogging]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public Task<List<RegionDto>> GetListAsync([FromQuery] RegionQueryDto model)
         {
             var spec = Specifications<Region>.Create();
@@ -51,7 +50,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpGet("tree"), NoLogging]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<List<RegionTreeDto>> GetTreeAsync([FromQuery] RegionTreeQueryDto model)
         {
             return await regionService.GetTreeListAsync(model);
@@ -64,7 +62,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <param name="isIncludeZero">是否包含'无'</param>
         /// <returns></returns>
         [HttpGet("selector"), NoLogging]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<List<SelectOptionDto>> GetRegionSelectorListAsync(RegionLevel? level, bool isIncludeZero = true)
         {
             var spec = Specifications<Region>.Create();
@@ -150,7 +147,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<long> PostAsync(CreateRegionDto model)
         {
             var entity = this.Mapper.Map<Region>(model);
@@ -167,7 +163,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <returns></returns>
         /// <exception cref="BusinessException"></exception>
         [HttpPut("{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> PutAsync(long id, CreateRegionDto model)
         {
             var entity = await regionService.GetAsync(a => a.Id == id);
@@ -195,7 +190,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}"), NoLogging]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<RegionDto> GetByIdAsync(long id)
         {
             return await regionService.GetAsync<RegionDto>(a => a.Id == id);
@@ -208,7 +202,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <returns></returns>
         /// <exception cref="BusinessException"></exception>
         [HttpDelete("{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> DeleteAsync(long id)
         {
 
@@ -234,7 +227,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPut("Enable/{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> ItemEnableAsync(long id)
         {
             var entity = await regionService.GetByIdAsync(id);
@@ -257,7 +249,6 @@ namespace NexusStack.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPut("Disable/{id}")]
-        [AllowAnonymous]// 开发阶段先允许匿名访问，后续根据需要调整权限
         public async Task<StatusCodeResult> ItemDisableAsync(long id)
         {
             var entity = await regionService.GetByIdAsync(id);
