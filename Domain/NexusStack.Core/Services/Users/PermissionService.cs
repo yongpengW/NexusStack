@@ -60,11 +60,27 @@ namespace NexusStack.Core.Services.Users
                 return;
             }
 
-            // 前端提交的菜单 Id 集合
+            // 前端提交的菜单 Id 集合（去重）
             var submittedMenuIds = model.Menus.Select(m => m.MenuId).ToArray();
+            var distinctSubmittedMenuIds = submittedMenuIds.Distinct().ToArray();
 
-            // 加载这些菜单以便补齐父级
-            var menus = await menuService.GetListAsync(x => submittedMenuIds.Contains(x.Id));
+            // 校验前端提交的菜单是否全部存在且属于当前平台上下文
+            var validMenuQuery = menuService.GetQueryable()
+                .Where(a => a.IsVisible
+                            && distinctSubmittedMenuIds.Contains(a.Id)
+                            && (!platform.HasValue
+                                ? (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)
+                                : a.PlatformType == platform.Value));
+
+            var menus = await validMenuQuery.ToListAsync();
+
+            var validMenuIds = menus.Select(m => m.Id).ToHashSet();
+            var invalidSubmittedIds = distinctSubmittedMenuIds.Where(id => !validMenuIds.Contains(id)).ToArray();
+            if (invalidSubmittedIds.Length > 0)
+            {
+                // 提交了不存在或不属于当前平台的菜单
+                throw new BusinessException("存在无效或跨平台的菜单Id，变更已取消。");
+            }
             var parentIds = new List<long>();
 
             foreach (var item in menus)
