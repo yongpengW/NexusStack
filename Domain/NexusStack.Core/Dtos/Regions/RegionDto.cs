@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Infrastructure.Dtos;
 using NexusStack.Infrastructure.Enums;
 using System;
@@ -47,6 +47,11 @@ namespace NexusStack.Core.Dtos.Regions
         /// 显示排序
         /// </summary>
         public int Order { get; set; }
+
+        /// <summary>
+        /// 是否启用
+        /// </summary>
+        public bool IsEnable { get; set; }
 
         /// <summary>
         /// 备注
