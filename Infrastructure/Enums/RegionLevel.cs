@@ -9,8 +9,21 @@ namespace NexusStack.Infrastructure.Enums
     /// </summary>
     public enum RegionLevel
     {
+        /// <summary>
+        /// 国家
+        /// </summary>
         Country = 0,
+        /// <summary>
+        /// 省
+        /// </summary>
         Province = 1,
-        City = 2
+        /// <summary>
+        /// 市/区
+        /// </summary>
+        City = 2,
+        /// <summary>
+        /// 公司/部门/机构
+        /// </summary>
+        Department = 3,
     }
 }
