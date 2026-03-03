@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
@@ -51,6 +51,11 @@ namespace NexusStack.Infrastructure
         /// 当前登录平台（从 Token 中解析）
         /// </summary>
         int PlatformType { get; }
+
+        /// <summary>
+        /// 是否是超级管理员（拥有所有权限），如果是则 ApiPermissionKeys 可不必填充权限数据，鉴权时直接放行即可。
+        /// </summary>
+        bool IsRoot { get; }
 
         /// <summary>
         /// 原始 ClaimsPrincipal

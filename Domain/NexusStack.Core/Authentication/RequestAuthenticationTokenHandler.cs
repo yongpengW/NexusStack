@@ -56,6 +56,7 @@ public class RequestAuthenticationTokenHandler(
                     new(CoreClaimTypes.PlatFormType, ((int)userToken.PlatformType).ToString()),
                     new(CoreClaimTypes.UserName, userContext.UserName ?? string.Empty),
                     new(CoreClaimTypes.Email, userContext.Email ?? string.Empty),
+                    new(CoreClaimTypes.IsRoot, userContext.IsRoot.ToString()),
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, nameof(RequestAuthenticationTokenHandler));

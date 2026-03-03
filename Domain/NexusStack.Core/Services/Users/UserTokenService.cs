@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using NexusStack.Core.Configuration;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
@@ -35,7 +37,9 @@ namespace NexusStack.Core.Services.Users
         IUserRoleService userRoleService,
         IUserContextCacheService userContextCacheService,
         IHttpContextAccessor httpContextAccessor,
-        IHostEnvironment hostEnvironment) : ServiceBase<UserToken>(dbContext, mapper), IUserTokenService, IScopedDependency
+        IHostEnvironment hostEnvironment,
+        IOptionsMonitor<TokenOptions> tokenOptions
+    ) : ServiceBase<UserToken>(dbContext, mapper), IUserTokenService, IScopedDependency
     {
         public async Task<CaptchaDto> GenerateCaptchaAsync()
         {
@@ -45,15 +49,16 @@ namespace NexusStack.Core.Services.Users
             // 生成验证码图片
             var bytes = CaptchaHelper.GenerateCaptchaImage(120, 48, captchaCode);
 
+            var options = tokenOptions.CurrentValue;
             var captcha = new CaptchaDto
             {
                 Captcha = $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}",
                 Key = Guid.NewGuid().ToString("N"),
-                ExpireTime = DateTimeOffset.UtcNow.AddMinutes(10)
+                ExpireTime = DateTimeOffset.UtcNow.AddMinutes(options.CaptchaExpirationMinutes)
             };
 
-            // 将验证码存储到缓存中，有效期 10 分钟
-            await redisService.SetAsync(CoreRedisConstants.TokenCaptcha.Format(captcha.Key), captchaCode.ToLower(), TimeSpan.FromMinutes(10));
+            // 将验证码存储到缓存中，有效期从配置读取
+            await redisService.SetAsync(CoreRedisConstants.TokenCaptcha.Format(captcha.Key), captchaCode.ToLower(), TimeSpan.FromMinutes(options.CaptchaExpirationMinutes));
 
             return captcha;
         }
@@ -145,9 +150,10 @@ namespace NexusStack.Core.Services.Users
             var ipAddress = httpContextAccessor.HttpContext?.Request.GetRemoteIpAddress();
             var userAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
 
+            var options = tokenOptions.CurrentValue;
             var token = new UserToken()
             {
-                ExpirationDate = DateTimeOffset.UtcNow.AddHours(10),
+                ExpirationDate = DateTimeOffset.UtcNow.AddHours(options.ExpirationHours),
                 IpAddress = ipAddress?.ToString() ?? string.Empty,
                 PlatformType = platform,
                 UserAgent = userAgent ?? string.Empty,
@@ -158,18 +164,18 @@ namespace NexusStack.Core.Services.Users
 
             token.Token = StringExtensions.GenerateToken(user.Id.ToString(), token.ExpirationDate);
             token.TokenHash = StringExtensions.EncodeMD5(token.Token);
-            token.RefreshToken = StringExtensions.GenerateToken(token.Token, token.ExpirationDate.AddMonths(1));
+            token.RefreshToken = StringExtensions.GenerateToken(token.Token, token.ExpirationDate.AddMonths(options.RefreshTokenExpirationMonths));
 
             await InsertAsync(token);
 
             token.User = user;
             var cacheData = Mapper.Map<UserTokenCacheDto>(token);
 
-            // 将 Token 信息存储到 Redis，有效期 10 小时
-            await redisService.SetAsync(CoreRedisConstants.UserToken.Format(token.TokenHash), cacheData, TimeSpan.FromHours(10));
+            // 将 Token 信息存储到 Redis，有效期从配置读取
+            await redisService.SetAsync(CoreRedisConstants.UserToken.Format(token.TokenHash), cacheData, TimeSpan.FromHours(options.ExpirationHours));
 
             // 预热用户上下文缓存（Roles、Regions），供鉴权后从 Redis 读取
-            _ = await userContextCacheService.GetOrSetAsync(user.Id, platform, TimeSpan.FromHours(10));
+            _ = await userContextCacheService.GetOrSetAsync(user.Id, platform, TimeSpan.FromHours(options.ExpirationHours));
 
             return Mapper.Map<UserTokenDto>(token);
         }

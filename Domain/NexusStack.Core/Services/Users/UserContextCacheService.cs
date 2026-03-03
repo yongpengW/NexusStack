@@ -23,6 +23,7 @@ namespace NexusStack.Core.Services.Users
     public class UserContextCacheService(
         MainContext dbContext,
         IRedisService redisService,
+        IRoleService roleService,
         IUserRoleService userRoleService) : IUserContextCacheService, IScopedDependency
     {
         private static readonly TimeSpan DefaultExpire = TimeSpan.FromHours(10);
@@ -73,10 +74,19 @@ namespace NexusStack.Core.Services.Users
                 .Select(u => new { u.UserName, u.Email, u.IsEnable })
                 .FirstOrDefaultAsync(cancellationToken);
 
-            var roleIds = (await userRoleService.GetUserRoles(userId, platformType))
+            var userRoles = await userRoleService.GetUserRoles(userId, platformType);
+            var roleIds = userRoles
                 .Select(ur => ur.RoleId)
                 .Distinct()
                 .ToList();
+
+            var roles = await roleService.GetListAsync(x=> roleIds.Contains(x.Id));
+
+            var roleCode = roles.Select(r => r.Code)
+                .Distinct()
+                .ToList();
+
+            var isRoot = roleCode.Any(code => string.Equals(code, SystemRoleConstants.Root, StringComparison.OrdinalIgnoreCase));
 
             var regionIds = await dbContext.Set<UserDepartment>()
                 .Where(ud => ud.UserId == userId)
@@ -115,7 +125,8 @@ namespace NexusStack.Core.Services.Users
                 IsEnable = user?.IsEnable ?? false,
                 RoleIds = roleIds,
                 RegionIds = regionIds,
-                ApiPermissionKeys = apiPermissionKeys
+                ApiPermissionKeys = apiPermissionKeys,
+                IsRoot = isRoot,
             };
         }
     }
