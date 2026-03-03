@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -50,6 +50,10 @@ namespace NexusStack.Core.Filters
             else if (exception is ForbiddenException forbiddenException)
             {
                 resultModel.Code = (int)HttpStatusCode.Forbidden;
+            }
+            else if (exception is UnauthorizedException unauthorizedException)
+            {
+                resultModel.Code = (int)HttpStatusCode.Unauthorized;
             }
             else
             {

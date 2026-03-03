@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;

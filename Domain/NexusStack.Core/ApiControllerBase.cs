@@ -13,8 +13,7 @@ namespace NexusStack.Core
     /// <summary>
     /// 项目中所有控制器的基类
     /// </summary>
-    [ApiController, Authorize, Route("api/[controller]")]
-    //[Authorize(AuthenticationSchemes = "Authorization-Token")]
+    [ApiController, Authorize(AuthenticationSchemes = "Authorization-Token"), Route("api/[controller]")]
     public abstract class ApiControllerBase : ControllerBase
     {
         /// <summary>

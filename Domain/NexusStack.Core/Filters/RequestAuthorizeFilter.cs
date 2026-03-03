@@ -1,6 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
+using NexusStack.Core.Constants;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Infrastructure.Models;
 using System.Linq;
@@ -14,6 +16,13 @@ namespace NexusStack.Core.Filters
     /// </summary>
     public class RequestAuthorizeFilter : IAsyncAuthorizationFilter
     {
+        private readonly ILogger<RequestAuthorizeFilter> _logger;
+
+        public RequestAuthorizeFilter(ILogger<RequestAuthorizeFilter> logger)
+        {
+            _logger = logger;
+        }
+
         public Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             // [AllowAnonymous] 直接放行
@@ -29,14 +38,16 @@ namespace NexusStack.Core.Filters
             if (hasOpenApiAuthScheme)
             {
                 if (context.HttpContext.User.Identity?.IsAuthenticated != true)
-                    context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status401Unauthorized, "OpenAPI认证失败", null));
+                    context.Result = new RequestJsonResult(new RequestResultModel(AuthorizationConstants.StatusCodes.Unauthorized, AuthorizationConstants.ErrorMessages.OpenApiAuthFailed, null));
                 return Task.CompletedTask;
             }
 
             // 身份认证失败（Token 无效或未传）
             if (context.HttpContext.User.Identity?.IsAuthenticated != true)
             {
-                context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status401Unauthorized, "请先登录", null));
+                _logger.LogWarning("未认证用户访问受保护接口: {Path} {Method}",
+                    context.HttpContext.Request.Path, context.HttpContext.Request.Method);
+                context.Result = new RequestJsonResult(new RequestResultModel(AuthorizationConstants.StatusCodes.Unauthorized, AuthorizationConstants.ErrorMessages.PleaseLogin, null));
                 return Task.CompletedTask;
             }
 
@@ -44,16 +55,23 @@ namespace NexusStack.Core.Filters
             if (!context.HttpContext.Items.TryGetValue(CoreClaimTypes.UserContextItemsKey, out var ctxObj)
                 || ctxObj is not UserContextCacheDto userContext)
             {
-                context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status401Unauthorized, "用户上下文缺失，请重新登录", null));
+                context.Result = new RequestJsonResult(new RequestResultModel(AuthorizationConstants.StatusCodes.Unauthorized, AuthorizationConstants.ErrorMessages.UserContextMissing, null));
                 return Task.CompletedTask;
             }
 
             // 用户已被禁用（缓存失效后重建时会同步最新状态）
             if (!userContext.IsEnable)
             {
-                context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status403Forbidden, $"该用户[{userContext.UserName}]已被禁用，请联系IT管理员处理", null));
+                var userId = context.HttpContext.User.FindFirst(CoreClaimTypes.UserId)?.Value ?? "unknown";
+                _logger.LogWarning("已禁用用户 {UserId} 尝试访问: {Path} {Method}",
+                    userId, context.HttpContext.Request.Path, context.HttpContext.Request.Method);
+                context.Result = new RequestJsonResult(new RequestResultModel(AuthorizationConstants.StatusCodes.Forbidden, string.Format(AuthorizationConstants.ErrorMessages.UserDisabled, userContext.UserName), null));
                 return Task.CompletedTask;
             }
+
+            // [SkipApiPermissionCheck] 跳过 RBAC 权限校验（系统基础接口：登出、获取权限等）
+            if (context.ActionDescriptor.EndpointMetadata.Any(a => a is SkipApiPermissionCheckAttribute))
+                return Task.CompletedTask;
 
             // RBAC 权限校验：从预计算的 API 权限集合中查找，O(1) 时间复杂度
             // Key 格式：RouteTemplate.ToLower():HTTPMETHOD，与 ApiResource.RoutePattern 及缓存构建逻辑一致。
@@ -63,10 +81,22 @@ namespace NexusStack.Core.Filters
                 return Task.CompletedTask;
 
             var routeTemplate = cad.AttributeRouteInfo?.Template?.ToLowerInvariant() ?? string.Empty;
+            
+            // 验证路由模板有效性
+            if (string.IsNullOrEmpty(routeTemplate))
+            {
+                _logger.LogWarning("接口 {Action} 缺少有效的路由模板", cad.ActionName);
+                context.Result = new RequestJsonResult(new RequestResultModel(AuthorizationConstants.StatusCodes.Forbidden, AuthorizationConstants.ErrorMessages.InsufficientPermission, null));
+                return Task.CompletedTask;
+            }
+
             var apiKey = $"{routeTemplate}:{context.HttpContext.Request.Method.ToUpperInvariant()}";
             if (!userContext.ApiPermissionKeys.Contains(apiKey))
             {
-                context.Result = new RequestJsonResult(new RequestResultModel(StatusCodes.Status403Forbidden, "暂无访问该接口的权限", null));
+                var userId = context.HttpContext.User.FindFirst(CoreClaimTypes.UserId)?.Value ?? "unknown";
+                _logger.LogWarning("用户 {UserId}({UserName}) 无权限访问 {ApiKey}",
+                    userId, userContext.UserName, apiKey);
+                context.Result = new RequestJsonResult(new RequestResultModel(AuthorizationConstants.StatusCodes.Forbidden, AuthorizationConstants.ErrorMessages.InsufficientPermission, null));
                 return Task.CompletedTask;
             }
 
