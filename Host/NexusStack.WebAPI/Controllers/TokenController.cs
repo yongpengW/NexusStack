@@ -1,4 +1,4 @@
-using LinqKit;
+﻿using LinqKit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +6,7 @@ using NexusStack.Core;
 using NexusStack.Core.Dtos.Roles;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Filters;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.Infrastructure.Constants;
 using NexusStack.Infrastructure.Enums;
@@ -43,11 +44,12 @@ namespace NexusStack.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("signout")]
+        [SkipApiPermissionCheck]
         public async Task<StatusCodeResult> SignoutAsync()
         {
             if (!this.CurrentUser.IsAuthenticated)
             {
-                throw new BusinessException("请先登录");
+                throw new UnauthorizedException("请先登录");
             }
 
             var tokenHash = StringExtensions.EncodeMD5(this.CurrentUser.Token);
@@ -83,6 +85,7 @@ namespace NexusStack.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("permission")]
+        [SkipApiPermissionCheck]
         public async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(PlatformType platformType)
         {
             // 直接使用认证阶段按平台过滤并缓存的 RoleIds，确保只返回当前平台下的权限

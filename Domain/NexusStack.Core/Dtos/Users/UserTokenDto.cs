@@ -60,16 +60,6 @@ namespace NexusStack.Core.Dtos.Users
         public PlatformType PlatformType { get; set; }
 
         /// <summary>
-        /// 登录角色
-        /// </summary>
-        public string RoleIds { get; set; }
-
-        /// <summary>
-        /// 登录角色所属区域
-        /// </summary>
-        public string RegionIds { get; set; }
-
-        /// <summary>
         /// IP地址
         /// </summary>
         public string IpAddress { get; set; }

@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -49,7 +49,7 @@ namespace NexusStack.Core.Services.Users
             {
                 Captcha = $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}",
                 Key = Guid.NewGuid().ToString("N"),
-                ExpireTime = DateTime.Now.AddMinutes(10)
+                ExpireTime = DateTimeOffset.UtcNow.AddMinutes(10)
             };
 
             // 将验证码存储到缓存中，有效期 10 分钟
@@ -90,42 +90,34 @@ namespace NexusStack.Core.Services.Users
 
             if (user == null)
             {
-                throw new BusinessException("账号或密码错误");
+                throw new UnauthorizedException("账号或密码错误");
             }
 
             if (user.PasswordSalt.IsNullOrEmpty())
             {
-                throw new BusinessException("该用户还未设置密码");
+                throw new UnauthorizedException("该用户还未设置密码");
             }
 
-            // swagger特殊登录（仅在开发环境中允许）
-            if (hostEnvironment.IsDevelopment() && password.StartsWith("swagger"))
-            {
-                password = password[7..];
-            }
-            else
-            {
-                //前端传递的密码是经过base64位处理过的
-                password = password.Base64ToString();
-                //!等特殊字符会被转义，这里需要解码
-                password = Uri.UnescapeDataString(password);
-            }
+            //前端传递的密码是经过base64位处理过的
+            password = password.Base64ToString();
+            //!等特殊字符会被转义，这里需要解码
+            password = Uri.UnescapeDataString(password);
 
             if (!user.Password.Equals(password.EncodePassword(user.PasswordSalt)))
             {
-                throw new BusinessException("账号或密码错误");
+                throw new UnauthorizedException("账号或密码错误");
             }
 
             if (!user.IsEnable)
             {
-                throw new BusinessException("该账号已禁用");
+                throw new UnauthorizedException("该账号已禁用");
             }
 
             // 检查用户在该平台下是否有可用角色（方案二：平台上下文驱动权限）
             var platformRoles = await userRoleService.GetUserRoles(user.Id, platform);
             if (platformRoles.Count == 0)
             {
-                throw new BusinessException("该账号在当前平台下未分配任何角色，无权限登录");
+                throw new UnauthorizedException("该账号在当前平台下未分配任何角色，无权限登录");
             }
 
             return await GenerateUserTokenAsync(user, platform);
@@ -141,13 +133,13 @@ namespace NexusStack.Core.Services.Users
         {
             if (!user.IsEnable)
             {
-                throw new BusinessException("该账号已禁用");
+                throw new UnauthorizedException("该账号已禁用");
             }
 
             // 更新最后登录时间
             await userService.UpdateFromQueryAsync(a => a.Id == user.Id, a => new User
             {
-                LastLoginTime = DateTime.Now
+                LastLoginTime = DateTimeOffset.UtcNow
             });
 
             var ipAddress = httpContextAccessor.HttpContext?.Request.GetRemoteIpAddress();
@@ -155,7 +147,7 @@ namespace NexusStack.Core.Services.Users
 
             var token = new UserToken()
             {
-                ExpirationDate = DateTime.Now.AddHours(10),
+                ExpirationDate = DateTimeOffset.UtcNow.AddHours(10),
                 IpAddress = ipAddress?.ToString() ?? string.Empty,
                 PlatformType = platform,
                 UserAgent = userAgent ?? string.Empty,
@@ -170,6 +162,7 @@ namespace NexusStack.Core.Services.Users
 
             await InsertAsync(token);
 
+            token.User = user;
             var cacheData = Mapper.Map<UserTokenCacheDto>(token);
 
             // 将 Token 信息存储到 Redis，有效期 10 小时
@@ -197,7 +190,7 @@ namespace NexusStack.Core.Services.Users
 
             // Redis 未命中（重启/过期）时回落到数据库，避免全量用户被强制下线
             var userToken = await GetAsync(a => a.TokenHash == tokenHash
-                                             && a.ExpirationDate > DateTime.Now
+                                             && a.ExpirationDate > DateTimeOffset.UtcNow
                                              && a.LoginType != LoginStatus.logout);
             if (userToken == null)
             {
@@ -206,7 +199,7 @@ namespace NexusStack.Core.Services.Users
 
             // 重新写入 Redis，剩余有效期与 DB 中的过期时间对齐
             var cacheData = Mapper.Map<UserTokenCacheDto>(userToken);
-            var remaining = userToken.ExpirationDate - DateTime.Now;
+            var remaining = userToken.ExpirationDate - DateTimeOffset.UtcNow;
             await redisService.SetAsync(CoreRedisConstants.UserToken.Format(tokenHash), cacheData, remaining);
 
             return cacheData;
@@ -222,31 +215,31 @@ namespace NexusStack.Core.Services.Users
         {
             if (refreshToken.IsNullOrEmpty())
             {
-                throw new BusinessException("Refresh Token 无效");
+                throw new UnauthorizedException("Refresh Token 无效");
             }
 
             var userToken = await GetAsync(a => a.RefreshToken == refreshToken);
             if (userToken is null || !userToken.RefreshTokenIsAvailable || userToken.UserId != userId)
             {
-                throw new BusinessException("Refresh Token 无效");
+                throw new UnauthorizedException("Refresh Token 无效");
             }
 
             // RefreshToken 有效期为一个月
-            if (userToken.CreatedAt < DateTime.Now.AddMonths(-1))
+            if (userToken.CreatedAt < DateTimeOffset.Now.AddMonths(-1))
             {
-                throw new BusinessException("Refresh Token 已过期");
+                throw new UnauthorizedException("Refresh Token 已过期");
             }
 
             var user = await userService.GetAsync(a => a.Id == userToken.UserId);
             if (user is null)
             {
-                throw new BusinessException("用户不存在，无法刷新 Token");
+                throw new UnauthorizedException("用户不存在，无法刷新 Token");
             }
 
             // 生成 Token
             var token = await GenerateUserTokenAsync(user, userToken.PlatformType);
 
-            user.LastLoginTime = DateTime.Now;
+            user.LastLoginTime = DateTimeOffset.Now;
             await userService.UpdateAsync(user);
 
             userToken.RefreshTokenIsAvailable = false;

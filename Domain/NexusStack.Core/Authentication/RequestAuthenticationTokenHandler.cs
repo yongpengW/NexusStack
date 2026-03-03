@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NexusStack.Core.Services.Interfaces;
@@ -21,11 +21,20 @@ public class RequestAuthenticationTokenHandler(
     {
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var token = Request.Headers.Authorization.ToString();
+            var authorizationHeader = Request.Headers.Authorization.ToString();
 
-            if (!string.IsNullOrEmpty(token))
+            if (!string.IsNullOrEmpty(authorizationHeader))
             {
-                token = token.Trim();
+                authorizationHeader = authorizationHeader.Trim();
+                
+                // 提取 Bearer token（移除 "Bearer " 前缀）
+                var scheme = "Bearer ";
+                if (!authorizationHeader.StartsWith(scheme, StringComparison.OrdinalIgnoreCase))
+                {
+                    return AuthenticateResult.Fail("Invalid authorization scheme");
+                }
+
+                var token = authorizationHeader.Substring(scheme.Length);
 
                 // 验证 Token 是否有效，并获取用户信息（从 Redis / 数据库）
                 var userToken = await userTokenService.ValidateTokenAsync(token);

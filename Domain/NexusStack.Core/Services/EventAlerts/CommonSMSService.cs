@@ -166,13 +166,13 @@ namespace NexusStack.Core.Services.EventAlerts
                     if (sendStatus == SMSSendStatus.Success)
                     {
                         message.MessageStatus = MessageStatus.Done;
-                        message.UpdatedAt = DateTime.Now;
+                        message.UpdatedAt = DateTimeOffset.UtcNow;
                         await messageService.UpdateAsync(message);
                     }
                     else if (sendStatus == SMSSendStatus.Failure)
                     {
                         message.MessageStatus = MessageStatus.Failed;
-                        message.UpdatedAt = DateTime.Now;
+                        message.UpdatedAt = DateTimeOffset.UtcNow;
                         await messageService.UpdateAsync(message);
                     }
                 }
@@ -267,7 +267,7 @@ namespace NexusStack.Core.Services.EventAlerts
             {
                 PhoneNumber = phoneNumber,
                 BizId = bizId,
-                SendDate = DateTime.Now.ToString("yyyyMMdd"),
+                SendDate = DateTimeOffset.UtcNow.ToString("yyyyMMdd"),
                 PageSize = 10,
                 CurrentPage = 1
             };
