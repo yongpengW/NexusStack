@@ -70,7 +70,7 @@ namespace NexusStack.Core.Filters
             }
 
             // [SkipApiPermissionCheck] 跳过 RBAC 权限校验（系统基础接口：登出、获取权限等）
-            if (context.ActionDescriptor.EndpointMetadata.Any(a => a.GetType() == typeof(SkipApiPermissionCheckAttribute)))
+            if (context.ActionDescriptor.EndpointMetadata.Any(a => a is SkipApiPermissionCheckAttribute))
                 return Task.CompletedTask;
 
             // RBAC 权限校验：从预计算的 API 权限集合中查找，O(1) 时间复杂度
