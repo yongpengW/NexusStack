@@ -239,7 +239,7 @@ namespace NexusStack.Core.Services.Users
             // 生成 Token
             var token = await GenerateUserTokenAsync(user, userToken.PlatformType);
 
-            user.LastLoginTime = DateTimeOffset.Now;
+            user.LastLoginTime = DateTimeOffset.UtcNow;
             await userService.UpdateAsync(user);
 
             userToken.RefreshTokenIsAvailable = false;
