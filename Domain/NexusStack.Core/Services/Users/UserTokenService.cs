@@ -225,7 +225,7 @@ namespace NexusStack.Core.Services.Users
             }
 
             // RefreshToken 有效期为一个月
-            if (userToken.CreatedAt < DateTimeOffset.Now.AddMonths(-1))
+            if (userToken.CreatedAt < DateTimeOffset.UtcNow.AddMonths(-1))
             {
                 throw new UnauthorizedException("Refresh Token 已过期");
             }
