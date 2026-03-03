@@ -51,7 +51,7 @@ namespace NexusStack.Core.Filters
             {
                 resultModel.Code = (int)HttpStatusCode.Forbidden;
             }
-            else if(exception is UnauthorizedException unauthorizedException)
+            else if (exception is UnauthorizedException unauthorizedException)
             {
                 resultModel.Code = (int)HttpStatusCode.Unauthorized;
             }
