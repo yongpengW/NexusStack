@@ -230,9 +230,8 @@ namespace NexusStack.Core.Services.Users
                 throw new UnauthorizedException("Refresh Token 无效");
             }
 
-            // RefreshToken 有效期从配置读取
-            var options = tokenOptions.CurrentValue;
-            if (userToken.CreatedAt < DateTimeOffset.Now.AddMonths(-options.RefreshTokenExpirationMonths))
+            // RefreshToken 有效期为一个月
+            if (userToken.CreatedAt < DateTimeOffset.UtcNow.AddMonths(-1))
             {
                 throw new UnauthorizedException("Refresh Token 已过期");
             }
@@ -246,7 +245,7 @@ namespace NexusStack.Core.Services.Users
             // 生成 Token
             var token = await GenerateUserTokenAsync(user, userToken.PlatformType);
 
-            user.LastLoginTime = DateTimeOffset.Now;
+            user.LastLoginTime = DateTimeOffset.UtcNow;
             await userService.UpdateAsync(user);
 
             userToken.RefreshTokenIsAvailable = false;

@@ -12,7 +12,6 @@
             public const string UserContextMissing = "用户上下文缺失，请重新登录";
             public const string UserDisabled = "该用户[{0}]已被禁用，请联系IT管理员处理";
             public const string InsufficientPermission = "暂无访问该接口的权限";
-            public const string InvalidAuthScheme = "Invalid authorization scheme";
         }
 
         public static class StatusCodes
