@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NexusStack.Core.Dtos.Users
 {
@@ -39,5 +39,10 @@ namespace NexusStack.Core.Dtos.Users
         /// 鉴权时直接从此集合查找，O(1) 时间复杂度，无需每次查 DB。
         /// </summary>
         public HashSet<string> ApiPermissionKeys { get; set; } = new HashSet<string>();
+
+        /// <summary>
+        /// 是否是超级管理员（拥有所有权限），如果是则 ApiPermissionKeys 可不必填充权限数据，鉴权时直接放行即可。
+        /// </summary>
+        public bool IsRoot { get; set; }
     }
 }

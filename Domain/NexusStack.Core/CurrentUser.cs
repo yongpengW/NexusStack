@@ -27,6 +27,8 @@ namespace NexusStack.Core
 
         public const string PlatForms = "platForms";
 
+        public const string IsRoot = "root";
+
         /// <summary>
         /// HttpContext.Items 中存放用户上下文的 Key（Roles、Regions 等，由认证 Handler 写入）
         /// </summary>
@@ -76,6 +78,8 @@ namespace NexusStack.Core
         //public long TenantId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public int PlatformType => this.FindClaimValue<int>(CoreClaimTypes.PlatFormType);
+
+        public bool IsRoot => this.FindClaimValue<bool>(CoreClaimTypes.IsRoot);
 
         public string CustomerId => this.FindClaimValue(CustomerClaimTypes.CustomerId);
 

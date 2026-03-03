@@ -73,6 +73,12 @@ namespace NexusStack.Core.Filters
             if (context.ActionDescriptor.EndpointMetadata.Any(a => a is SkipApiPermissionCheckAttribute))
                 return Task.CompletedTask;
 
+            // 超级管理员绕过权限校验（不建议使用，除非确实有特殊需求，如运维工具等）
+            if (userContext.IsRoot)
+            {
+                return Task.CompletedTask;
+            }
+
             // RBAC 权限校验：从预计算的 API 权限集合中查找，O(1) 时间复杂度
             // Key 格式：RouteTemplate.ToLower():HTTPMETHOD，与 ApiResource.RoutePattern 及缓存构建逻辑一致。
             // 使用路由模板而非 ActionName，可正确区分同控制器内同名重载 Action（如两个 PostAsync 对应不同路由）。
