@@ -86,7 +86,7 @@ namespace NexusStack.Core.Services.Users
                 .Distinct()
                 .ToList();
 
-            var isRoot = roleCode.Contains(SystemRoleConstants.Root);
+            var isRoot = roleCode.Any(code => string.Equals(code, SystemRoleConstants.Root, StringComparison.OrdinalIgnoreCase));
 
             var regionIds = await dbContext.Set<UserDepartment>()
                 .Where(ud => ud.UserId == userId)
