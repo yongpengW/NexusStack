@@ -37,7 +37,7 @@ namespace NexusStack.Infrastructure.Enums
         /// <summary>
         /// 完全开放模式：跳过所有 API 权限校验（仅用于开发/测试环境）
         /// - ✗ 不校验 API 权限
-        /// ⚠️ 生产环境禁止使用此模式
+        /// ⚠️ 生产环境谨慎使用此模式
         /// </summary>
         [Description("完全开放模式")]
         Disabled = 99
