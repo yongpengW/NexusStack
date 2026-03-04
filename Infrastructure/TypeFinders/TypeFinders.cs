@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace NexusStack.Infrastructure.TypeFinders
@@ -72,11 +73,24 @@ namespace NexusStack.Infrastructure.TypeFinders
             // 通过NexusStack开头的来查找当前使用的程序中的所有程序集
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(item => item.FullName.StartsWith("NexusStack.")).ToList();
             var types = new List<Type>();
-            try
+
+            foreach (var assembly in assemblies)
             {
-                foreach (var assembly in assemblies)
+                try
                 {
-                    foreach (var handleType in assembly.GetTypes())
+                    IEnumerable<Type> assemblyTypes;
+                    try
+                    {
+                        assemblyTypes = assembly.GetTypes();
+                    }
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        // 部分类型加载失败时，使用已成功加载的类型继续扫描
+                        assemblyTypes = ex.Types.Where(t => t != null)!;
+                        Console.WriteLine($"程序集 {assembly.GetName().Name} 部分类型加载失败: {ex.LoaderExceptions.FirstOrDefault()?.Message}");
+                    }
+
+                    foreach (var handleType in assemblyTypes)
                     {
                         switch (classification)
                         {
@@ -98,15 +112,15 @@ namespace NexusStack.Infrastructure.TypeFinders
                                     types.Add(handleType);
                                 }
                                 break;
-
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"扫描程序集 {assembly.GetName().Name} 时出错: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+
             return types;
         }
     }

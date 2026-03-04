@@ -12,11 +12,6 @@ namespace NexusStack.Core.Dtos.Menus
         /// </summary>
         public long ParentId { get; set; }
 
-        ///// <summary>
-        ///// 父级编号
-        ///// </summary>
-        //public string ParentCode { get; set; }
-
         /// <summary>
         /// 包含下级
         /// </summary>
