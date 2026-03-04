@@ -1,4 +1,4 @@
-using Ardalis.Specification;
+﻿using Ardalis.Specification;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NexusStack.Core.Attributes;
@@ -98,48 +98,31 @@ namespace NexusStack.WebAPI.Controllers
         /// <summary>
         /// 获取区域部门树选择器
         /// </summary>
-        /// <param name="isIncludeShop">是否包含门店</param>
         /// <returns></returns>
-        //[HttpGet("treeSelector"), NoLogging]
-        //public async Task<List<SelectOptionDto>> GetRegionTreeSelectorAsync(bool isIncludeShop = true)
-        //{
-        //    var regions = await regionService.GetListAsync();
-        //    var shops = await shopService.GetListAsync(x => x.State);
+        [HttpGet("treeSelector"), NoLogging]
+        public async Task<List<SelectOptionDto>> GetRegionTreeSelectorAsync()
+        {
+            var regions = await regionService.GetListAsync();
 
-        //    List<SelectOptionDto> getChildren(long parentId)
-        //    {
-        //        var children = regions.Where(x => x.ParentId == parentId).OrderBy(a => a.Order).ToList();
-        //        return children.Select(x =>
-        //        {
-        //            var item = new SelectOptionDto
-        //            {
-        //                label = x.Name,
-        //                value = x.Id,
-        //                children = getChildren(x.Id)
-        //            };
+            List<SelectOptionDto> getChildren(long parentId)
+            {
+                var children = regions.Where(x => x.ParentId == parentId).OrderBy(a => a.Order).ToList();
+                return children.Select(x =>
+                {
+                    var item = new SelectOptionDto
+                    {
+                        label = x.Name,
+                        value = x.Id,
+                        children = getChildren(x.Id)
+                    };
 
-        //            if (isIncludeShop)
-        //            {
-        //                var shopList = shops.Where(a => a.RegionId == x.Id).ToList();
-        //                if (shopList.Count > 0)
-        //                {
-        //                    item.children.AddRange(shopList.Select(a => new SelectOptionDto
-        //                    {
-        //                        label = a.ShopName,
-        //                        value = a.Id
-        //                    }).ToList());
-        //                }
+                    return item;
 
-        //            }
+                }).ToList();
+            }
 
-        //            return item;
-
-        //        }).ToList();
-        //    }
-
-
-        //    return getChildren(0);
-        //}
+            return getChildren(0);
+        }
 
         /// <summary>
         /// 添加行政区划

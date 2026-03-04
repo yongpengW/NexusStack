@@ -15,6 +15,7 @@ using NexusStack.Core.Entities.Messages;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;
+using NexusStack.Infrastructure.Enums;
 using NexusStack.Infrastructure.Utils;
 using NPOI.SS.Formula.Functions;
 using System;
@@ -31,7 +32,9 @@ namespace NexusStack.Core.MapProfiles
             #region User & Role
 
             CreateMap<User, UserDto>()
-               //.ForMember(a => a.Roles, a => a.MapFrom(c => c.UserRoles))
+               .ForMember(a => a.Roles, a => a.Ignore())
+               .ForMember(a => a.UserRoles, a => a.Ignore())
+               .ForMember(a => a.Departments, a => a.Ignore())
                .ForMember(a => a.HasPassword, a => a.MapFrom(c => !string.IsNullOrWhiteSpace(c.Password)));
 
             CreateMap<UserDepartment, UserDepartmentDto>();
@@ -39,9 +42,8 @@ namespace NexusStack.Core.MapProfiles
             CreateMap<Role, RoleDto>();
 
             CreateMap<UserRole, UserRoleDto>()
-                //.ForMember(a => a.RegionName, a => a.MapFrom(c => c.Region.Name))
-                //.ForMember(a => a.RoleName, a => a.MapFrom(c => c.Role.Name))
-                .ForMember(a => a.Platforms, a => a.MapFrom(c => c.Role.Platforms.ToString()));
+                .ForMember(a => a.RoleName, a => a.MapFrom(c => c.Role != null ? c.Role.Name : string.Empty))
+                .ForMember(a => a.Platforms, a => a.MapFrom(c => c.Role != null ? c.Role.Platforms : PlatformType.All));
 
             CreateMap<UserToken, UserTokenDto>()
                 .ForMember(a => a.UserName, a => a.MapFrom(c => c.User != null ? c.User.UserName : string.Empty));

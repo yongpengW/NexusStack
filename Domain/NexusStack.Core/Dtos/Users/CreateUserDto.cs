@@ -1,4 +1,4 @@
-using NexusStack.Core.Dtos.Roles;
+﻿using NexusStack.Core.Dtos.Roles;
 using NexusStack.Core.Entities.Users;
 using System;
 using System.Collections.Generic;
@@ -13,40 +13,43 @@ namespace NexusStack.Core.Dtos.Users
         /// 用户名
         /// </summary>
         [MaxLength(64, ErrorMessage = "账号不能超过 64 个字符")]
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
 
         /// <summary>
         /// 真实姓名
         /// </summary>
         [MaxLength(64, ErrorMessage = "姓名不能超过 64 个字符")]
-        public string RealName { get; set; }
+        public string? RealName { get; set; }
 
         /// <summary>
         /// 昵称
         /// </summary>
-        public string NickName { get; set; }
+        [MaxLength(64, ErrorMessage = "昵称不能超过 64 个字符")]
+        public string? NickName { get; set; }
 
         /// <summary>
         /// 手机
         /// </summary>
-        public string Mobile { get; set; }
+        [MaxLength(15, ErrorMessage = "手机号不能超过 15 个字符")]
+        public required string Mobile { get; set; }
 
         /// <summary>
         /// 邮箱
         /// </summary>
-        public string Email { get; set; }
+        [MaxLength(64, ErrorMessage = "邮箱不能超过 64 个字符")]
+        public required string Email { get; set; }
 
         /// <summary>
         /// 性别
         /// </summary>
         public Gender Gender { get; set; }
 
-        public string Remark { get; set; }
+        public string? Remark { get; set; }
 
         /// <summary>
         /// 用户角色
         /// </summary>
-        public List<CreateUserRoleDto> UserRoles { get; set; }
+        public List<CreateUserRoleDto> UserRoles { get; set; } = [];
 
         /// <summary>
         /// 所属组织单元 Id 集合（当前指向 Region.Id）
