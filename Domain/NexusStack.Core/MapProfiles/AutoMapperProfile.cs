@@ -65,11 +65,9 @@ namespace NexusStack.Core.MapProfiles
 
             #endregion
 
-            CreateMap<Menu, MenuDto>()
-                .ForMember(a => a.IsLeaf, a => a.MapFrom(c => c.Children != null ? c.Children.Count == 0 : true));
+            CreateMap<Menu, MenuDto>();
 
             CreateMap<Menu, MenuTreeDto>()
-                .IncludeBase<Menu, MenuDto>()
                 .ForMember(a => a.Children, a => a.Ignore());
 
             CreateMap<MenuDto, MenuTreeDto>();
