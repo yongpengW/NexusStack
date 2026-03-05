@@ -16,7 +16,7 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 角色名称
         /// </summary>
-        public string RoleName { get; set; }
+        public string RoleName { get; set; } = string.Empty;
 
         /// <summary>
         /// 所属业务平台（Flags 枚举，可多选）

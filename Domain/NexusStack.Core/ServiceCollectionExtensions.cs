@@ -713,6 +713,8 @@ namespace NexusStack.Core
         public static IServiceCollection AddAllAutoMapper(this IServiceCollection services)
         {
             var types = TypeFinders.SearchTypes(typeof(Profile), TypeFinders.TypeClassification.Class).ToArray();
+            // .net8可以直接services.AddAutoMapper(types);
+            // 但是.net10的AddAutoMapper不支持直接传Type[]了
 
             if (types.Length == 0)
             {
@@ -723,8 +725,15 @@ namespace NexusStack.Core
             var assemblies = types.Select(t => t.Assembly).Distinct().ToArray();
 
             Console.WriteLine($"注册 AutoMapper，共找到 {types.Length} 个 Profile，分布在 {assemblies.Length} 个程序集中");
+            foreach (var t in types) Console.WriteLine($"  找到 Profile: {t.FullName}");
 
-            services.AddAutoMapper(cfg => cfg.AddMaps(assemblies));
+            services.AddAutoMapper(cfg =>
+            {
+                foreach (var profileType in types)
+                {
+                    cfg.AddProfile(profileType);
+                }
+            });
 
             return services;
         }

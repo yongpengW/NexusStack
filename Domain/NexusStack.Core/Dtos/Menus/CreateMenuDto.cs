@@ -17,14 +17,14 @@ namespace NexusStack.Core.Dtos.Menus
         /// </summary>
         [MaxLength(256, ErrorMessage = "菜单名称不能超过 64 个字符")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "菜单名称不能为空")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
         /// 菜单别名
         /// </summary>
         [MaxLength(256, ErrorMessage = "菜单代码不能超过 64 个字符")]
         [Required(AllowEmptyStrings = false, ErrorMessage = "菜单代码不能为空")]
-        public string Code { get; set; }
+        public required string Code { get; set; }
 
         /// <summary>
         /// 父级菜单
@@ -40,7 +40,7 @@ namespace NexusStack.Core.Dtos.Menus
         /// 图标
         /// </summary>
         [MaxLength(1024)]
-        public string Icon { get; set; }
+        public string? Icon { get; set; }
 
         /// <summary>
         /// 菜单图标类型
@@ -51,7 +51,7 @@ namespace NexusStack.Core.Dtos.Menus
         /// 选中图标
         /// </summary>
         [MaxLength(1024)]
-        public string ActiveIcon { get; set; }
+        public string? ActiveIcon { get; set; }
 
         /// <summary>
         /// 菜单选中图标类型
@@ -67,12 +67,12 @@ namespace NexusStack.Core.Dtos.Menus
         /// 备注
         /// </summary>
         [MaxLength(1024, ErrorMessage = "备注不能超过 1024 个字符")]
-        public string Remark { get; set; } = string.Empty;
+        public string? Remark { get; set; }
 
         /// <summary>
         /// URL
         /// </summary>
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         /// <summary>
         /// 是否可见

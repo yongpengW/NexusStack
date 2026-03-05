@@ -10,17 +10,17 @@ namespace NexusStack.Core.Dtos.Menus
         /// <summary>
         /// 名称
         /// </summary>
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         /// <summary>
         /// 代码
         /// </summary>
-        public string Code { get; set; }
+        public string? Code { get; set; }
 
         /// <summary>
         /// 路由
         /// </summary>
-        public string RoutePattern { get; set; }
+        public string? RoutePattern { get; set; }
 
         /// <summary>
         /// 是否被选中

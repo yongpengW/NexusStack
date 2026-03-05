@@ -1,6 +1,4 @@
-﻿using NexusStack.Infrastructure.Options;
-
-namespace NexusStack.Core.Configuration
+﻿namespace NexusStack.Infrastructure.Options
 {
     /// <summary>
     /// Token 相关配置（集中管理所有时间配置）

@@ -1,4 +1,4 @@
-using Ardalis.Specification;
+﻿using Ardalis.Specification;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Attributes;
@@ -149,7 +149,7 @@ namespace NexusStack.WebAPI.Controllers
             {
                 var resource = new MenuResourceDto
                 {
-                    Name = a.Key.GroupName,
+                    Name = a.Key.GroupName ?? string.Empty,
                     Code = $"{a.Key.NameSpace}.{a.Key.ControllerName}",
                     Operations = a.Select(c => this.Mapper.Map<MenuResourceDto>(c)).ToList()
                 };
