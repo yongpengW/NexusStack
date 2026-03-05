@@ -155,7 +155,7 @@ namespace NexusStack.WebAPI.Controllers
                 };
 
                 return resource;
-            }).ToList();
+            }).OrderBy(a => a.Name).ToList();
         }
 
         /// <summary>
