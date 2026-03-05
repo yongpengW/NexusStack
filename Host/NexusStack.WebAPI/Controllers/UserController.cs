@@ -365,6 +365,20 @@ namespace NexusStack.WebAPI.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        [HttpPut("me/password")]
+        public async Task<StatusCodeResult> ChangePasswordAsync(ChangePasswordDto model)
+        {
+            await userService.ChangePasswordAsync(CurrentUser.UserId, model.OldPassword, model.NewPassword);
+            
+            // 密码修改后，使该用户所有平台的权限缓存失效，强制重新登录
+            await userContextCacheService.InvalidateAsync(CurrentUser.UserId);
+            
+            return Ok();
+        }
+
         // ── 私有辅助方法 ─────────────────────────────────────────────────────────
 
         private async Task PopulateUserRolesAndDepartmentsAsync(UserDto user, long userId)
