@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Enums\**" />
+    <EmbeddedResource Remove="Enums\**" />
+    <None Remove="Enums\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AgileConfig.Client" Version="1.8.0" />
     <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="4.3.0" />
     <PackageReference Include="Aliyun.OSS.SDK.NetCore" Version="2.14.1" />
@@ -31,7 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Enums\" />
     <Folder Include="Language\" />
   </ItemGroup>
 

@@ -14,6 +14,6 @@ namespace NexusStack.Core.Dtos.Users
         /// <summary>
         /// 刷新 Token
         /// </summary>
-        public string RefreshToken { get; set; }
+        public string RefreshToken { get; set; } = string.Empty;
     }
 }
