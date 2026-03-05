@@ -6,6 +6,7 @@ using NexusStack.Core.Attributes;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
+using NexusStack.Core.Services.Users;
 using NexusStack.Infrastructure.Exceptions;
 using NexusStack.Infrastructure.Utils;
 using X.PagedList;
@@ -19,6 +20,7 @@ namespace NexusStack.WebAPI.Controllers
     public class UserController(
         IUserService userService,
         IUserRoleService userRoleService,
+        IUserDepartmentService userDepartmentService,
         IUserContextCacheService userContextCacheService
     ) : BaseController
     {
@@ -79,7 +81,7 @@ namespace NexusStack.WebAPI.Controllers
                     .ToListAsync();
 
                 // 批量加载用户-组织单元关联
-                var allDepartments = await userService.GetDbContext.Set<UserDepartment>()
+                var allDepartments = await userDepartmentService.GetQueryable()
                     .Where(a => userIds.Contains(a.UserId))
                     .ToListAsync();
 
@@ -145,7 +147,7 @@ namespace NexusStack.WebAPI.Controllers
                 Platforms = ur.Role?.Platforms ?? default,
             }).ToList();
 
-            user.Departments = await userService.GetDbContext.Set<UserDepartment>()
+            user.Departments = await userDepartmentService.GetQueryable()
                 .Where(d => d.UserId == CurrentUser.UserId)
                 .Select(d => new UserDepartmentDto { UserId = d.UserId, DepartmentId = d.DepartmentId })
                 .ToListAsync();
@@ -193,8 +195,7 @@ namespace NexusStack.WebAPI.Controllers
                             UserId = entity.Id,
                             DepartmentId = deptId,
                         }).ToList();
-                        await userService.GetDbContext.Set<UserDepartment>().AddRangeAsync(departments);
-                        await userService.GetDbContext.SaveChangesAsync();
+                        await userDepartmentService.InsertAsync(departments);
                     }
 
                     await trans.CommitAsync();
@@ -237,13 +238,12 @@ namespace NexusStack.WebAPI.Controllers
                     await userRoleService.InsertAsync(roles);
 
                     // 重建用户-组织单元关联
-                    var oldDepartments = await userService.GetDbContext.Set<UserDepartment>()
+                    var oldDepartments = await userDepartmentService.GetQueryable()
                         .Where(d => d.UserId == id)
                         .ToListAsync();
                     if (oldDepartments.Count > 0)
                     {
-                        userService.GetDbContext.Set<UserDepartment>().RemoveRange(oldDepartments);
-                        await userService.GetDbContext.SaveChangesAsync();
+                        await userDepartmentService.BatchDeleteAsync(d => d.UserId == id);
                     }
                     if (model.DepartmentIds is { Length: > 0 })
                     {
@@ -252,8 +252,7 @@ namespace NexusStack.WebAPI.Controllers
                             UserId = id,
                             DepartmentId = deptId,
                         }).ToList();
-                        await userService.GetDbContext.Set<UserDepartment>().AddRangeAsync(departments);
-                        await userService.GetDbContext.SaveChangesAsync();
+                        await userDepartmentService.InsertAsync(departments);
                     }
 
                     entity.UserRoles = null;
@@ -334,13 +333,10 @@ namespace NexusStack.WebAPI.Controllers
                 {
                     await userRoleService.BatchDeleteAsync(x => x.UserId == id);
 
-                    var departments = await userService.GetDbContext.Set<UserDepartment>()
-                        .Where(d => d.UserId == id)
-                        .ToListAsync();
+                    var departments = await userDepartmentService.GetListAsync(d => d.UserId == id);
                     if (departments.Count > 0)
                     {
-                        userService.GetDbContext.Set<UserDepartment>().RemoveRange(departments);
-                        await userService.GetDbContext.SaveChangesAsync();
+                        await userDepartmentService.BatchDeleteAsync(x => x.UserId == id);
                     }
 
                     await userService.DeleteAsync(entity);
@@ -386,7 +382,7 @@ namespace NexusStack.WebAPI.Controllers
                 Platforms = ur.Role?.Platforms ?? default,
             }).ToList();
 
-            user.Departments = await userService.GetDbContext.Set<UserDepartment>()
+            user.Departments = await userDepartmentService.GetQueryable()
                 .Where(d => d.UserId == userId)
                 .Select(d => new UserDepartmentDto { UserId = d.UserId, DepartmentId = d.DepartmentId })
                 .ToListAsync();
