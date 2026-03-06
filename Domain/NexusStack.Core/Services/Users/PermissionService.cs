@@ -188,7 +188,7 @@ namespace NexusStack.Core.Services.Users
         /// </summary>
         /// <param name="roleIds"></param>
         /// <returns></returns>
-        public async Task<List<PermissionDto>> GetRolePermissionAsync(List<long> roleIds, PlatformType? platformType)
+        public async Task<List<PermissionDto>> GetRolePermissionAsync(List<long> roleIds, PlatformType? platformType, bool isRoot)
         {
             var roles = await roleService.GetListAsync(x => roleIds.Contains(x.Id));
             if (roles.Count == 0)
@@ -211,7 +211,7 @@ namespace NexusStack.Core.Services.Users
                                 MenuParentId = m.ParentId,
                                 MenuType = m.Type,
                                 MenuOrder = m.Order,
-                                HasPermission = pm != null,
+                                HasPermission = isRoot || pm != null,// 超级管理员默认拥有所有权限
                                 RoleId = pm != null ? pm.RoleId : role.Id,
                                 Id = pm != null ? pm.Id : 0,
                                 MenuUrl = m.Url ?? string.Empty,
@@ -234,7 +234,7 @@ namespace NexusStack.Core.Services.Users
                 return new List<MenuTreeDto>();
             }
 
-            var permissions = await GetRolePermissionAsync(roleIds, platformType);
+            var permissions = await GetRolePermissionAsync(roleIds, platformType, currentUser.IsRoot);
 
             var menuIds = permissions.Where(x => x.HasPermission).Select(x => x.MenuId).Distinct().ToHashSet();
 
