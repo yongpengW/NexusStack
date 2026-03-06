@@ -379,22 +379,27 @@ namespace NexusStack.WebAPI.Controllers
         {
             await userService.ChangePasswordAsync(CurrentUser.UserId, model.OldPassword, model.NewPassword);
 
-            var tokenHash = StringExtensions.EncodeMD5(this.CurrentUser.Token);
+            // 获取当前用户所有未过期的令牌，并将其全部置为过期/注销
+            var now = DateTimeOffset.UtcNow;
+            var userTokens = await userTokenService.GetQueryable()
+                .Where(a => a.UserId == this.CurrentUser.UserId && a.ExpirationDate > now)
+                .ToListAsync();
 
-            // 修改 UserToken 中的 ExpirationDate 为当前时间
-            var userToken = await userTokenService.GetAsync(a => a.TokenHash == tokenHash && a.UserId == this.CurrentUser.UserId);
-            if (userToken != null)
+            foreach (var userToken in userTokens)
             {
-                userToken.ExpirationDate = DateTimeOffset.UtcNow;
+                userToken.ExpirationDate = now;
                 userToken.LoginType = LoginStatus.logout;
                 await userTokenService.UpdateAsync(userToken);
 
                 // 删除 Redis 中的缓存
                 await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(userToken.TokenHash));
+            }
+
+            if (userTokens.Count > 0)
+            {
                 // 密码修改后，使该用户所有平台的权限缓存失效，强制重新登录
                 await userContextCacheService.InvalidateAsync(CurrentUser.UserId);
             }
-            
             return Ok();
         }
 
