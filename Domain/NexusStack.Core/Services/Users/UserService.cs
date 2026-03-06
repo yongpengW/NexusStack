@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
@@ -39,7 +39,7 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("此用户名已存在");
             }
 
-            if (entity.Mobile.IsNotNullOrEmpty() && await ExistsAsync(item => item.Mobile == entity.Mobile))
+            if (entity.Mobile == null || entity.Mobile.IsNullOrEmpty() || await ExistsAsync(item => item.Mobile == entity.Mobile))
             {
                 throw new BusinessException("此手机号码已存在");
             }
@@ -68,7 +68,7 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("用户不存在");
             }
 
-            if (user.Mobile.IsNullOrEmpty())
+            if (user.Mobile == null || user.Mobile.IsNullOrEmpty())
             {
                 throw new BusinessException("请先为用户设置手机号码");
             }
@@ -85,6 +85,40 @@ namespace NexusStack.Core.Services.Users
             await UpdateAsync(user);
         }
 
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="oldPassword">旧密码（明文）</param>
+        /// <param name="newPassword">新密码（明文）</param>
+        /// <returns></returns>
+        public async Task ChangePasswordAsync(long userId, string oldPassword, string newPassword)
+        {
+            var user = await GetByIdAsync(userId);
 
+            if (user == null)
+            {
+                throw new BusinessException("用户不存在");
+            }
+
+            // 验证旧密码是否正确
+            var oldPasswordEncoded = oldPassword.EncodePassword(user.PasswordSalt);
+            if (user.Password != oldPasswordEncoded)
+            {
+                throw new BusinessException("旧密码错误");
+            }
+
+            // 新密码不能与旧密码相同
+            if (oldPassword == newPassword)
+            {
+                throw new BusinessException("新密码不能与旧密码相同");
+            }
+
+            // 生成新的盐值并加密新密码
+            user.PasswordSalt = StringExtensions.GeneratePassworldSalt();
+            user.Password = newPassword.EncodePassword(user.PasswordSalt);
+
+            await UpdateAsync(user);
+        }
     }
 }

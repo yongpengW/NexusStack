@@ -32,6 +32,15 @@ namespace NexusStack.Core.Services.Interfaces
         Task ResetPasswordAsync(long id);
 
         /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="oldPassword">旧密码（明文）</param>
+        /// <param name="newPassword">新密码（明文）</param>
+        /// <returns></returns>
+        Task ChangePasswordAsync(long userId, string oldPassword, string newPassword);
+
+        /// <summary>
         /// 根据用户获取所有有权限的门店列表
         /// </summary>
         /// <param name="userId"></param>

@@ -28,7 +28,8 @@ namespace NexusStack.Core.MapProfiles
 
             CreateMap<CreateRegionDto, Region>();
 
-            CreateMap<CreateUserDto, User>();
+            CreateMap<CreateUserDto, User>()
+                .ForMember(a => a.UserRoles, a => a.Ignore());
 
             CreateMap<CreateUserRoleDto, UserRole>();
 

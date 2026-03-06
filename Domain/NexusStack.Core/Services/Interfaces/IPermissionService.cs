@@ -1,4 +1,4 @@
-using NexusStack.Core.Dtos.Menus;
+﻿using NexusStack.Core.Dtos.Menus;
 using NexusStack.Core.Dtos.Permissions;
 using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.Repository;
@@ -24,7 +24,7 @@ namespace NexusStack.Core.Services.Interfaces
         /// </summary>
         /// <param name="roleIds"></param>
         /// <returns></returns>
-        Task<List<PermissionDto>> GetRolePermissionAsync(List<long> roleIds, PlatformType? platformType);
+        Task<List<PermissionDto>> GetRolePermissionAsync(List<long> roleIds, PlatformType? platformType, bool isRoot);
 
         /// <summary>
         /// 获取菜单树（权限筛选）

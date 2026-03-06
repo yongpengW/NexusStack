@@ -33,16 +33,17 @@ namespace NexusStack.Core.Services.Users
             // 平台上下文：如未显式指定，则按角色 Platforms 过滤可见菜单
             var platform = model.PlatformType;
 
-            var oldMenuIds = await menuService.GetQueryable()
-                .Where(a => a.IsVisible
-                            && (!platform.HasValue
+            // 优化：使用子查询直接在数据库层面删除，只需要一次数据库操作
+            var menuIdsQuery = menuService.GetQueryable()
+                .Where(a => (!platform.HasValue
                                 ? (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)
                                 : a.PlatformType == platform.Value))
-                .Select(x => x.Id)
-                .ToListAsync();
+                .Select(x => x.Id);
 
-            // 删除原有数据（该平台下所有可见菜单权限）
-            await BatchDeleteAsync(a => a.RoleId == model.RoleId && oldMenuIds.Contains(a.MenuId));
+            // 使用 Any 在数据库层面执行删除，避免将菜单ID列表加载到内存
+            await dbContext.Set<Permission>()
+                .Where(p => p.RoleId == model.RoleId && menuIdsQuery.Contains(p.MenuId))
+                .DeleteFromQueryAsync();
 
             if (model.Menus is not { Length: > 0 })
             {
@@ -66,8 +67,7 @@ namespace NexusStack.Core.Services.Users
 
             // 校验前端提交的菜单是否全部存在且属于当前平台上下文
             var validMenuQuery = menuService.GetQueryable()
-                .Where(a => a.IsVisible
-                            && distinctSubmittedMenuIds.Contains(a.Id)
+                .Where(a => distinctSubmittedMenuIds.Contains(a.Id)
                             && (!platform.HasValue
                                 ? (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)
                                 : a.PlatformType == platform.Value));
@@ -188,7 +188,7 @@ namespace NexusStack.Core.Services.Users
         /// </summary>
         /// <param name="roleIds"></param>
         /// <returns></returns>
-        public async Task<List<PermissionDto>> GetRolePermissionAsync(List<long> roleIds, PlatformType? platformType)
+        public async Task<List<PermissionDto>> GetRolePermissionAsync(List<long> roleIds, PlatformType? platformType, bool isRoot)
         {
             var roles = await roleService.GetListAsync(x => roleIds.Contains(x.Id));
             if (roles.Count == 0)
@@ -200,8 +200,7 @@ namespace NexusStack.Core.Services.Users
 
             foreach (var role in roles)
             {
-                var query = from m in menuService.GetQueryable().Where(a => a.IsVisible
-                                && (platformType.HasValue ? a.PlatformType == platformType
+                var query = from m in menuService.GetQueryable().Where(a => (platformType.HasValue ? a.PlatformType == platformType
                                                           : (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)))
                             join p in GetQueryable().Where(a => a.RoleId == role.Id) on m.Id equals p.MenuId into pt
                             from pm in pt.DefaultIfEmpty()
@@ -212,7 +211,7 @@ namespace NexusStack.Core.Services.Users
                                 MenuParentId = m.ParentId,
                                 MenuType = m.Type,
                                 MenuOrder = m.Order,
-                                HasPermission = pm != null,
+                                HasPermission = isRoot || pm != null,// 超级管理员默认拥有所有权限
                                 RoleId = pm != null ? pm.RoleId : role.Id,
                                 Id = pm != null ? pm.Id : 0,
                                 MenuUrl = m.Url ?? string.Empty,
@@ -235,7 +234,7 @@ namespace NexusStack.Core.Services.Users
                 return new List<MenuTreeDto>();
             }
 
-            var permissions = await GetRolePermissionAsync(roleIds, platformType);
+            var permissions = await GetRolePermissionAsync(roleIds, platformType, currentUser.IsRoot);
 
             var menuIds = permissions.Where(x => x.HasPermission).Select(x => x.MenuId).Distinct().ToHashSet();
 

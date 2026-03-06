@@ -66,7 +66,7 @@ namespace NexusStack.Core.Dtos.Menus
         public int Order { get; set; }
 
         /// <summary>
-        /// 是否可见
+        /// 是否可见 仅控制是否显示左侧菜单
         /// </summary>
         public bool IsVisible { get; set; }
 
