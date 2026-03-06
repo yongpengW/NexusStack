@@ -7,10 +7,14 @@ using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.Core.Services.Users;
+using NexusStack.Infrastructure.Constants;
+using NexusStack.Infrastructure.Enums;
 using NexusStack.Infrastructure.Exceptions;
 using NexusStack.Infrastructure.Utils;
+using NexusStack.Redis;
 using X.PagedList;
 using X.PagedList.Extensions;
+using StringExtensions = NexusStack.Infrastructure.Utils.StringExtensions;
 
 namespace NexusStack.WebAPI.Controllers
 {
@@ -20,6 +24,8 @@ namespace NexusStack.WebAPI.Controllers
     public class UserController(
         IUserService userService,
         IUserRoleService userRoleService,
+        IUserTokenService userTokenService,
+        IRedisService redisService,
         IUserDepartmentService userDepartmentService,
         IUserContextCacheService userContextCacheService
     ) : BaseController
@@ -372,9 +378,22 @@ namespace NexusStack.WebAPI.Controllers
         public async Task<StatusCodeResult> ChangePasswordAsync(ChangePasswordDto model)
         {
             await userService.ChangePasswordAsync(CurrentUser.UserId, model.OldPassword, model.NewPassword);
-            
-            // 密码修改后，使该用户所有平台的权限缓存失效，强制重新登录
-            await userContextCacheService.InvalidateAsync(CurrentUser.UserId);
+
+            var tokenHash = StringExtensions.EncodeMD5(this.CurrentUser.Token);
+
+            // 修改 UserToken 中的 ExpirationDate 为当前时间
+            var userToken = await userTokenService.GetAsync(a => a.TokenHash == tokenHash && a.UserId == this.CurrentUser.UserId);
+            if (userToken != null)
+            {
+                userToken.ExpirationDate = DateTimeOffset.UtcNow;
+                userToken.LoginType = LoginStatus.logout;
+                await userTokenService.UpdateAsync(userToken);
+
+                // 删除 Redis 中的缓存
+                await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(userToken.TokenHash));
+                // 密码修改后，使该用户所有平台的权限缓存失效，强制重新登录
+                await userContextCacheService.InvalidateAsync(CurrentUser.UserId);
+            }
             
             return Ok();
         }
