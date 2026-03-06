@@ -39,7 +39,7 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("此用户名已存在");
             }
 
-            if (entity.Mobile.IsNotNullOrEmpty() && await ExistsAsync(item => item.Mobile == entity.Mobile))
+            if (entity.Mobile == null || entity.Mobile.IsNullOrEmpty() || await ExistsAsync(item => item.Mobile == entity.Mobile))
             {
                 throw new BusinessException("此手机号码已存在");
             }
@@ -68,7 +68,7 @@ namespace NexusStack.Core.Services.Users
                 throw new BusinessException("用户不存在");
             }
 
-            if (user.Mobile.IsNullOrEmpty())
+            if (user.Mobile == null || user.Mobile.IsNullOrEmpty())
             {
                 throw new BusinessException("请先为用户设置手机号码");
             }
