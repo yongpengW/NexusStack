@@ -394,12 +394,12 @@ namespace NexusStack.WebAPI.Controllers
                 // 删除 Redis 中的缓存
                 await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(userToken.TokenHash));
             }
-
-            if (userTokens.Count > 0)
-            {
-                // 密码修改后，使该用户所有平台的权限缓存失效，强制重新登录
-                await userContextCacheService.InvalidateAsync(CurrentUser.UserId);
             }
+
+            // 删除 Redis 中的缓存（无论是否存在对应的 UserToken 记录）
+            await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(tokenHash));
+            // 密码修改后，使该用户所有平台的权限缓存失效，强制重新登录
+            await userContextCacheService.InvalidateAsync(CurrentUser.UserId);
             return Ok();
         }
 
