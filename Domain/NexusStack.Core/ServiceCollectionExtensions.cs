@@ -31,15 +31,11 @@ using NexusStack.RabbitMQ;
 using NexusStack.Serilog;
 using NexusStack.Infrastructure.FileStroage;
 using NexusStack.Infrastructure.Client;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Text;
 using Yarp.ReverseProxy.Configuration;
 using JsonLongConverter = NexusStack.Infrastructure.Converters.JsonLongConverter;
 using Newtonsoft.Json.Linq;
-using NexusStack.Core.Services.EventAlerts;
 using AgileConfig.Client;
 using AgileConfig.Client.RegisterCenter;
 using NexusStack.Core.Middlewares;
@@ -363,9 +359,6 @@ namespace NexusStack.Core
 
             builder.Services.ConfigureOptions(builder.Configuration);
 
-            // 注意: CommonSMSService、SMTPEmailService、EventAlertService 等实现了 IScopedDependency 的服务
-            // 会通过后续的 AddServices<IScopedDependency> 自动注册，无需手动注册
-
             builder.Services.AddHttpLogging(options =>
             {
                 options.RequestBodyLogLimit = 1024 * 1024;
@@ -506,9 +499,8 @@ namespace NexusStack.Core
             if (coreServiceType == CoreServiceType.PlanTaskService)
             {
                 builder.Services.AddCronTask();
-                //Quartz Job服务
-                //builder.Services.AddQuartz(builder.Configuration);
-                //BackService
+
+                //初始化Database数据
                 builder.Services.AddHostedService<ExecuteSeedDataService>();
             }
             else if (coreServiceType == CoreServiceType.WebService)

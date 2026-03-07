@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using NexusStack.Core.Entities.AsyncTasks;
+using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure;
@@ -14,27 +15,6 @@ using System.Text.Json;
 
 namespace NexusStack.Core.Services.AsyncTasks
 {
-    /// <summary>
-    /// 异步任务接口定义
-    /// </summary>
-    public interface IAsyncTaskService : IServiceBase<AsyncTask>
-    {
-        /// <summary>
-        /// 创建MQ异步任务
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="code"></param>
-        /// <returns></returns>
-        Task<AsyncTask> CreateTaskAsync(object data, string code);
-
-        /// <summary>
-        /// 重试异步任务
-        /// </summary>
-        /// <param name="task"></param>
-        /// <returns></returns>
-        Task<bool> RetryAsync(AsyncTask task);
-    }
     /// <summary>
     /// 异步任务接口实现
     /// </summary>

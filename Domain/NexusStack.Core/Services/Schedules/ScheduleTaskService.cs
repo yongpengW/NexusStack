@@ -17,7 +17,10 @@ using System.Text;
 
 namespace NexusStack.Core.Services.Schedules
 {
-    public class ScheduleTaskService(MainContext dbContext, IMapper mapper, IServiceScopeFactory scopeFactory, IRedisService redisService) : ServiceBase<ScheduleTask>(dbContext, mapper), IScheduleTaskService, IScopedDependency
+    public class ScheduleTaskService(MainContext dbContext, 
+        IMapper mapper, 
+        IServiceScopeFactory scopeFactory, 
+        IRedisService redisService) : ServiceBase<ScheduleTask>(dbContext, mapper), IScheduleTaskService, IScopedDependency
     {
         public async Task InitializeAsync()
         {

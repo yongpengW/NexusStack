@@ -17,7 +17,8 @@ namespace NexusStack.Core.HostedServices
     /// <summary>
     /// 应该为所有种子数据设置一个版本号，以避免每次启动的时候执行
     /// </summary>
-    public class ExecuteSeedDataService(IServiceScopeFactory scopeFactory, IServiceProvider services, ILogger<ExecuteSeedDataService> logger, IConfiguration configuration) : BackgroundService
+    public class ExecuteSeedDataService(IServiceScopeFactory scopeFactory, 
+        IServiceProvider services, ILogger<ExecuteSeedDataService> logger, IConfiguration configuration) : BackgroundService
     {
         /// <summary>
         /// 当前配置文件的路径
