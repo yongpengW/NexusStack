@@ -500,7 +500,7 @@ namespace NexusStack.Core
             {
                 builder.Services.AddCronTask();
 
-                //BackService
+                //初始化Database数据
                 builder.Services.AddHostedService<ExecuteSeedDataService>();
             }
             else if (coreServiceType == CoreServiceType.WebService)

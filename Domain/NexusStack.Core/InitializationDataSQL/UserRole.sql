@@ -1,0 +1,2 @@
+INSERT INTO "UserRole" ("Id", "UserId", "RoleId", "IsDeleted", "CreatedAt", "CreatedBy", "UpdatedAt", "UpdatedBy", "Remark") VALUES (2029562242202210304, 1, 1, 'f', '2026-03-05 22:18:40.642014+08', 1, '2026-03-05 22:18:40.642013+08', 1, NULL);
+INSERT INTO "UserRole" ("Id", "UserId", "RoleId", "IsDeleted", "CreatedAt", "CreatedBy", "UpdatedAt", "UpdatedBy", "Remark") VALUES (2029941533251342336, 2029562151177424896, 1, 'f', '2026-03-06 23:25:50.698889+08', 2029562151177424896, '2026-03-06 23:25:50.698878+08', 2029562151177424896, NULL);

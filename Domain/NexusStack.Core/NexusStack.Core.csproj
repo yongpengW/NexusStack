@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <Folder Include="Language\" />
+    <Folder Include="InitializationDataSQL\" />
   </ItemGroup>
 
 </Project>
