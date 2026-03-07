@@ -7,4 +7,4 @@ var moduleTitle = "NexusStack Plan Task Service";
 
 var builder = WebApplication.CreateBuilder(args);
 
-await builder.InitAppliation(moduleKey, moduleTitle, CoreServiceType.PlanTaskService, true);
+await builder.InitAppliation(moduleKey, moduleTitle, CoreServiceType.PlanTaskService);
