@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\NexusStack.Infrastructure.csproj" />
+    <ProjectReference Include="..\NexusStack.Redis\NexusStack.Redis.csproj" />
   </ItemGroup>
 
 </Project>
