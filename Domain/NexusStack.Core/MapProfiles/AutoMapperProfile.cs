@@ -4,23 +4,15 @@ using NexusStack.Core.Dtos.DownloadCenter;
 using NexusStack.Core.Dtos.Files;
 using NexusStack.Core.Dtos.GlobalSettings;
 using NexusStack.Core.Dtos.Menus;
-using NexusStack.Core.Dtos.Messages;
-using NexusStack.Core.Dtos.NotifyEvent;
 using NexusStack.Core.Dtos.Regions;
 using NexusStack.Core.Dtos.Roles;
 using NexusStack.Core.Dtos.ScheduleTasks;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.AsyncTasks;
-using NexusStack.Core.Entities.Messages;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Infrastructure.Enums;
-using NexusStack.Infrastructure.Utils;
-using NPOI.SS.Formula.Functions;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using File = NexusStack.Core.Entities.SystemManagement.File;
 
 namespace NexusStack.Core.MapProfiles
@@ -72,14 +64,6 @@ namespace NexusStack.Core.MapProfiles
 
             CreateMap<MenuDto, MenuTreeDto>();
 
-            CreateMap<NotifyEvent, NotifyEventDto>()
-             .ForMember(a => a.IsLeaf, a => a.MapFrom(c => c.Children != null ? c.Children.Count == 0 : true));
-
-            CreateMap<NotifyEvent, NotifyEventTreeDto>()
-                .ForMember(a => a.Children, a => a.Ignore())
-                .ForMember(a => a.NotifyRoles, a => a.MapFrom(c => c.NotifyRoles.toBigIntList()))
-                .ForMember(a => a.MessageTypes, a => a.MapFrom(c => c.MessageTypes.toBigIntList()));
-
             CreateMap<SeedDataTask, SeedDataTaskDto>();
 
             CreateMap<ApiResource, ApiResourceDto>();
@@ -112,8 +96,6 @@ namespace NexusStack.Core.MapProfiles
             CreateMap<File, ExportFileDto>();
 
             CreateMap<GlobalSettings, GlobalSettingDto>();
-
-            CreateMap<SMSMessage, SMSMessageDto>();
 
             CreateMap<DownloadItem, DownloadItemDto>();
         }
