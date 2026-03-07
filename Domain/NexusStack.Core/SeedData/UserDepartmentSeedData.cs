@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Entities.Users;
+using NexusStack.Core.Services.Users;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.Infrastructure;
 
@@ -20,7 +21,7 @@ namespace NexusStack.Core.SeedData
         public async Task ApplyAsync(SeedDataTask model)
         {
             using var scope = scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<MainContext>();
+            var userDepartmentService = scope.ServiceProvider.GetRequiredService<IUserDepartmentService>();
 
             var data = new List<UserDepartment>
             {
@@ -40,19 +41,19 @@ namespace NexusStack.Core.SeedData
 
             foreach (var item in data)
             {
-                var exists = await dbContext.Set<UserDepartment>().IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == item.Id);
+                var exists = await userDepartmentService.GetAsync(a => a.Id == item.Id);
                 if (exists is null)
                 {
-                    await dbContext.Set<UserDepartment>().AddAsync(item);
+                    await userDepartmentService.InsertAsync(item);
                     continue;
                 }
 
                 exists.UserId = item.UserId;
                 exists.DepartmentId = item.DepartmentId;
                 exists.IsDeleted = false;
-            }
 
-            await dbContext.SaveChangesAsync();
+                await userDepartmentService.UpdateAsync(exists);
+            }
         }
     }
 }

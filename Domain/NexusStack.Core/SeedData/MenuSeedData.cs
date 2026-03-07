@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Entities.SystemManagement;
+using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Enums;
@@ -21,7 +22,7 @@ namespace NexusStack.Core.SeedData
         public async Task ApplyAsync(SeedDataTask model)
         {
             using var scope = scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<MainContext>();
+            var menuService = scope.ServiceProvider.GetRequiredService<IMenuService>();
 
             Menu Create(
                 long id,
@@ -100,10 +101,10 @@ namespace NexusStack.Core.SeedData
 
             foreach (var item in data)
             {
-                var exists = await dbContext.Set<Menu>().IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == item.Id);
+                var exists = await menuService.GetAsync(a => a.Id == item.Id);
                 if (exists is null)
                 {
-                    await dbContext.Set<Menu>().AddAsync(item);
+                    await menuService.InsertAsync(item);
                     continue;
                 }
 
@@ -124,9 +125,9 @@ namespace NexusStack.Core.SeedData
                 exists.SystemId = item.SystemId;
                 exists.IsDeleted = false;
                 exists.Remark = item.Remark;
-            }
 
-            await dbContext.SaveChangesAsync();
+                await menuService.UpdateAsync(exists);
+            }
         }
     }
 }

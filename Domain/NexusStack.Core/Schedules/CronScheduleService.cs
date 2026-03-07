@@ -41,17 +41,21 @@ namespace NexusStack.Core.Schedules
         {
             var nextOccurrence = CronExpression.Parse(Expression, CronFormat.IncludeSeconds)
                 .GetNextOccurrence(DateTime.UtcNow, TimeZoneInfo.Local);
-            
+
             if (!nextOccurrence.HasValue)
             {
                 return DateTimeOffset.MinValue;
             }
-            
-            // 将本地时间转换为 DateTimeOffset（带本地时区偏移）
-            var localDateTimeOffset = new DateTimeOffset(nextOccurrence.Value, TimeZoneInfo.Local.GetUtcOffset(nextOccurrence.Value));
-            
-            // 返回 UTC 时间，便于后续统一比较
-            return localDateTimeOffset.ToUniversalTime();
+
+            var next = nextOccurrence.Value;
+
+            // Cronos 可能返回 Utc/Local/Unspecified，统一转换为 UTC 的 DateTimeOffset，避免 Kind 与 offset 冲突
+            return next.Kind switch
+            {
+                DateTimeKind.Utc => new DateTimeOffset(next, TimeSpan.Zero),
+                DateTimeKind.Local => new DateTimeOffset(next).ToUniversalTime(),
+                _ => new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(next, TimeZoneInfo.Local), TimeSpan.Zero)
+            };
         }
 
         protected abstract Task ProcessAsync(CancellationToken cancellationToken);

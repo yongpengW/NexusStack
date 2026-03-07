@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Entities.Users;
+using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Enums;
@@ -21,7 +22,7 @@ namespace NexusStack.Core.SeedData
         public async Task ApplyAsync(SeedDataTask model)
         {
             using var scope = scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<MainContext>();
+            var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
 
             var data = new List<Role>
             {
@@ -52,10 +53,10 @@ namespace NexusStack.Core.SeedData
 
             foreach (var item in data)
             {
-                var exists = await dbContext.Set<Role>().IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == item.Id);
+                var exists = await roleService.GetAsync(a => a.Id == item.Id);
                 if (exists is null)
                 {
-                    await dbContext.Set<Role>().AddAsync(item);
+                    await roleService.InsertAsync(item);
                     continue;
                 }
 
@@ -68,9 +69,9 @@ namespace NexusStack.Core.SeedData
                 exists.SystemId = item.SystemId;
                 exists.IsDeleted = false;
                 exists.Remark = item.Remark;
-            }
 
-            await dbContext.SaveChangesAsync();
+                await roleService.UpdateAsync(exists);
+            }
         }
     }
 }

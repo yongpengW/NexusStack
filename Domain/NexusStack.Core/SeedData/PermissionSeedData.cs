@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Entities.Users;
+using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.Infrastructure;
 
@@ -20,7 +21,7 @@ namespace NexusStack.Core.SeedData
         public async Task ApplyAsync(SeedDataTask model)
         {
             using var scope = scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<MainContext>();
+            var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
 
             var data = new List<Permission>
             {
@@ -42,10 +43,10 @@ namespace NexusStack.Core.SeedData
 
             foreach (var item in data)
             {
-                var exists = await dbContext.Set<Permission>().IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == item.Id);
+                var exists = await permissionService.GetAsync(a => a.Id == item.Id);
                 if (exists is null)
                 {
-                    await dbContext.Set<Permission>().AddAsync(item);
+                    await permissionService.InsertAsync(item);
                     continue;
                 }
 
@@ -53,9 +54,9 @@ namespace NexusStack.Core.SeedData
                 exists.MenuId = item.MenuId;
                 exists.DataRange = item.DataRange;
                 exists.IsDeleted = false;
-            }
 
-            await dbContext.SaveChangesAsync();
+                await permissionService.UpdateAsync(exists);
+            }
         }
     }
 }

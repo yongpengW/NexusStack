@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NexusStack.WebAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitDatabase : Migration
+    public partial class InitialDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -245,30 +245,6 @@ namespace NexusStack.WebAPI.Migrations
                 comment: "");
 
             migrationBuilder.CreateTable(
-                name: "InternalMessage",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false, comment: "")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MessageType = table.Column<int>(type: "integer", nullable: false, comment: ""),
-                    Title = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false, comment: ""),
-                    Body = table.Column<string>(type: "text", nullable: false, comment: ""),
-                    Attachments = table.Column<string>(type: "text", nullable: true, comment: ""),
-                    Platforms = table.Column<int>(type: "integer", nullable: false, comment: ""),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, comment: ""),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    CreatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    UpdatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    Remark = table.Column<string>(type: "text", nullable: true, comment: "")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_InternalMessage", x => x.Id);
-                },
-                comment: "");
-
-            migrationBuilder.CreateTable(
                 name: "Menu",
                 columns: table => new
                 {
@@ -309,38 +285,6 @@ namespace NexusStack.WebAPI.Migrations
                 comment: "");
 
             migrationBuilder.CreateTable(
-                name: "NotifyEvent",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false, comment: "")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false, comment: ""),
-                    Code = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false, comment: ""),
-                    ParentId = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    EventType = table.Column<int>(type: "integer", nullable: false, comment: ""),
-                    MessageTypes = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true, comment: ""),
-                    NotifyRoles = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true, comment: ""),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: true, comment: ""),
-                    Order = table.Column<int>(type: "integer", nullable: true, comment: ""),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, comment: ""),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    CreatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    UpdatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    Remark = table.Column<string>(type: "text", nullable: true, comment: "")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_NotifyEvent", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_NotifyEvent_NotifyEvent_ParentId",
-                        column: x => x.ParentId,
-                        principalTable: "NotifyEvent",
-                        principalColumn: "Id");
-                },
-                comment: "");
-
-            migrationBuilder.CreateTable(
                 name: "OperationLog",
                 columns: table => new
                 {
@@ -364,28 +308,6 @@ namespace NexusStack.WebAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OperationLog", x => x.Id);
-                },
-                comment: "");
-
-            migrationBuilder.CreateTable(
-                name: "Options",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false, comment: "")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Key = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false, comment: ""),
-                    Value = table.Column<string>(type: "text", nullable: false, comment: ""),
-                    SystemId = table.Column<long>(type: "bigint", nullable: false, comment: ""),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, comment: ""),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    CreatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    UpdatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    Remark = table.Column<string>(type: "text", nullable: true, comment: "")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Options", x => x.Id);
                 },
                 comment: "");
 
@@ -484,30 +406,6 @@ namespace NexusStack.WebAPI.Migrations
                 comment: "");
 
             migrationBuilder.CreateTable(
-                name: "SMSMessage",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false, comment: "")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MessageType = table.Column<int>(type: "integer", nullable: false, comment: ""),
-                    BizId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false, comment: ""),
-                    MessageStatus = table.Column<int>(type: "integer", nullable: false, comment: ""),
-                    Recipient = table.Column<long>(type: "bigint", nullable: false, comment: ""),
-                    Body = table.Column<string>(type: "text", nullable: false, comment: ""),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, comment: ""),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    CreatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    UpdatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    Remark = table.Column<string>(type: "text", nullable: true, comment: "")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SMSMessage", x => x.Id);
-                },
-                comment: "");
-
-            migrationBuilder.CreateTable(
                 name: "User",
                 columns: table => new
                 {
@@ -535,33 +433,6 @@ namespace NexusStack.WebAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_User", x => x.Id);
-                },
-                comment: "");
-
-            migrationBuilder.CreateTable(
-                name: "InternalMessageRecipient",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false, comment: "")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MessageId = table.Column<long>(type: "bigint", nullable: false, comment: ""),
-                    RecipientUserId = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, comment: ""),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    CreatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, comment: ""),
-                    UpdatedBy = table.Column<long>(type: "bigint", nullable: true, comment: ""),
-                    Remark = table.Column<string>(type: "text", nullable: true, comment: "")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_InternalMessageRecipient", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_InternalMessageRecipient_InternalMessage_MessageId",
-                        column: x => x.MessageId,
-                        principalTable: "InternalMessage",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 },
                 comment: "");
 
@@ -761,11 +632,6 @@ namespace NexusStack.WebAPI.Migrations
                 comment: "");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InternalMessageRecipient_MessageId",
-                table: "InternalMessageRecipient",
-                column: "MessageId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Menu_ParentId",
                 table: "Menu",
                 column: "ParentId");
@@ -779,11 +645,6 @@ namespace NexusStack.WebAPI.Migrations
                 name: "IX_MenuResource_MenuId",
                 table: "MenuResource",
                 column: "MenuId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_NotifyEvent_ParentId",
-                table: "NotifyEvent",
-                column: "ParentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Permission_MenuId",
@@ -854,19 +715,10 @@ namespace NexusStack.WebAPI.Migrations
                 name: "GlobalSettings");
 
             migrationBuilder.DropTable(
-                name: "InternalMessageRecipient");
-
-            migrationBuilder.DropTable(
                 name: "MenuResource");
 
             migrationBuilder.DropTable(
-                name: "NotifyEvent");
-
-            migrationBuilder.DropTable(
                 name: "OperationLog");
-
-            migrationBuilder.DropTable(
-                name: "Options");
 
             migrationBuilder.DropTable(
                 name: "Permission");
@@ -878,9 +730,6 @@ namespace NexusStack.WebAPI.Migrations
                 name: "SeedDataTask");
 
             migrationBuilder.DropTable(
-                name: "SMSMessage");
-
-            migrationBuilder.DropTable(
                 name: "UserDepartment");
 
             migrationBuilder.DropTable(
@@ -888,9 +737,6 @@ namespace NexusStack.WebAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserToken");
-
-            migrationBuilder.DropTable(
-                name: "InternalMessage");
 
             migrationBuilder.DropTable(
                 name: "ApiResource");

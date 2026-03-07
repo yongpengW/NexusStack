@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Entities.Users;
+using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.Infrastructure;
 
@@ -20,7 +21,7 @@ namespace NexusStack.Core.SeedData
         public async Task ApplyAsync(SeedDataTask model)
         {
             using var scope = scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<MainContext>();
+            var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
 
             var data = new List<User>
             {
@@ -37,7 +38,7 @@ namespace NexusStack.Core.SeedData
                     Gender = Gender.Male,
                     Avatar = null,
                     Email = "leowang.interesting@gmail.com",
-                    LastLoginTime = DateTimeOffset.Parse("2026-03-06 13:36:36.320411+08:00"),
+                    LastLoginTime = DateTimeOffset.UtcNow,
                     SignatureUrl = null
                 },
                 new()
@@ -53,17 +54,17 @@ namespace NexusStack.Core.SeedData
                     Gender = Gender.Male,
                     Avatar = null,
                     Email = "67603960@qq.com",
-                    LastLoginTime = DateTimeOffset.Parse("2026-03-07 10:40:51.087365+08:00"),
+                    LastLoginTime = DateTimeOffset.UtcNow,
                     SignatureUrl = null
                 }
             };
 
             foreach (var item in data)
             {
-                var exists = await dbContext.Set<User>().IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == item.Id);
+                var exists = await userService.GetAsync(a => a.Id == item.Id);
                 if (exists is null)
                 {
-                    await dbContext.Set<User>().AddAsync(item);
+                    await userService.InsertAsync(item);
                     continue;
                 }
 
@@ -80,9 +81,9 @@ namespace NexusStack.Core.SeedData
                 exists.LastLoginTime = item.LastLoginTime;
                 exists.SignatureUrl = item.SignatureUrl;
                 exists.IsDeleted = false;
-            }
 
-            await dbContext.SaveChangesAsync();
+                await userService.UpdateAsync(exists);
+            }
         }
     }
 }
