@@ -19,31 +19,13 @@ namespace NexusStack.Core.Services.Interfaces
         /// <param name="data"></param>
         /// <param name="code"></param>
         /// <returns></returns>
-        //Task<AsyncTask> CreateTaskAsync<T>(object data, string code) where T : EventBase, new();
-
         Task<AsyncTask> CreateTaskAsync(object data, string code);
 
+        /// <summary>
+        /// 重试异步任务
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
         Task<bool> RetryAsync(AsyncTask task);
-
-        /// <summary>
-        /// 发布清关推送异步任务
-        /// </summary>
-        /// <param name="shopId"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        Task PushDeclarationEvent(long shopId, object data);
-
-        /// <summary>
-        /// 发布退货单推送异步任务
-        /// </summary>
-        /// <param name="shopId"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        Task PushReturnEvent(long shopId, object data);
-
-        /// <summary>
-        ///  创建导出任务
-        /// </summary>
-        Task CreateExportExcelTaskAsync(ExportExcelRequestDto request);
     }
 }

@@ -2,12 +2,12 @@
 using NexusStack.Core.Attributes;
 using NexusStack.Core.Dtos.ScheduleTasks;
 using NexusStack.Core.Entities.AsyncTasks;
-using NexusStack.Core.Services.AsyncTasks;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure.Enums;
 using NexusStack.Infrastructure.Exceptions;
 using NexusStack.Infrastructure.Utils;
 using Ardalis.Specification;
+using NexusStack.Core.Services.Interfaces;
 
 namespace NexusStack.WebAPI.Controllers
 {
