@@ -13,6 +13,6 @@ namespace NexusStack.RabbitMQ.EventBus
         public abstract string TaskCode { get; }
         public abstract long TaskId { get; set; }
         public abstract string Data { get; set; }
-        public DateTime CreateTime { get; set; } = DateTime.Now;
+        public DateTimeOffset CreateTime { get; set; } = DateTimeOffset.UtcNow;
     }
 }

@@ -7,4 +7,4 @@ var moduleTitle = "NexusStack MQ Service";
 
 var builder = WebApplication.CreateBuilder(args);
 
-await builder.InitAppliation(moduleKey, moduleTitle, CoreServiceType.MQService, true);
+await builder.InitAppliation(moduleKey, moduleTitle, CoreServiceType.MQService);

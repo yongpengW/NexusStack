@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NexusStack.RabbitMQ.EventBus
 {
@@ -10,10 +11,10 @@ namespace NexusStack.RabbitMQ.EventBus
     public interface IEventPublisher
     {
         /// <summary>
-        /// 暂时没定义RabbitMQ 消息的类型
+        /// 发布事件消息
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
         /// <param name="message"></param>
-        void Publish<TEvent>(TEvent message) where TEvent : IEvent;
+        Task PublishAsync<TEvent>(TEvent message) where TEvent : IEvent;
     }
 }

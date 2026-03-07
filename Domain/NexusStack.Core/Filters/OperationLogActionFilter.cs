@@ -83,7 +83,7 @@ namespace NexusStack.Core.Filters
                 pushData.Method = $"{method}: {apiPath}";
                 pushData.LogType = LogType.Request;
 
-                publisher.Publish(pushData);
+                await publisher.PublishAsync(pushData);
 
             }
 

@@ -50,7 +50,7 @@ namespace NexusStack.Core.Services.AsyncTasks
                 throw new InvalidOperationException($"无法创建类型 {eventType.Name} 的实例。");
             }
 
-            publisher.Publish(eventInstance);
+            await publisher.PublishAsync(eventInstance);
             return task;
         }
 
@@ -63,7 +63,7 @@ namespace NexusStack.Core.Services.AsyncTasks
                 throw new InvalidOperationException($"无法创建类型 {eventType.Name} 的实例。");
             }
 
-            publisher.Publish(eventInstance);
+            await publisher.PublishAsync(eventInstance);
             return true;
         }
     }
