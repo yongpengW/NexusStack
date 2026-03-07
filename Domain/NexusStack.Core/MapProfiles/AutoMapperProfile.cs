@@ -91,8 +91,6 @@ namespace NexusStack.Core.MapProfiles
 
             CreateMap<AsyncTask, AsyncTaskDto>();
 
-            CreateMap<Options, OptionsDto>();
-
             CreateMap<File, ExportFileDto>();
 
             CreateMap<GlobalSettings, GlobalSettingDto>();
