@@ -14,13 +14,14 @@ namespace NexusStack.RabbitMQ
     /// <summary>
     /// RabbitMQ事件发布者
     /// </summary>
-    public class EventPublisher : IEventPublisher, IDisposable
+    public class EventPublisher : IEventPublisher, IDisposable, IAsyncDisposable
     {
         private readonly IConnection connection;
         private readonly ILogger<EventPublisher> logger;
         private readonly RabbitOptions options;
         private readonly SemaphoreSlim publishLock = new(1, 1);
         private IChannel publisherChannel;
+        private int disposed;
 
         public EventPublisher(IConnection connection, ILogger<EventPublisher> logger, IOptions<RabbitOptions> options)
         {
@@ -50,9 +51,17 @@ namespace NexusStack.RabbitMQ
                 var eventName = message.GetType().FullName;
                 var body = JsonSerializer.Serialize(message);
 
+                var messageId = message is EventBase eventBase && eventBase.TaskId > 0
+                    ? $"{message.TaskCode}:{eventBase.TaskId}"
+                    : $"{message.TaskCode}:{message.Id}";
+
                 var properties = new BasicProperties
                 {
-                    Persistent = true
+                    Persistent = true,
+                    MessageId = messageId,
+                    CorrelationId = message.Id?.ToString(),
+                    Type = eventName,
+                    Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
                 };
 
                 await this.publisherChannel.BasicPublishAsync(
@@ -86,11 +95,43 @@ namespace NexusStack.RabbitMQ
 
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref this.disposed, 1) == 1)
+            {
+                return;
+            }
+
             try
             {
                 if (this.publisherChannel is not null)
                 {
-                    this.publisherChannel.CloseAsync().GetAwaiter().GetResult();
+                    this.publisherChannel.Dispose();
+                }
+            }
+            finally
+            {
+                this.publishLock.Dispose();
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (Interlocked.Exchange(ref this.disposed, 1) == 1)
+            {
+                return;
+            }
+
+            try
+            {
+                if (this.publisherChannel is not null)
+                {
+                    try
+                    {
+                        await this.publisherChannel.CloseAsync();
+                    }
+                    catch
+                    {
+                    }
+
                     this.publisherChannel.Dispose();
                 }
             }

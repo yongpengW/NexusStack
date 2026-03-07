@@ -8,11 +8,12 @@ using System.Threading;
 
 namespace NexusStack.RabbitMQ
 {
-    public class Connection : IConnection, IDisposable
+    public class Connection : IConnection, IDisposable, IAsyncDisposable
     {
         private readonly RabbitOptions options;
         private readonly SemaphoreSlim connectionLock = new(1, 1);
         private global::RabbitMQ.Client.IConnection? cachedConnection;
+        private int disposed;
 
         public Connection(IOptions<RabbitOptions> options)
         {
@@ -76,11 +77,44 @@ namespace NexusStack.RabbitMQ
 
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref this.disposed, 1) == 1)
+            {
+                return;
+            }
+
             try
             {
                 if (this.cachedConnection is not null)
                 {
-                    this.cachedConnection.CloseAsync().GetAwaiter().GetResult();
+                    this.cachedConnection.Dispose();
+                    this.cachedConnection = null;
+                }
+            }
+            finally
+            {
+                this.connectionLock.Dispose();
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (Interlocked.Exchange(ref this.disposed, 1) == 1)
+            {
+                return;
+            }
+
+            try
+            {
+                if (this.cachedConnection is not null)
+                {
+                    try
+                    {
+                        await this.cachedConnection.CloseAsync();
+                    }
+                    catch
+                    {
+                    }
+
                     this.cachedConnection.Dispose();
                     this.cachedConnection = null;
                 }

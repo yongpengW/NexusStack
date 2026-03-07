@@ -62,10 +62,9 @@ namespace NexusStack.RabbitMQ
             TypeFinders.SearchTypes(typeof(IEventHandler<>), TypeFinders.TypeClassification.GenericInterface).ForEach(item =>
             {
                 var eventType = item.GetInterfaces()
-                .Where(i => i.IsGenericType)
-                .SingleOrDefault()
-                ?.GetGenericArguments()
-                .SingleOrDefault();
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventHandler<>))
+                    .Select(i => i.GetGenericArguments().FirstOrDefault())
+                    .FirstOrDefault();
 
                 if (eventType != null)
                 {

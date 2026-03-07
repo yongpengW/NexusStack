@@ -8,6 +8,7 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -17,7 +18,7 @@ namespace NexusStack.RabbitMQ
     /// <summary>
     /// RabbitMQ事件订阅者
     /// </summary>
-    public class EventSubscriber : IEventSubscriber
+    public class EventSubscriber : IEventSubscriber, IAsyncDisposable
     {
         private readonly ILogger<EventSubscriber> logger;
         private readonly IConnection connection;
@@ -26,11 +27,14 @@ namespace NexusStack.RabbitMQ
         private readonly IServiceScopeFactory scopeFactory;
         private readonly ConcurrentDictionary<string, List<Type>> EventHandlerFactories;
         private readonly ConcurrentDictionary<string, string> consumerQueueMappings = new();
+        private readonly ConcurrentDictionary<string, IChannel> consumerChannelMappings = new();
+        private readonly ConcurrentDictionary<string, IChannel> consumerChannelsByQueue = new();
         private readonly RabbitOptions options;
         private readonly SemaphoreSlim retryPublishLock = new(1, 1);
+        private readonly SemaphoreSlim subscribeLock = new(1, 1);
 
-        private IChannel consumerChannel;
         private IChannel retryPublishChannel;
+        private int disposed;
 
         public EventSubscriber(ILogger<EventSubscriber> logger,
             IConnection connection,
@@ -45,31 +49,102 @@ namespace NexusStack.RabbitMQ
             this.scopeFactory = scopeFactory;
             this.eventTypes = new ConcurrentBag<Type>();
             this.EventHandlerFactories = new ConcurrentDictionary<string, List<Type>>();
-            this.consumerChannel = CreateConsumerChannelAsync().GetAwaiter().GetResult();
             this.retryPublishChannel = CreateRetryPublishChannelAsync().GetAwaiter().GetResult();
         }
 
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref this.disposed, 1) == 1)
+            {
+                return;
+            }
+
             this.logger.LogInformation($"IEventSubscriber Dispose");
 
             try
             {
-                if (this.consumerChannel is not null)
+                var channels = consumerChannelsByQueue.Values.Distinct().ToList();
+                foreach (var channel in channels)
                 {
-                    this.consumerChannel.CloseAsync().GetAwaiter().GetResult();
-                    this.consumerChannel.Dispose();
+                    if (channel is null)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        channel.Dispose();
+                    }
+                    catch
+                    {
+                    }
                 }
 
                 if (this.retryPublishChannel is not null)
                 {
-                    this.retryPublishChannel.CloseAsync().GetAwaiter().GetResult();
+                    try
+                    {
+                        this.retryPublishChannel.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            finally
+            {
+                this.retryPublishLock.Dispose();
+                this.subscribeLock.Dispose();
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (Interlocked.Exchange(ref this.disposed, 1) == 1)
+            {
+                return;
+            }
+
+            this.logger.LogInformation($"IEventSubscriber Dispose");
+
+            try
+            {
+                var channels = consumerChannelsByQueue.Values.Distinct().ToList();
+                foreach (var channel in channels)
+                {
+                    if (channel is null)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        await channel.CloseAsync();
+                    }
+                    catch
+                    {
+                    }
+
+                    channel.Dispose();
+                }
+
+                if (this.retryPublishChannel is not null)
+                {
+                    try
+                    {
+                        await this.retryPublishChannel.CloseAsync();
+                    }
+                    catch
+                    {
+                    }
+
                     this.retryPublishChannel.Dispose();
                 }
             }
             finally
             {
                 this.retryPublishLock.Dispose();
+                this.subscribeLock.Dispose();
             }
         }
 
@@ -84,88 +159,177 @@ namespace NexusStack.RabbitMQ
             var eventHandlerName = eventHandlerType.FullName;
             var queueName = $"{eventHandlerName}";
 
-            var dlxName = $"{this.options.ExchangeName}.dlx";
-            var deadQueueName = $"{queueName}.dlq";
-            var retryExchangeName = $"{this.options.ExchangeName}.retry";
-            var retryQueueName = $"{queueName}.retry";
-
-            await this.consumerChannel.ExchangeDeclareAsync(
-                exchange: dlxName,
-                type: ExchangeType.Direct,
-                durable: true);
-
-            await this.consumerChannel.ExchangeDeclareAsync(
-                exchange: retryExchangeName,
-                type: ExchangeType.Direct,
-                durable: true);
-
-            await this.consumerChannel.QueueDeclareAsync(
-                queue: deadQueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false);
-
-            await this.consumerChannel.QueueBindAsync(
-                queue: deadQueueName,
-                exchange: dlxName,
-                routingKey: queueName);
-
-            await this.consumerChannel.QueueDeclareAsync(
-                queue: retryQueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: new Dictionary<string, object>
-                {
-                    ["x-message-ttl"] = this.options.RetryDelayMilliseconds,
-                    ["x-dead-letter-exchange"] = this.options.ExchangeName,
-                    ["x-dead-letter-routing-key"] = eventName
-                });
-
-            await this.consumerChannel.QueueBindAsync(
-                queue: retryQueueName,
-                exchange: retryExchangeName,
-                routingKey: queueName);
-
-            await this.consumerChannel.QueueDeclareAsync(
-                queue: queueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: new Dictionary<string, object>
-                {
-                    ["x-dead-letter-exchange"] = dlxName,
-                    ["x-dead-letter-routing-key"] = queueName
-                });
-
-            var consumer = new AsyncEventingBasicConsumer(this.consumerChannel);
-            consumer.ReceivedAsync += OnConsumerMessageReceived;
-
-            var consumerTag = await this.consumerChannel.BasicConsumeAsync(
-                queue: queueName,
-                autoAck: false,
-                consumer: consumer);
-
-            this.consumerQueueMappings[consumerTag] = queueName;
-
-            if (!this.eventTypes.Where(item => item.FullName == eventName).Any())
+            await this.subscribeLock.WaitAsync();
+            try
             {
-                this.eventTypes.Add(eventType);
+                if (this.consumerChannelsByQueue.ContainsKey(queueName))
+                {
+                    this.logger.LogWarning($"队列已订阅，忽略重复订阅。Queue:{queueName}");
+                    return;
+                }
+
+                var consumerChannel = await CreateConsumerChannelAsync();
+                try
+                {
+                    var dlxName = $"{this.options.ExchangeName}.dlx";
+                    var deadQueueName = $"{queueName}.dlq";
+                    var retryExchangeName = $"{this.options.ExchangeName}.retry";
+                    var retryQueueName = $"{queueName}.retry";
+
+                    await consumerChannel.ExchangeDeclareAsync(
+                        exchange: dlxName,
+                        type: ExchangeType.Direct,
+                        durable: true);
+
+                    await consumerChannel.ExchangeDeclareAsync(
+                        exchange: retryExchangeName,
+                        type: ExchangeType.Direct,
+                        durable: true);
+
+                    await consumerChannel.QueueDeclareAsync(
+                        queue: deadQueueName,
+                        durable: true,
+                        exclusive: false,
+                        autoDelete: false,
+                        arguments: new Dictionary<string, object>
+                        {
+                            ["x-message-ttl"] = (int)TimeSpan.FromDays(7).TotalMilliseconds
+                        });
+
+                    await consumerChannel.QueueBindAsync(
+                        queue: deadQueueName,
+                        exchange: dlxName,
+                        routingKey: queueName);
+
+                    await consumerChannel.QueueDeclareAsync(
+                        queue: retryQueueName,
+                        durable: true,
+                        exclusive: false,
+                        autoDelete: false,
+                        arguments: new Dictionary<string, object>
+                        {
+                            ["x-message-ttl"] = this.options.RetryDelayMilliseconds,
+                            ["x-dead-letter-exchange"] = this.options.ExchangeName,
+                            ["x-dead-letter-routing-key"] = eventName
+                        });
+
+                    await consumerChannel.QueueBindAsync(
+                        queue: retryQueueName,
+                        exchange: retryExchangeName,
+                        routingKey: queueName);
+
+                    await consumerChannel.QueueDeclareAsync(
+                        queue: queueName,
+                        durable: true,
+                        exclusive: false,
+                        autoDelete: false,
+                        arguments: new Dictionary<string, object>
+                        {
+                            ["x-dead-letter-exchange"] = dlxName,
+                            ["x-dead-letter-routing-key"] = queueName
+                        });
+
+                    var consumer = new AsyncEventingBasicConsumer(consumerChannel);
+                    consumer.ReceivedAsync += OnConsumerMessageReceived;
+                    consumer.UnregisteredAsync += OnConsumerUnregisteredAsync;
+                    consumer.ShutdownAsync += OnConsumerShutdownAsync;
+
+                    var consumerTag = await consumerChannel.BasicConsumeAsync(
+                        queue: queueName,
+                        autoAck: false,
+                        consumer: consumer);
+
+                    this.consumerQueueMappings[consumerTag] = queueName;
+                    this.consumerChannelMappings[consumerTag] = consumerChannel;
+                    this.consumerChannelsByQueue[queueName] = consumerChannel;
+
+                    if (!this.eventTypes.Where(item => item.FullName == eventName).Any())
+                    {
+                        this.eventTypes.Add(eventType);
+                    }
+
+                    this.EventHandlerFactories.AddOrUpdate(eventName, new List<Type> { eventHandlerType }, (key, list) =>
+                    {
+                        if (!list.Contains(eventHandlerType))
+                        {
+                            list.Add(eventHandlerType);
+                        }
+                        return list;
+                    });
+
+                    await consumerChannel.QueueBindAsync(
+                        queue: queueName,
+                        exchange: this.options.ExchangeName,
+                        routingKey: eventName);
+                }
+                catch
+                {
+                    try
+                    {
+                        await consumerChannel.CloseAsync();
+                    }
+                    catch
+                    {
+                    }
+
+                    consumerChannel.Dispose();
+                    throw;
+                }
+            }
+            finally
+            {
+                this.subscribeLock.Release();
+            }
+        }
+
+        private Task OnConsumerUnregisteredAsync(object sender, ConsumerEventArgs eventArgs)
+        {
+            foreach (var consumerTag in eventArgs.ConsumerTags)
+            {
+                RemoveConsumerMappings(consumerTag);
             }
 
-            this.EventHandlerFactories.AddOrUpdate(eventName, new List<Type> { eventHandlerType }, (key, list) =>
-            {
-                if (!list.Contains(eventHandlerType))
-                {
-                    list.Add(eventHandlerType);
-                }
-                return list;
-            });
+            return Task.CompletedTask;
+        }
 
-            await this.consumerChannel.QueueBindAsync(
-                queue: queueName,
-                exchange: this.options.ExchangeName,
-                routingKey: eventName);
+        private Task OnConsumerShutdownAsync(object sender, ShutdownEventArgs eventArgs)
+        {
+            if (sender is IAsyncBasicConsumer asyncConsumer)
+            {
+                var channel = asyncConsumer.Channel;
+                var tags = consumerChannelMappings
+                    .Where(x => ReferenceEquals(x.Value, channel))
+                    .Select(x => x.Key)
+                    .ToList();
+
+                foreach (var tag in tags)
+                {
+                    RemoveConsumerMappings(tag);
+                }
+
+                var queues = consumerChannelsByQueue
+                    .Where(x => ReferenceEquals(x.Value, channel))
+                    .Select(x => x.Key)
+                    .ToList();
+
+                foreach (var queue in queues)
+                {
+                    consumerChannelsByQueue.TryRemove(queue, out _);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void RemoveConsumerMappings(string consumerTag)
+        {
+            consumerChannelMappings.TryRemove(consumerTag, out _);
+
+            if (consumerQueueMappings.TryRemove(consumerTag, out var queueName)
+                && !consumerQueueMappings.Values.Contains(queueName))
+            {
+                consumerChannelsByQueue.TryRemove(queueName, out _);
+            }
         }
 
         private async Task<IChannel> CreateConsumerChannelAsync()
@@ -200,7 +364,27 @@ namespace NexusStack.RabbitMQ
 
             this.logger.LogInformation($"Message Received: {eventName} => {message}");
 
+            if (!consumerChannelMappings.TryGetValue(eventArgs.ConsumerTag, out var consumerChannel))
+            {
+                this.logger.LogError($"未找到 consumerTag 对应的消费通道，降级执行Nack并丢入DLQ。ConsumerTag:{eventArgs.ConsumerTag}");
+
+                if (sender is IAsyncBasicConsumer asyncConsumer)
+                {
+                    try
+                    {
+                        await asyncConsumer.Channel.BasicNackAsync(eventArgs.DeliveryTag, false, false);
+                    }
+                    catch (Exception channelEx)
+                    {
+                        this.logger.LogError(channelEx, "consumerTag 缺失时降级Nack失败");
+                    }
+                }
+
+                return;
+            }
+
             var idempotencyKey = string.Empty;
+            var processedSuccessfully = false;
 
             try
             {
@@ -208,7 +392,7 @@ namespace NexusStack.RabbitMQ
                 if (!string.IsNullOrEmpty(idempotencyResult) && idempotencyResult.StartsWith("DUPLICATE|"))
                 {
                     this.logger.LogInformation($"检测到重复消息，直接确认并跳过处理。RoutingKey:{eventName}");
-                    await this.consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
+                    await consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
                     return;
                 }
 
@@ -216,21 +400,30 @@ namespace NexusStack.RabbitMQ
 
                 if (await ProcessEvent(eventName, message))
                 {
+                    processedSuccessfully = true;
                     // 处理成功，确认消息
-                    await this.consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
+                    await consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
                     return;
                 }
 
-                await HandleFailureAsync(eventArgs, idempotencyKey);
+                await HandleFailureAsync(eventArgs, idempotencyKey, consumerChannel);
             }
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "消息处理过程中发生异常");
-                await HandleFailureAsync(eventArgs, idempotencyKey);
+
+                // 业务已成功但 ACK 失败时，保留幂等键，等待消息重投后走幂等短路
+                if (processedSuccessfully)
+                {
+                    this.logger.LogWarning($"消息业务已处理成功但ACK失败，保留幂等键等待重投后去重。RoutingKey:{eventArgs.RoutingKey}");
+                    return;
+                }
+
+                await HandleFailureAsync(eventArgs, idempotencyKey, consumerChannel);
             }
         }
 
-        private async Task HandleFailureAsync(BasicDeliverEventArgs eventArgs, string idempotencyKey)
+        private async Task HandleFailureAsync(BasicDeliverEventArgs eventArgs, string idempotencyKey, IChannel consumerChannel)
         {
             if (!string.IsNullOrEmpty(idempotencyKey))
             {
@@ -243,7 +436,7 @@ namespace NexusStack.RabbitMQ
                 try
                 {
                     await RepublishForRetryAsync(eventArgs, currentRetryCount + 1);
-                    await this.consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
+                    await consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
                     return;
                 }
                 catch (Exception republishEx)
@@ -253,7 +446,7 @@ namespace NexusStack.RabbitMQ
             }
 
             // 超过最大重试次数或重试消息发布失败，拒绝消息，不重新入队，交由 DLQ 承接
-            await this.consumerChannel.BasicNackAsync(
+            await consumerChannel.BasicNackAsync(
                 deliveryTag: eventArgs.DeliveryTag,
                 multiple: false,
                 requeue: false);
@@ -278,7 +471,11 @@ namespace NexusStack.RabbitMQ
                 messageId = Convert.ToHexString(hashBytes);
             }
 
-            var key = $"mq:idempotent:{eventArgs.RoutingKey}:{messageId}";
+            var queueDimension = this.consumerQueueMappings.TryGetValue(eventArgs.ConsumerTag, out var queueName)
+                ? queueName
+                : eventArgs.RoutingKey;
+
+            var key = $"mq:idempotent:{queueDimension}:{messageId}";
             var acquired = await this.redisService.SetAsync(
                 key,
                 DateTimeOffset.UtcNow.ToString("O"),
