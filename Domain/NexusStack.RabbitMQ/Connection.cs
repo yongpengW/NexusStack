@@ -22,6 +22,11 @@ namespace NexusStack.RabbitMQ
 
         public async Task<global::RabbitMQ.Client.IConnection> CreateConnectionAsync()
         {
+            if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+            {
+                throw new ObjectDisposedException(nameof(Connection));
+            }
+
             if (this.cachedConnection?.IsOpen == true)
             {
                 return this.cachedConnection;
@@ -30,9 +35,30 @@ namespace NexusStack.RabbitMQ
             await this.connectionLock.WaitAsync();
             try
             {
+                // 锁内再次检查 disposed
+                if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+                {
+                    throw new ObjectDisposedException(nameof(Connection));
+                }
+
                 if (this.cachedConnection?.IsOpen == true)
                 {
                     return this.cachedConnection;
+                }
+
+                // 释放旧连接（如果存在且未打开）
+                if (this.cachedConnection is not null)
+                {
+                    try
+                    {
+                        await this.cachedConnection.CloseAsync();
+                    }
+                    catch
+                    {
+                    }
+
+                    this.cachedConnection.Dispose();
+                    this.cachedConnection = null;
                 }
 
                 var factory = new ConnectionFactory
@@ -58,8 +84,13 @@ namespace NexusStack.RabbitMQ
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync()
+        public async Task<IChannel> CreateChannelAsync(bool enablePublisherConfirmations = true)
         {
+            if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+            {
+                throw new ObjectDisposedException(nameof(Connection));
+            }
+
             var connection = await CreateConnectionAsync();
 
             ushort? consumerDispatchConcurrency = this.options.ConsumerDispatchConcurrency == 0
@@ -67,8 +98,8 @@ namespace NexusStack.RabbitMQ
                 : this.options.ConsumerDispatchConcurrency;
 
             var createChannelOptions = new CreateChannelOptions(
-                publisherConfirmationsEnabled: true,
-                publisherConfirmationTrackingEnabled: true,
+                publisherConfirmationsEnabled: enablePublisherConfirmations,
+                publisherConfirmationTrackingEnabled: enablePublisherConfirmations,
                 outstandingPublisherConfirmationsRateLimiter: null,
                 consumerDispatchConcurrency: consumerDispatchConcurrency);
 
@@ -84,10 +115,18 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                if (this.cachedConnection is not null)
+                this.connectionLock.Wait();
+                try
                 {
-                    this.cachedConnection.Dispose();
-                    this.cachedConnection = null;
+                    if (this.cachedConnection is not null)
+                    {
+                        this.cachedConnection.Dispose();
+                        this.cachedConnection = null;
+                    }
+                }
+                finally
+                {
+                    this.connectionLock.Release();
                 }
             }
             finally
@@ -105,18 +144,26 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                if (this.cachedConnection is not null)
+                await this.connectionLock.WaitAsync();
+                try
                 {
-                    try
+                    if (this.cachedConnection is not null)
                     {
-                        await this.cachedConnection.CloseAsync();
-                    }
-                    catch
-                    {
-                    }
+                        try
+                        {
+                            await this.cachedConnection.CloseAsync();
+                        }
+                        catch
+                        {
+                        }
 
-                    this.cachedConnection.Dispose();
-                    this.cachedConnection = null;
+                        this.cachedConnection.Dispose();
+                        this.cachedConnection = null;
+                    }
+                }
+                finally
+                {
+                    this.connectionLock.Release();
                 }
             }
             finally

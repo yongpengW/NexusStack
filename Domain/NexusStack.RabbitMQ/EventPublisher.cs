@@ -30,11 +30,11 @@ namespace NexusStack.RabbitMQ
             this.options = options.Value;
             this.publisherChannel = CreateChannelAsync().GetAwaiter().GetResult();
 
-            this.publisherChannel.BasicReturnAsync += async (_, args) =>
+            this.publisherChannel.BasicReturnAsync += (_, args) =>
             {
                 var returnedBody = Encoding.UTF8.GetString(args.Body.ToArray());
                 this.logger.LogError($"消息路由失败并被退回。Exchange:{args.Exchange}, RoutingKey:{args.RoutingKey}, ReplyCode:{args.ReplyCode}, ReplyText:{args.ReplyText}, Body:{returnedBody}");
-                await Task.CompletedTask;
+                return Task.CompletedTask;
             };
         }
 
@@ -45,9 +45,20 @@ namespace NexusStack.RabbitMQ
 
         private async Task PublishInternalAsync<TEvent>(TEvent message) where TEvent : IEvent
         {
+            if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+            {
+                throw new ObjectDisposedException(nameof(EventPublisher));
+            }
+
             await this.publishLock.WaitAsync();
             try
             {
+                // 锁内再次检查 disposed
+                if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+                {
+                    throw new ObjectDisposedException(nameof(EventPublisher));
+                }
+
                 var eventName = message.GetType().FullName;
                 var body = JsonSerializer.Serialize(message);
 
@@ -102,9 +113,17 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                if (this.publisherChannel is not null)
+                this.publishLock.Wait();
+                try
                 {
-                    this.publisherChannel.Dispose();
+                    if (this.publisherChannel is not null)
+                    {
+                        this.publisherChannel.Dispose();
+                    }
+                }
+                finally
+                {
+                    this.publishLock.Release();
                 }
             }
             finally
@@ -122,17 +141,25 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                if (this.publisherChannel is not null)
+                await this.publishLock.WaitAsync();
+                try
                 {
-                    try
+                    if (this.publisherChannel is not null)
                     {
-                        await this.publisherChannel.CloseAsync();
-                    }
-                    catch
-                    {
-                    }
+                        try
+                        {
+                            await this.publisherChannel.CloseAsync();
+                        }
+                        catch
+                        {
+                        }
 
-                    this.publisherChannel.Dispose();
+                        this.publisherChannel.Dispose();
+                    }
+                }
+                finally
+                {
+                    this.publishLock.Release();
                 }
             }
             finally
