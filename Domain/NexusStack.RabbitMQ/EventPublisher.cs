@@ -45,9 +45,20 @@ namespace NexusStack.RabbitMQ
 
         private async Task PublishInternalAsync<TEvent>(TEvent message) where TEvent : IEvent
         {
+            if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+            {
+                throw new ObjectDisposedException(nameof(EventPublisher));
+            }
+
             await this.publishLock.WaitAsync();
             try
             {
+                // 锁内再次检查 disposed
+                if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+                {
+                    throw new ObjectDisposedException(nameof(EventPublisher));
+                }
+
                 var eventName = message.GetType().FullName;
                 var body = JsonSerializer.Serialize(message);
 

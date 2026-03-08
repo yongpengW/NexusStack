@@ -27,6 +27,7 @@ namespace NexusStack.RabbitMQ
         private readonly IServiceScopeFactory scopeFactory;
         private readonly ConcurrentDictionary<string, List<Type>> EventHandlerFactories;
         private readonly ConcurrentDictionary<string, string> consumerQueueMappings = new();
+        private readonly ConcurrentDictionary<string, Type> consumerHandlerMappings = new();
         private readonly ConcurrentDictionary<string, IChannel> consumerChannelMappings = new();
         private readonly ConcurrentDictionary<string, IChannel> consumerChannelsByQueue = new();
         private readonly RabbitOptions options;
@@ -155,6 +156,11 @@ namespace NexusStack.RabbitMQ
 
         private async Task SubscribeInternalAsync(Type eventType, Type eventHandlerType)
         {
+            if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+            {
+                throw new ObjectDisposedException(nameof(EventSubscriber));
+            }
+
             var eventName = eventType.FullName;
             var eventHandlerName = eventHandlerType.FullName;
             var queueName = $"{eventHandlerName}";
@@ -162,6 +168,12 @@ namespace NexusStack.RabbitMQ
             await this.subscribeLock.WaitAsync();
             try
             {
+                // 锁内再次检查 disposed
+                if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
+                {
+                    throw new ObjectDisposedException(nameof(EventSubscriber));
+                }
+
                 if (this.consumerChannelsByQueue.ContainsKey(queueName))
                 {
                     this.logger.LogWarning($"队列已订阅，忽略重复订阅。Queue:{queueName}");
@@ -240,6 +252,7 @@ namespace NexusStack.RabbitMQ
                         consumer: consumer);
 
                     this.consumerQueueMappings[consumerTag] = queueName;
+                    this.consumerHandlerMappings[consumerTag] = eventHandlerType;
                     this.consumerChannelMappings[consumerTag] = consumerChannel;
                     this.consumerChannelsByQueue[queueName] = consumerChannel;
 
@@ -324,6 +337,7 @@ namespace NexusStack.RabbitMQ
         private void RemoveConsumerMappings(string consumerTag)
         {
             consumerChannelMappings.TryRemove(consumerTag, out _);
+            consumerHandlerMappings.TryRemove(consumerTag, out _);
 
             if (consumerQueueMappings.TryRemove(consumerTag, out var queueName)
                 && !consumerQueueMappings.Values.Contains(queueName))
@@ -383,6 +397,22 @@ namespace NexusStack.RabbitMQ
                 return;
             }
 
+            if (!consumerHandlerMappings.TryGetValue(eventArgs.ConsumerTag, out var handlerType))
+            {
+                this.logger.LogError($"未找到 consumerTag 对应的处理器类型，降级执行Nack并丢入DLQ。ConsumerTag:{eventArgs.ConsumerTag}");
+
+                try
+                {
+                    await consumerChannel.BasicNackAsync(eventArgs.DeliveryTag, false, false);
+                }
+                catch (Exception channelEx)
+                {
+                    this.logger.LogError(channelEx, "handler 类型缺失时降级Nack失败");
+                }
+
+                return;
+            }
+
             var idempotencyKey = string.Empty;
             var processedSuccessfully = false;
 
@@ -398,7 +428,7 @@ namespace NexusStack.RabbitMQ
 
                 idempotencyKey = idempotencyResult.Replace("ACQUIRED|", string.Empty);
 
-                if (await ProcessEvent(eventName, message))
+                if (await ProcessEvent(eventName, message, handlerType))
                 {
                     processedSuccessfully = true;
                     // 处理成功，确认消息
@@ -560,7 +590,7 @@ namespace NexusStack.RabbitMQ
             }
         }
 
-        private async Task<bool> ProcessEvent(string eventName, string message)
+        private async Task<bool> ProcessEvent(string eventName, string message, Type eventHandlerType)
         {
             try
             {
@@ -569,12 +599,6 @@ namespace NexusStack.RabbitMQ
                 if (eventType is null)
                 {
                     this.logger.LogError($"未找到事件类型定义: {eventName}");
-                    return false;
-                }
-
-                if (!this.EventHandlerFactories.TryGetValue(eventName, out var eventHandlers) || eventHandlers.Count == 0)
-                {
-                    this.logger.LogError($"未找到事件处理器: {eventName}");
                     return false;
                 }
 
@@ -589,56 +613,53 @@ namespace NexusStack.RabbitMQ
                     return false;
                 }
 
-                foreach (var eventHandler in eventHandlers)
-                {
-                    using var handlerScope = this.scopeFactory.CreateScope();
-                    var resolvedHandler = handlerScope.ServiceProvider.GetService(eventHandler) as IEventHandler;
-                    var handler = resolvedHandler ?? Activator.CreateInstance(eventHandler, this.scopeFactory) as IEventHandler;
+                using var handlerScope = this.scopeFactory.CreateScope();
+                var resolvedHandler = handlerScope.ServiceProvider.GetService(eventHandlerType) as IEventHandler;
+                var handler = resolvedHandler ?? Activator.CreateInstance(eventHandlerType, this.scopeFactory) as IEventHandler;
 
-                    if (handler is null)
+                if (handler is null)
+                {
+                    this.logger.LogError($"无法创建事件处理器实例: {eventHandlerType.FullName}");
+                    return false;
+                }
+
+                using var logScope = this.logger.BeginScope(new Dictionary<string, object>
+                {
+                    ["EventBusId"] = (eventData as EventBase)?.Id ?? string.Empty,
+                    ["Handler"] = handler.GetType().FullName ?? eventHandlerType.FullName ?? string.Empty,
+                });
+
+                try
+                {
+                    var concreteType = typeof(IEventHandler<>).MakeGenericType(eventType);
+                    var handleMethod = concreteType.GetMethod("HandleAsync");
+                    if (handleMethod is null)
                     {
-                        this.logger.LogError($"无法创建事件处理器实例: {eventHandler.FullName}");
+                        this.logger.LogError($"未找到 HandleAsync 方法: {eventHandlerType.FullName}");
                         return false;
                     }
 
-                    using var logScope = this.logger.BeginScope(new Dictionary<string, object>
-                    {
-                        ["EventBusId"] = (eventData as EventBase)?.Id ?? string.Empty,
-                        ["Handler"] = handler.GetType().FullName ?? eventHandler.FullName ?? string.Empty,
-                    });
+                    this.logger.LogInformation($"开始执行 {eventName} 事件, Handler: {eventHandlerType.FullName}, 内容：{message}");
 
-                    try
-                    {
-                        var concreteType = typeof(IEventHandler<>).MakeGenericType(eventType);
-                        var handleMethod = concreteType.GetMethod("HandleAsync");
-                        if (handleMethod is null)
-                        {
-                            this.logger.LogError($"未找到 HandleAsync 方法: {eventHandler.FullName}");
-                            return false;
-                        }
-
-                        this.logger.LogInformation($"开始执行 {eventName} 事件, 内容：{message}");
-
-                        await (Task)handleMethod.Invoke(handler, new[] { eventData })!;
-                    }
-                    catch (Exception ex)
-                    {
-                        this.logger.LogInformation($"事件处理程序处理事件时发生错误，消息内容:{message}");
-                        this.logger.LogError(ex, ex.Message);
-                        return false; // 处理失败
-                    }
-                    finally
-                    {
-                        this.logger.LogInformation($"事件 {eventName} 执行完成");
-                    }
+                    await (Task)handleMethod.Invoke(handler, new[] { eventData })!;
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogInformation($"事件处理程序处理事件时发生错误，Handler: {eventHandlerType.FullName}, 消息内容:{message}");
+                    this.logger.LogError(ex, ex.Message);
+                    return false;
+                }
+                finally
+                {
+                    this.logger.LogInformation($"事件 {eventName} Handler {eventHandlerType.FullName} 执行完成");
                 }
 
-                return true; // 处理成功
+                return true;
             }
             catch (Exception ex)
             {
                 this.logger.LogError(ex, $"ProcessEvent 处理失败: {ex.Message}");
-                return false; // 处理失败
+                return false;
             }
         }
     }
