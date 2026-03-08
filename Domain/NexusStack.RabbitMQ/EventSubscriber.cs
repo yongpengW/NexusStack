@@ -666,7 +666,7 @@ namespace NexusStack.RabbitMQ
                 }
                 catch (Exception ex)
                 {
-                    this.logger.LogInformation($"事件处理程序处理事件时发生错误，Handler: {eventHandlerType.FullName}, 消息内容:{message}");
+                    this.logger.LogError($"事件处理程序处理事件时发生错误，Handler: {eventHandlerType.FullName}, 消息内容:{message}");
                     this.logger.LogError(ex, ex.Message);
                     return false;
                 }
