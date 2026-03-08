@@ -113,9 +113,17 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                if (this.publisherChannel is not null)
+                this.publishLock.Wait();
+                try
                 {
-                    this.publisherChannel.Dispose();
+                    if (this.publisherChannel is not null)
+                    {
+                        this.publisherChannel.Dispose();
+                    }
+                }
+                finally
+                {
+                    this.publishLock.Release();
                 }
             }
             finally
@@ -133,17 +141,25 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                if (this.publisherChannel is not null)
+                await this.publishLock.WaitAsync();
+                try
                 {
-                    try
+                    if (this.publisherChannel is not null)
                     {
-                        await this.publisherChannel.CloseAsync();
-                    }
-                    catch
-                    {
-                    }
+                        try
+                        {
+                            await this.publisherChannel.CloseAsync();
+                        }
+                        catch
+                        {
+                        }
 
-                    this.publisherChannel.Dispose();
+                        this.publisherChannel.Dispose();
+                    }
+                }
+                finally
+                {
+                    this.publishLock.Release();
                 }
             }
             finally

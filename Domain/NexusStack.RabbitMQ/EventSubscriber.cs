@@ -25,7 +25,6 @@ namespace NexusStack.RabbitMQ
         private readonly IRedisService redisService;
         private readonly ConcurrentBag<Type> eventTypes;
         private readonly IServiceScopeFactory scopeFactory;
-        private readonly ConcurrentDictionary<string, List<Type>> EventHandlerFactories;
         private readonly ConcurrentDictionary<string, string> consumerQueueMappings = new();
         private readonly ConcurrentDictionary<string, Type> consumerHandlerMappings = new();
         private readonly ConcurrentDictionary<string, IChannel> consumerChannelMappings = new();
@@ -49,7 +48,6 @@ namespace NexusStack.RabbitMQ
             this.redisService = redisService;
             this.scopeFactory = scopeFactory;
             this.eventTypes = new ConcurrentBag<Type>();
-            this.EventHandlerFactories = new ConcurrentDictionary<string, List<Type>>();
             this.retryPublishChannel = CreateRetryPublishChannelAsync().GetAwaiter().GetResult();
         }
 
@@ -292,15 +290,6 @@ namespace NexusStack.RabbitMQ
                     {
                         this.eventTypes.Add(eventType);
                     }
-
-                    this.EventHandlerFactories.AddOrUpdate(eventName, new List<Type> { eventHandlerType }, (key, list) =>
-                    {
-                        if (!list.Contains(eventHandlerType))
-                        {
-                            list.Add(eventHandlerType);
-                        }
-                        return list;
-                    });
 
                     await consumerChannel.QueueBindAsync(
                         queue: queueName,
