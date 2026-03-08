@@ -30,11 +30,11 @@ namespace NexusStack.RabbitMQ
             this.options = options.Value;
             this.publisherChannel = CreateChannelAsync().GetAwaiter().GetResult();
 
-            this.publisherChannel.BasicReturnAsync += async (_, args) =>
+            this.publisherChannel.BasicReturnAsync += (_, args) =>
             {
                 var returnedBody = Encoding.UTF8.GetString(args.Body.ToArray());
                 this.logger.LogError($"消息路由失败并被退回。Exchange:{args.Exchange}, RoutingKey:{args.RoutingKey}, ReplyCode:{args.ReplyCode}, ReplyText:{args.ReplyText}, Body:{returnedBody}");
-                await Task.CompletedTask;
+                return Task.CompletedTask;
             };
         }
 

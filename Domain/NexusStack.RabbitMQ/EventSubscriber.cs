@@ -65,7 +65,7 @@ namespace NexusStack.RabbitMQ
                 this.subscribeLock.Wait();
                 try
                 {
-                    var channels = consumerChannelsByQueue.Values.Distinct().ToList();
+                    var channels = consumerChannelsByQueue.Values.ToList();
                     foreach (var channel in channels)
                     {
                         if (channel is null)
@@ -127,7 +127,7 @@ namespace NexusStack.RabbitMQ
                 await this.subscribeLock.WaitAsync();
                 try
                 {
-                    var channels = consumerChannelsByQueue.Values.Distinct().ToList();
+                    var channels = consumerChannelsByQueue.Values.ToList();
                     foreach (var channel in channels)
                     {
                         if (channel is null)
