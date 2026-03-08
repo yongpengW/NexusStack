@@ -51,7 +51,6 @@ namespace NexusStack.Core
         /// <param name="moduleKey"></param>
         /// <param name="moduleTitle"></param>
         /// <param name="coreServiceType">服务类型</param>
-        /// <param name="enableSignalR">是否启用SignalR自动映射</param>
         /// <returns></returns>
         /// 
         public static async Task InitAppliation(this WebApplicationBuilder builder, string moduleKey, string moduleTitle, CoreServiceType coreServiceType = CoreServiceType.WebService)
