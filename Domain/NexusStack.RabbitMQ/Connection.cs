@@ -84,7 +84,7 @@ namespace NexusStack.RabbitMQ
             }
         }
 
-        public async Task<IChannel> CreateChannelAsync()
+        public async Task<IChannel> CreateChannelAsync(bool enablePublisherConfirmations = true)
         {
             if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
             {
@@ -98,8 +98,8 @@ namespace NexusStack.RabbitMQ
                 : this.options.ConsumerDispatchConcurrency;
 
             var createChannelOptions = new CreateChannelOptions(
-                publisherConfirmationsEnabled: true,
-                publisherConfirmationTrackingEnabled: true,
+                publisherConfirmationsEnabled: enablePublisherConfirmations,
+                publisherConfirmationTrackingEnabled: enablePublisherConfirmations,
                 outstandingPublisherConfirmationsRateLimiter: null,
                 consumerDispatchConcurrency: consumerDispatchConcurrency);
 

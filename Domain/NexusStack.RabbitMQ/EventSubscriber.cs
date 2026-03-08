@@ -64,38 +64,54 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                var channels = consumerChannelsByQueue.Values.Distinct().ToList();
-                foreach (var channel in channels)
+                this.subscribeLock.Wait();
+                try
                 {
-                    if (channel is null)
+                    var channels = consumerChannelsByQueue.Values.Distinct().ToList();
+                    foreach (var channel in channels)
                     {
-                        continue;
-                    }
+                        if (channel is null)
+                        {
+                            continue;
+                        }
 
-                    try
-                    {
-                        channel.Dispose();
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            channel.Dispose();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
-
-                if (this.retryPublishChannel is not null)
+                finally
                 {
-                    try
+                    this.subscribeLock.Release();
+                }
+
+                this.retryPublishLock.Wait();
+                try
+                {
+                    if (this.retryPublishChannel is not null)
                     {
-                        this.retryPublishChannel.Dispose();
+                        try
+                        {
+                            this.retryPublishChannel.Dispose();
+                        }
+                        catch
+                        {
+                        }
                     }
-                    catch
-                    {
-                    }
+                }
+                finally
+                {
+                    this.retryPublishLock.Release();
                 }
             }
             finally
             {
-                this.retryPublishLock.Dispose();
                 this.subscribeLock.Dispose();
+                this.retryPublishLock.Dispose();
             }
         }
 
@@ -110,42 +126,58 @@ namespace NexusStack.RabbitMQ
 
             try
             {
-                var channels = consumerChannelsByQueue.Values.Distinct().ToList();
-                foreach (var channel in channels)
+                await this.subscribeLock.WaitAsync();
+                try
                 {
-                    if (channel is null)
+                    var channels = consumerChannelsByQueue.Values.Distinct().ToList();
+                    foreach (var channel in channels)
                     {
-                        continue;
-                    }
+                        if (channel is null)
+                        {
+                            continue;
+                        }
 
-                    try
-                    {
-                        await channel.CloseAsync();
-                    }
-                    catch
-                    {
-                    }
+                        try
+                        {
+                            await channel.CloseAsync();
+                        }
+                        catch
+                        {
+                        }
 
-                    channel.Dispose();
+                        channel.Dispose();
+                    }
+                }
+                finally
+                {
+                    this.subscribeLock.Release();
                 }
 
-                if (this.retryPublishChannel is not null)
+                await this.retryPublishLock.WaitAsync();
+                try
                 {
-                    try
+                    if (this.retryPublishChannel is not null)
                     {
-                        await this.retryPublishChannel.CloseAsync();
-                    }
-                    catch
-                    {
-                    }
+                        try
+                        {
+                            await this.retryPublishChannel.CloseAsync();
+                        }
+                        catch
+                        {
+                        }
 
-                    this.retryPublishChannel.Dispose();
+                        this.retryPublishChannel.Dispose();
+                    }
+                }
+                finally
+                {
+                    this.retryPublishLock.Release();
                 }
             }
             finally
             {
-                this.retryPublishLock.Dispose();
                 this.subscribeLock.Dispose();
+                this.retryPublishLock.Dispose();
             }
         }
 
@@ -348,7 +380,7 @@ namespace NexusStack.RabbitMQ
 
         private async Task<IChannel> CreateConsumerChannelAsync()
         {
-            var channel = await this.connection.CreateChannelAsync();
+            var channel = await this.connection.CreateChannelAsync(enablePublisherConfirmations: false);
             await channel.ExchangeDeclareAsync(
                 exchange: this.options.ExchangeName,
                 type: ExchangeType.Direct,

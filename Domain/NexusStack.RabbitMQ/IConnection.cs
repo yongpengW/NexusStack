@@ -9,6 +9,6 @@ namespace NexusStack.RabbitMQ
     {
         Task<global::RabbitMQ.Client.IConnection> CreateConnectionAsync();
 
-        Task<IChannel> CreateChannelAsync();
+        Task<IChannel> CreateChannelAsync(bool enablePublisherConfirmations = true);
     }
 }
