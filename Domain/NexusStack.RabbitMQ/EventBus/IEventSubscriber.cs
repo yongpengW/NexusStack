@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NexusStack.RabbitMQ.EventBus
 {
@@ -9,6 +10,6 @@ namespace NexusStack.RabbitMQ.EventBus
     /// </summary>
     public interface IEventSubscriber : IDisposable
     {
-        void Subscribe(Type eventType, Type eventHandlerType);
+        Task SubscribeAsync(Type eventType, Type eventHandlerType);
     }
 }

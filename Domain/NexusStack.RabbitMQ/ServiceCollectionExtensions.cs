@@ -39,8 +39,17 @@ namespace NexusStack.RabbitMQ
             var subscriber = app.ApplicationServices.GetRequiredService<IEventSubscriber>();
             TypeFinders.SearchTypes(typeof(IEventHandler<>), TypeFinders.TypeClassification.GenericInterface).ForEach(item =>
             {
-                var eventType = item.GetInterfaces().Where(item => item.IsGenericType).SingleOrDefault().GetGenericArguments().SingleOrDefault();
-                subscriber.Subscribe(eventType, item);
+                var eventType = item.GetInterfaces()
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventHandler<>))
+                    .Select(i => i.GetGenericArguments().FirstOrDefault())
+                    .FirstOrDefault();
+
+                if (eventType is null)
+                {
+                    return;
+                }
+
+                subscriber.SubscribeAsync(eventType, item).GetAwaiter().GetResult();
             });
 
             return app;
@@ -53,10 +62,9 @@ namespace NexusStack.RabbitMQ
             TypeFinders.SearchTypes(typeof(IEventHandler<>), TypeFinders.TypeClassification.GenericInterface).ForEach(item =>
             {
                 var eventType = item.GetInterfaces()
-                .Where(i => i.IsGenericType)
-                .SingleOrDefault()
-                ?.GetGenericArguments()
-                .SingleOrDefault();
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventHandler<>))
+                    .Select(i => i.GetGenericArguments().FirstOrDefault())
+                    .FirstOrDefault();
 
                 if (eventType != null)
                 {

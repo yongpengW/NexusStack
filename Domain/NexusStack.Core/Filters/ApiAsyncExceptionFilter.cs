@@ -177,7 +177,7 @@ namespace NexusStack.Core.Filters
             pushData.Method = method ?? string.Empty;
             pushData.LogType = LogType.Error;
 
-            publisher.Publish(pushData);
+            await publisher.PublishAsync(pushData);
 
             await Task.CompletedTask;
         }

@@ -50,5 +50,25 @@ namespace NexusStack.RabbitMQ
         /// 消费者分发并发数
         /// </summary>
         public ushort ConsumerDispatchConcurrency { get; set; }
+
+        /// <summary>
+        /// 消费失败后最大重试次数（超过后进入死信队列）
+        /// </summary>
+        public int MaxRetryCount { get; set; } = 3;
+
+        /// <summary>
+        /// 重试延迟毫秒数
+        /// </summary>
+        public int RetryDelayMilliseconds { get; set; } = 5000;
+
+        /// <summary>
+        /// 是否启用消费幂等（去重）
+        /// </summary>
+        public bool EnableConsumerIdempotency { get; set; } = true;
+
+        /// <summary>
+        /// 消费幂等键过期小时数
+        /// </summary>
+        public int ConsumerIdempotencyExpireHours { get; set; } = 24;
     }
 }

@@ -5,4 +5,4 @@ var moduleTitle = "NexusStack_Web_API";
 
 var builder = WebApplication.CreateBuilder(args);
 
-await builder.InitAppliation(moduleKey, moduleTitle, enableSignalR: true);
+await builder.InitAppliation(moduleKey, moduleTitle);

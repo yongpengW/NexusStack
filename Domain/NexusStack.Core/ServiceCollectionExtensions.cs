@@ -44,15 +44,6 @@ namespace NexusStack.Core
 {
     public static partial class ServiceCollectionExtensions
     {
-        // 缓存 MapHub 方法以避免重复反射查找
-        private static readonly Lazy<MethodInfo?> _mapHubMethod = new(() =>
-            typeof(HubEndpointRouteBuilderExtensions)
-                .GetMethods()
-                .FirstOrDefault(m => m.Name == "MapHub" &&
-                                    m.IsGenericMethodDefinition &&
-                                    m.GetParameters().Length == 2 &&
-                                    m.GetParameters()[1].ParameterType == typeof(string)));
-
         /// <summary>
         /// 项目初始化函数
         /// </summary>
@@ -60,10 +51,9 @@ namespace NexusStack.Core
         /// <param name="moduleKey"></param>
         /// <param name="moduleTitle"></param>
         /// <param name="coreServiceType">服务类型</param>
-        /// <param name="enableSignalR">是否启用SignalR自动映射</param>
         /// <returns></returns>
         /// 
-        public static async Task InitAppliation(this WebApplicationBuilder builder, string moduleKey, string moduleTitle, CoreServiceType coreServiceType = CoreServiceType.WebService, bool enableSignalR = false)
+        public static async Task InitAppliation(this WebApplicationBuilder builder, string moduleKey, string moduleTitle, CoreServiceType coreServiceType = CoreServiceType.WebService)
         {
             //ExcelPackage.LicenseContext = LicenseContext.Commercial;
 
@@ -73,237 +63,7 @@ namespace NexusStack.Core
 
             app.UseApp(moduleKey, moduleTitle, coreServiceType);
 
-            // 如果启用SignalR且是WebService类型，自动映射Hub端点
-            if (enableSignalR && coreServiceType == CoreServiceType.WebService)
-            {
-                AutoMapSignalRHubs(app);
-            }
-
             await app.RunAsync();
-        }
-
-        /// <summary>
-        /// 自动映射所有带SignalRHub特性的Hub
-        /// </summary>
-        /// <param name="app"></param>
-        private static void AutoMapSignalRHubs(WebApplication app)
-        {
-            try
-            {
-                Console.WriteLine("开始自动映射SignalR Hubs...");
-
-                // 优先尝试使用配置文件中的HubPathMappings
-                if (MapHubsFromConfiguration(app))
-                {
-                    Console.WriteLine("使用配置文件HubPathMappings映射Hub完成");
-                    return;
-                }
-
-                // 如果配置文件映射失败，回退到反射方式
-                Console.WriteLine("配置文件映射失败，回退到反射方式映射Hub...");
-                MapHubsUsingReflection(app);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"SignalR Hub自动映射过程中发生错误: {ex.Message}");
-                Console.WriteLine($"错误详情: {ex}");
-            }
-        }
-
-        /// <summary>
-        /// 基于配置文件HubPathMappings映射Hub
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns>是否映射成功</returns>
-        private static bool MapHubsFromConfiguration(WebApplication app)
-        {
-            try
-            {
-                // 获取SignalR通知选项配置
-                var signalROptions = app.Services.GetService<IOptions<SignalRNotificationOptions>>()?.Value;
-                if (signalROptions?.HubPathMappings is not { Count: > 0 })
-                {
-                    Console.WriteLine("未找到SignalR配置或HubPathMappings为空");
-                    return false;
-                }
-
-                Console.WriteLine($"从配置文件加载到 {signalROptions.HubPathMappings.Count} 个Hub路径映射");
-
-                int mappedHubsCount = 0;
-                Dictionary<string, Type> hubTypeCache = [];
-
-                // 预加载所有Hub类型到缓存中
-                PreloadHubTypes(hubTypeCache);
-
-                foreach (var pathMapping in signalROptions.HubPathMappings)
-                {
-                    var hubPath = pathMapping.Key;
-                    var hubNames = pathMapping.Value;
-
-                    Console.WriteLine($"处理Hub路径: {hubPath} -> [{string.Join(", ", hubNames)}]");
-
-                    // 对于每个路径，只映射第一个有效的Hub（主要Hub）
-                    var primaryHubName = hubNames.FirstOrDefault();
-                    if (string.IsNullOrEmpty(primaryHubName))
-                    {
-                        Console.WriteLine($"路径 {hubPath} 没有配置Hub名称");
-                        continue;
-                    }
-
-                    if (hubTypeCache.TryGetValue(primaryHubName, out var hubType))
-                    {
-                        try
-                        {
-                            if (_mapHubMethod.Value != null)
-                            {
-                                var genericMethod = _mapHubMethod.Value.MakeGenericMethod(hubType);
-                                genericMethod.Invoke(null, [app, hubPath]);
-
-                                mappedHubsCount++;
-                                Console.WriteLine($"成功映射Hub: {primaryHubName} -> {hubPath}");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"找不到MapHub方法，无法映射Hub: {primaryHubName}");
-                            }
-                        }
-                        catch (Exception hubMapEx)
-                        {
-                            Console.WriteLine($"映射Hub失败: {primaryHubName} -> {hubPath}, 错误: {hubMapEx.Message}");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"找不到Hub类型: {primaryHubName}，跳过路径 {hubPath}");
-                    }
-                }
-
-                Console.WriteLine($"基于配置文件的SignalR Hub映射完成，共映射 {mappedHubsCount} 个Hub");
-                return mappedHubsCount > 0;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"基于配置文件映射Hub时发生错误: {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 预加载所有Hub类型到缓存
-        /// </summary>
-        /// <param name="hubTypeCache"></param>
-        private static void PreloadHubTypes(Dictionary<string, Type> hubTypeCache)
-        {
-            try
-            {
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true)
-                    .ToArray();
-
-                Console.WriteLine($"预加载Hub类型，检查 {assemblies.Length} 个NexusStack相关程序集");
-
-                foreach (var assembly in assemblies)
-                {
-                    try
-                    {
-                        // 查找所有继承自Hub的类型
-                        var hubTypes = assembly.GetTypes()
-                            .Where(t => t.IsClass &&
-                                       !t.IsAbstract &&
-                                       typeof(Hub).IsAssignableFrom(t))
-                            .ToList();
-
-                        foreach (var hubType in hubTypes)
-                        {
-                            var hubName = hubType.Name;
-                            if (!hubTypeCache.ContainsKey(hubName))
-                            {
-                                hubTypeCache[hubName] = hubType;
-                                Console.WriteLine($"  缓存Hub类型: {hubName} ({hubType.FullName})");
-                            }
-                        }
-                    }
-                    catch (Exception assemblyEx)
-                    {
-                        Console.WriteLine($"预加载程序集 {assembly.GetName().Name} 的Hub类型时出错: {assemblyEx.Message}");
-                    }
-                }
-
-                Console.WriteLine($"Hub类型预加载完成，共缓存 {hubTypeCache.Count} 个Hub类型");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"预加载Hub类型时发生错误: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 使用反射方式映射Hub（回退方法）
-        /// </summary>
-        /// <param name="app"></param>
-        private static void MapHubsUsingReflection(WebApplication app)
-        {
-            try
-            {
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetName().Name?.StartsWith("NexusStack.") == true)
-                    .ToArray();
-
-                int mappedHubsCount = 0;
-
-                foreach (var assembly in assemblies)
-                {
-                    try
-                    {
-                        // 查找所有继承自Hub且带有SignalRHub特性的类型
-                        var hubTypes = assembly.GetTypes()
-                            .Where(t => t.IsClass &&
-                                       !t.IsAbstract &&
-                                       typeof(Hub).IsAssignableFrom(t) &&
-                                       t.IsDefined(typeof(SignalRHubAttribute), false))
-                            .ToList();
-
-                        Console.WriteLine($"在程序集 {assembly.GetName().Name} 中找到 {hubTypes.Count} 个Hub类型");
-
-                        foreach (var hubType in hubTypes)
-                        {
-                            var hubAttribute = hubType.GetCustomAttribute<SignalRHubAttribute>(false)!;
-
-                            Console.WriteLine($"正在映射Hub: {hubType.Name} -> {hubAttribute.Route}");
-
-                            try
-                            {
-                                if (_mapHubMethod.Value != null)
-                                {
-                                    var genericMethod = _mapHubMethod.Value.MakeGenericMethod(hubType);
-                                    genericMethod.Invoke(null, [app, hubAttribute.Route]);
-
-                                    mappedHubsCount++;
-                                    Console.WriteLine($"成功映射Hub: {hubType.Name} -> {hubAttribute.Route}");
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"找不到MapHub方法，无法映射Hub: {hubType.Name}");
-                                }
-                            }
-                            catch (Exception hubMapEx)
-                            {
-                                Console.WriteLine($"映射Hub失败: {hubType.Name} -> {hubAttribute.Route}, 错误: {hubMapEx.Message}");
-                            }
-                        }
-                    }
-                    catch (Exception assemblyEx)
-                    {
-                        Console.WriteLine($"检查程序集 {assembly.GetName().Name} 时出错: {assemblyEx.Message}");
-                    }
-                }
-
-                Console.WriteLine($"基于反射的SignalR Hub映射完成，共映射 {mappedHubsCount} 个Hub");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"基于反射映射Hub时发生错误: {ex.Message}");
-            }
         }
 
         /// <summary>
@@ -418,25 +178,6 @@ namespace NexusStack.Core
                     .AddScheme<RequestAuthenticationTokenSchemeOptions, RequestAuthenticationTokenHandler>("Authorization-Token", options => { });
 
                 builder.Services.AddAuthorization();
-
-                // 添加SignalR服务
-                builder.Services.AddSignalR(options =>
-                {
-                    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-                    options.ClientTimeoutInterval = TimeSpan.FromMinutes(2);
-                    options.MaximumReceiveMessageSize = 64 * 1024;
-                })
-                .AddJsonProtocol(options =>
-                {
-                    options.PayloadSerializerOptions.Converters.Add(new JsonLongConverter());
-                    options.PayloadSerializerOptions.Converters.Add(new JsonDecimalConverter());
-                })
-                .AddMessagePackProtocol(options =>
-                {
-                    options.SerializerOptions = MessagePack.MessagePackSerializerOptions.Standard
-                        .WithCompression(MessagePack.MessagePackCompression.Lz4BlockArray)
-                        .WithOmitAssemblyVersion(true);
-                });
             }
             else if (coreServiceType == CoreServiceType.Gateway)
             {
@@ -563,6 +304,12 @@ namespace NexusStack.Core
             }
 
             app.AddRabbitMQCodeManager();
+
+            // 注册基于MQ的后台发布订阅服务需要的中间件
+            if(coreServiceType == CoreServiceType.MQService)
+            {
+                // To Do 将SignalR解耦成中继服务，MQService直接消费MQ队列然后统一执行推送消息，Web API和ScheduleTask只生产消息到MQ队列，不直接依赖SignalR，这样可以更好地解耦和扩展
+            }
 
             return app;
         }
