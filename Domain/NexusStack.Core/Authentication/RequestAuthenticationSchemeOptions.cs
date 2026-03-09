@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,6 +16,13 @@ namespace NexusStack.Core.Authentication
     /// Token请求身份验证方案选项
     /// </summary>
     public class RequestAuthenticationTokenSchemeOptions : AuthenticationSchemeOptions
+    {
+
+    }
+    /// <summary>
+    /// SignalR Token 请求身份验证方案选项
+    /// </summary>
+    public class RequestAuthenticationSignalRTokenSchemeOptions : AuthenticationSchemeOptions
     {
 
     }
