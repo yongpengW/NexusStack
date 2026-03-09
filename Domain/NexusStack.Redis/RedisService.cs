@@ -8,7 +8,7 @@ using System.Text;
 
 namespace NexusStack.Redis
 {
-    public class RedisService : IRedisService, IScopedDependency
+    public class RedisService : IRedisService, ISingletonDependency
     {
         public async Task<long> DeleteAsync(string key)
         {
