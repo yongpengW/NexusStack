@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using DynamicLocalizer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -321,12 +321,6 @@ namespace NexusStack.Core
             }
 
             app.AddRabbitMQCodeManager();
-
-            // 注册基于MQ的后台发布订阅服务需要的中间件
-            if(coreServiceType == CoreServiceType.MQService)
-            {
-                // To Do 将SignalR解耦成中继服务，MQService直接消费MQ队列然后统一执行推送消息，Web API和ScheduleTask只生产消息到MQ队列，不直接依赖SignalR，这样可以更好地解耦和扩展
-            }
 
             return app;
         }

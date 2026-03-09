@@ -287,6 +287,7 @@ flowchart LR
   - 在 `NotificationEventHandler` 中完成：解析 `NotificationEventData.Data` → `IHubContext` 推送 → 更新 AsyncTask 状态
 - Producer（WebAPI/PlanTaskService）：
   - 按第 4 节 JSON 约定填充 `Data`（保持轻量）
+  - 推荐：提供一个生产侧封装服务（如 `INotificationRelayService`），避免手写 JSON，统一生成 `NotificationRelayMessage` 并调用 `IAsyncTaskService.CreateTaskAsync(..., "Notification")`
 
 ### 9.2 配置项（建议）
 
@@ -317,4 +318,5 @@ flowchart LR
 1. **统一身份标识字段**：用哪个 Claim 作为 `UserIdentifier`（UserId / sub / nameidentifier）？
 2. **Token 体系**：当前 WebAPI 的认证方式是否是 JWT，还是自定义 `Authorization-Token`？SignalR 连接 token 准备走 Header 还是 querystring 的 `access_token`（若走 `access_token`，建议使用专用 Scheme/Handler）？
 3. **推送路由策略**：V1 只按 userId 推送，还是需要 group（租户/组织）？
+4. **生产侧调用方式**：是否统一通过 `INotificationRelayService` 封装发布通知（推荐），还是由业务侧自行拼装 `NotificationRelayMessage`？
 

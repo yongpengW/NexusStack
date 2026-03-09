@@ -80,7 +80,15 @@ namespace NexusStack.Core.EventHandler
                         throw new InvalidOperationException("Notification 数据格式错误：target.type=user 时必须提供 target.userId");
                     }
 
-                    await hubContext.Clients.User(userId).SendAsync(eventName, payload);
+                    // 默认按“内置用户组”推送：兼容多连接/多端；若 userId 非数字则回退到 Clients.User(userId)
+                    if (long.TryParse(userId, out var userIdLong) && userIdLong > 0)
+                    {
+                        await hubContext.Clients.Group(NotificationGroupNames.User(userIdLong)).SendAsync(eventName, payload);
+                    }
+                    else
+                    {
+                        await hubContext.Clients.User(userId).SendAsync(eventName, payload);
+                    }
                 }
                 else if (targetType == "group")
                 {
@@ -115,24 +123,6 @@ namespace NexusStack.Core.EventHandler
                 await asyncTaskService.UpdateAsync(task);
                 logger.LogError(ex, $"AsyncTaskEvent 任务[{task.Id}] 处理失败");
             }
-        }
-
-        private sealed class NotificationRelayMessage
-        {
-            public NotificationTarget? Target { get; set; }
-
-            public string? Event { get; set; }
-
-            public JsonElement Payload { get; set; }
-        }
-
-        private sealed class NotificationTarget
-        {
-            public string? Type { get; set; }
-
-            public string? UserId { get; set; }
-
-            public string? Group { get; set; }
         }
     }
 }
