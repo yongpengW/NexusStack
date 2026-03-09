@@ -68,9 +68,22 @@ namespace NexusStack.Core.EventHandler
                 var eventName = string.IsNullOrWhiteSpace(relayMessage.Event) ? "Notification" : relayMessage.Event.Trim();
                 var targetType = relayMessage.Target.Type?.Trim()?.ToLowerInvariant();
 
-                object payload = relayMessage.Payload.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
-                    ? relayMessage
-                    : relayMessage.Payload;
+                object payload;
+                if (relayMessage.Payload.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+                {
+                    // 当没有有效 Payload 时，发送一个不包含 JsonElement 的对象，避免 MessagePack 序列化 JsonElement 失败
+                    payload = new
+                    {
+                        relayMessage.Event,
+                        relayMessage.Target,
+                        Payload = (string)null
+                    };
+                }
+                else
+                {
+                    // 将 JsonElement 转为 JSON 字符串，确保对 MessagePack 友好
+                    payload = relayMessage.Payload.GetRawText();
+                }
 
                 if (string.IsNullOrWhiteSpace(targetType) || targetType == "user")
                 {
