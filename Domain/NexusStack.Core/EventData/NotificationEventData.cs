@@ -28,6 +28,6 @@ namespace NexusStack.Core.EventData
         /// </summary>
         public override long TaskId { get; set; }
 
-        public override string? Data { get; set; }
+        public override string Data { get; set; } = string.Empty;
     }
 }
