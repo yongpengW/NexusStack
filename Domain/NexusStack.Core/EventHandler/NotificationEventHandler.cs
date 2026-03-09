@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NexusStack.Core.EventData;
+using NexusStack.Core.SignalR;
 using NexusStack.Core.Services.AsyncTasks;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.Infrastructure.Enums;
@@ -8,6 +10,7 @@ using NexusStack.RabbitMQ.EventBus;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace NexusStack.Core.EventHandler
 {
@@ -44,9 +47,59 @@ namespace NexusStack.Core.EventHandler
                 task.State = AsyncTaskState.InProgress;
                 await asyncTaskService.UpdateAsync(task);
 
-                // Todo : 使用SignalR服务执行发送具体的通知逻辑
-                //
-                //
+                var hubContext = scope.ServiceProvider.GetRequiredService<IHubContext<NotificationHub>>();
+
+                var rawData = !string.IsNullOrWhiteSpace(@event.Data) ? @event.Data : task.Data;
+                if (string.IsNullOrWhiteSpace(rawData))
+                {
+                    throw new InvalidOperationException("Notification 数据为空");
+                }
+
+                var relayMessage = JsonSerializer.Deserialize<NotificationRelayMessage>(rawData, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (relayMessage?.Target is null)
+                {
+                    throw new InvalidOperationException("Notification 数据格式错误：缺少 target");
+                }
+
+                var eventName = string.IsNullOrWhiteSpace(relayMessage.Event) ? "Notification" : relayMessage.Event.Trim();
+                var targetType = relayMessage.Target.Type?.Trim()?.ToLowerInvariant();
+
+                object payload = relayMessage.Payload.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
+                    ? relayMessage
+                    : relayMessage.Payload;
+
+                if (string.IsNullOrWhiteSpace(targetType) || targetType == "user")
+                {
+                    var userId = relayMessage.Target.UserId?.Trim();
+                    if (string.IsNullOrWhiteSpace(userId))
+                    {
+                        throw new InvalidOperationException("Notification 数据格式错误：target.type=user 时必须提供 target.userId");
+                    }
+
+                    await hubContext.Clients.User(userId).SendAsync(eventName, payload);
+                }
+                else if (targetType == "group")
+                {
+                    var group = relayMessage.Target.Group?.Trim();
+                    if (string.IsNullOrWhiteSpace(group))
+                    {
+                        throw new InvalidOperationException("Notification 数据格式错误：target.type=group 时必须提供 target.group");
+                    }
+
+                    await hubContext.Clients.Group(group).SendAsync(eventName, payload);
+                }
+                else if (targetType == "all")
+                {
+                    await hubContext.Clients.All.SendAsync(eventName, payload);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Notification 数据格式错误：不支持的 target.type={relayMessage.Target.Type}");
+                }
 
 
 
@@ -62,6 +115,24 @@ namespace NexusStack.Core.EventHandler
                 await asyncTaskService.UpdateAsync(task);
                 logger.LogError(ex, $"AsyncTaskEvent 任务[{task.Id}] 处理失败");
             }
+        }
+
+        private sealed class NotificationRelayMessage
+        {
+            public NotificationTarget? Target { get; set; }
+
+            public string? Event { get; set; }
+
+            public JsonElement Payload { get; set; }
+        }
+
+        private sealed class NotificationTarget
+        {
+            public string? Type { get; set; }
+
+            public string? UserId { get; set; }
+
+            public string? Group { get; set; }
         }
     }
 }

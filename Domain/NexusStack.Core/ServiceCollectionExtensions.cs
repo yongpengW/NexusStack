@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DynamicLocalizer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -17,6 +17,7 @@ using NexusStack.Core.Filters;
 using NexusStack.Core.Gateway;
 using NexusStack.Core.HostedServices;
 using NexusStack.Core.Schedules;
+using NexusStack.Core.SignalR;
 using NexusStack.Infrastructure;
 using NexusStack.Infrastructure.Attributes;
 using NexusStack.Infrastructure.Converters;
@@ -179,6 +180,21 @@ namespace NexusStack.Core
 
                 builder.Services.AddAuthorization();
             }
+            else if (coreServiceType == CoreServiceType.MQService)
+            {
+                // MQService 作为 SignalR 推送中继：启用专用认证 Scheme（支持 access_token）与 SignalR 服务
+                builder.Services.AddAuthentication("Authorization-SignalR-Token")
+                    .AddScheme<RequestAuthenticationSignalRTokenSchemeOptions, RequestAuthenticationSignalRTokenHandler>(
+                        "Authorization-SignalR-Token",
+                        options => { });
+
+                builder.Services.AddAuthorization();
+
+                builder.Services.AddSignalR(options =>
+                {
+                    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+                }).AddMessagePackProtocol();
+            }
             else if (coreServiceType == CoreServiceType.Gateway)
             {
                 //SSO认证
@@ -295,6 +311,7 @@ namespace NexusStack.Core
 
             if (coreServiceType == CoreServiceType.MQService)
             {
+                app.MapHub<NotificationHub>("/hubs/notification");
                 app.AddRabbitMQEventBus();
             }
             else if (coreServiceType == CoreServiceType.Gateway)
