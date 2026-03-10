@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NexusStack.Core.EventData;
-using NexusStack.Core.Services.SystemManagement;
+using NexusStack.Core.Services.Interfaces;
 using NexusStack.RabbitMQ.EventBus;
 using System;
 using System.Collections.Generic;
