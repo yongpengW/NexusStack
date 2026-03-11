@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.Controllers;
+﻿using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NexusStack.Core.Attributes;
 using NexusStack.Core.EventData;
@@ -44,7 +44,6 @@ namespace NexusStack.Core.Filters
                 //前端传递的接口参数
                 var json = JsonConvert.SerializeObject(context.ActionArguments);
 
-                //系统刚上线阶段 所有的接口都记录日志
                 //OperationLogActionAttribute 标记自定义操作日志内容（可加入参数）
                 var logAttribute = actionDescriptor.MethodInfo.GetCustomAttribute<OperationLogActionAttribute>()
                     ?? actionDescriptor.ControllerTypeInfo.GetCustomAttribute<OperationLogActionAttribute>();

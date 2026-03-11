@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Dtos;
@@ -16,7 +16,7 @@ using System.Text;
 
 namespace NexusStack.Core.Services.SystemManagement
 {
-    public class OperationLogService(MainContext dbContext, IMapper mapper, IServiceProvider scopeFactory) : ServiceBase<OperationLog>(dbContext, mapper), IOperationLogService, IScopedDependency
+    public class OperationLogService(MainContext dbContext, IMapper mapper) : ServiceBase<OperationLog>(dbContext, mapper), IOperationLogService, IScopedDependency
     {
         /// <summary>
         /// 记录操作日志
@@ -26,53 +26,40 @@ namespace NexusStack.Core.Services.SystemManagement
         /// <returns></returns>
         public async Task LogAsync(string code, string content, string json, string ipAddress, string userAgent, LogType logType, string method, long userId = 0)
         {
-            using var scope = scopeFactory.CreateScope();
-            var operationLogService = scope.ServiceProvider.GetRequiredService<IServiceBase<OperationLog>>();
-
             var entity = new OperationLog
             {
                 IpAddress = ipAddress,
                 OperationMenu = code ?? "",
-                OperationContent = content ?? "",
+                OperationContent = content ?? json,
                 UserAgent = userAgent,
                 MenuCode = code ?? "",
-                Remark = json,
+                //Remark = json,
                 LogType = logType,
                 Method = method,
                 CreatedBy = userId,
                 UpdatedBy = userId
             };
 
-            await operationLogService.InsertAsync(entity);
+            await this.InsertAsync(entity);
         }
 
 
         public async Task SystemLogAsync(SystemLogDto log)
         {
-            try
+            var entity = new OperationLog
             {
-                using var scope = scopeFactory.CreateScope();
-                var operationLogService = scope.ServiceProvider.GetService<IServiceBase<OperationLog>>();
+                IpAddress = "::1",
+                OperationMenu = "",
+                OperationContent = log.title ?? "",
+                UserAgent = "",
+                MenuCode = "",
+                Remark = JsonConvert.SerializeObject(log.entity),
+                LogType = log.logType,
+                CreatedBy = log.userId,
+                UpdatedBy = log.userId
+            };
 
-                var entity = new OperationLog
-                {
-                    IpAddress = "::1",
-                    OperationMenu = "",
-                    OperationContent = log.title ?? "",
-                    UserAgent = "",
-                    MenuCode = "",
-                    Remark = JsonConvert.SerializeObject(log.entity),
-                    LogType = log.logType,
-                    CreatedBy = log.userId,
-                    UpdatedBy = log.userId
-                };
-
-                await operationLogService.InsertAsync(entity);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Write log failed:", ex.ToString());
-            }
+            await this.InsertAsync(entity);
         }
 
         /// <summary>
@@ -83,9 +70,6 @@ namespace NexusStack.Core.Services.SystemManagement
         /// <returns></returns>
         public async Task RequestLogAsync(CreateOperationLogDto model, long userId)
         {
-            using var scope = scopeFactory.CreateScope();
-            var operationLogService = scope.ServiceProvider.GetService<IServiceBase<OperationLog>>();
-
             var entity = new OperationLog
             {
                 IpAddress = model.IpAddress,
@@ -99,7 +83,7 @@ namespace NexusStack.Core.Services.SystemManagement
                 UpdatedBy = userId
             };
 
-            await operationLogService.InsertAsync(entity);
+            await this.InsertAsync(entity);
         }
 
         /// <summary>
@@ -110,10 +94,6 @@ namespace NexusStack.Core.Services.SystemManagement
         /// <returns></returns>
         public async Task ExceptionLogAsync(CreateOperationLogDto model, long userId)
         {
-            using var scope = scopeFactory.CreateScope();
-
-            var operationLogService = scope.ServiceProvider.GetService<IServiceBase<OperationLog>>();
-
             var entity = new OperationLog
             {
                 IpAddress = model.IpAddress,
@@ -128,8 +108,9 @@ namespace NexusStack.Core.Services.SystemManagement
                 UpdatedBy = userId
             };
 
-            await operationLogService.InsertAsync(entity);
+            await this.InsertAsync(entity);
         }
+
         public byte[] ExportLogAsync(List<OperationLogDto> logs)
         {
             var columnsMapping = new Dictionary<string, string>
