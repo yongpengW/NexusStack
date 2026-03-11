@@ -51,6 +51,11 @@ namespace NexusStack.Core.Services.Interfaces
         /// <returns></returns>
         Task ExceptionLogAsync(CreateOperationLogDto model, long userId);
 
+        /// <summary>
+        /// 导出日志
+        /// </summary>
+        /// <param name="logs"></param>
+        /// <returns></returns>
         byte[] ExportLogAsync(List<OperationLogDto> logs);
     }
 }
