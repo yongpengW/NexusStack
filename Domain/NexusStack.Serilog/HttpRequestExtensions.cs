@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
+using System.Linq;
 
 namespace NexusStack.Serilog
 {
@@ -19,26 +16,32 @@ namespace NexusStack.Serilog
         /// <returns></returns>
         public static string GetRemoteIpAddress(this HttpRequest request)
         {
-            if (request.Headers.ContainsKey("X-Forwarded-For"))
+            if (request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
             {
-                return request.Headers["X-Forwarded-For"]!;
+                var firstIp = forwardedFor
+                    .ToString()
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim())
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(firstIp))
+                {
+                    return firstIp;
+                }
             }
 
             var remoteIP = request.HttpContext.Connection.RemoteIpAddress;
-            if (remoteIP.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            if (remoteIP == null)
             {
-                try
-                {
-                    remoteIP = Dns.GetHostEntry(remoteIP).AddressList.FirstOrDefault(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"获取主机信息失败，主机地址:{remoteIP}");
-                    Log.Error(ex, ex.Message);
-                }
+                return string.Empty;
             }
 
-            return remoteIP?.ToString() ?? string.Empty;
+            if (remoteIP.IsIPv4MappedToIPv6)
+            {
+                remoteIP = remoteIP.MapToIPv4();
+            }
+
+            return remoteIP.ToString();
         }
     }
 }
