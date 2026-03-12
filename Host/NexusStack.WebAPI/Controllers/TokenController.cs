@@ -85,47 +85,81 @@ namespace NexusStack.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("permission")]
-        [SkipApiPermissionCheck]
         public async Task<List<RolePermissionDto>> GetCurrentUserPermissionAsync(PlatformType platformType)
         {
-            // 直接使用认证阶段按平台过滤并缓存的 RoleIds，确保只返回当前平台下的权限
-            var platformRoleIds = CurrentUser.RoleIds.ToList();
-            if (platformRoleIds.Count == 0)
-                return new List<RolePermissionDto>();
-
-            var menuFilter = PredicateBuilder.New<Menu>(true).And(a => a.PlatformType == platformType);
-            var query = (from p in permissionService.GetQueryable()
-                         join m in menuService.GetExpandable().Where(menuFilter) on p.MenuId equals m.Id
-                         where platformRoleIds.Contains(p.RoleId) && m.IsVisible
-                         select new RolePermissionDto
-                         {
-                             MenuId = m.Id,
-                             RoleId = p.RoleId,
-                             MenuName = m.Name,
-                             MenuCode = m.Code,
-                             ParentId = m.ParentId,
-                             Order = m.Order,
-                             MenuUrl = m.Url,
-                             Type = m.Type,
-                             IconType = m.IconType,
-                             ActiveIcon = m.ActiveIcon,
-                             Icon = m.Icon,
-                             IsExternalLink = m.IsExternalLink
-                         })
-                        .Distinct();
-            var list = await query.ToListAsync();
-
-            List<RolePermissionDto> getChildren(long parentId)
+            if (CurrentUser.IsRoot)
             {
-                var children = list.Where(a => a.ParentId == parentId).OrderBy(a => a.Order).ToList();
-                return children.Select(a =>
-                {
-                    a.Children = getChildren(a.MenuId);
-                    return a;
-                }).ToList();
-            }
+                var menus = await menuService.GetListAsync(x => x.PlatformType == platformType);
 
-            return getChildren(0);
+                var rootPermissions = menus.Where(m => m.IsVisible).Select(m => new RolePermissionDto
+                {
+                    MenuId = m.Id,
+                    RoleId = CurrentUser.RoleIds.FirstOrDefault(),
+                    MenuName = m.Name,
+                    MenuCode = m.Code,
+                    ParentId = m.ParentId,
+                    Order = m.Order,
+                    MenuUrl = m.Url,
+                    Type = m.Type,
+                    IconType = m.IconType,
+                    ActiveIcon = m.ActiveIcon,
+                    Icon = m.Icon,
+                    IsExternalLink = m.IsExternalLink
+                }).ToList();
+
+                List<RolePermissionDto> getChildren(long parentId)
+                {
+                    var children = rootPermissions.Where(a => a.ParentId == parentId).OrderBy(a => a.Order).ToList();
+                    return children.Select(a =>
+                    {
+                        a.Children = getChildren(a.MenuId);
+                        return a;
+                    }).ToList();
+                }
+
+                return getChildren(0);
+            }
+            else
+            {
+                // 直接使用认证阶段按平台过滤并缓存的 RoleIds，确保只返回当前平台下的权限
+                var platformRoleIds = CurrentUser.RoleIds.ToList();
+                if (platformRoleIds.Count == 0)
+                    return new List<RolePermissionDto>();
+
+                var menuFilter = PredicateBuilder.New<Menu>(true).And(a => a.PlatformType == platformType);
+                var query = (from p in permissionService.GetQueryable()
+                             join m in menuService.GetExpandable().Where(menuFilter) on p.MenuId equals m.Id
+                             where platformRoleIds.Contains(p.RoleId) && m.IsVisible
+                             select new RolePermissionDto
+                             {
+                                 MenuId = m.Id,
+                                 RoleId = p.RoleId,
+                                 MenuName = m.Name,
+                                 MenuCode = m.Code,
+                                 ParentId = m.ParentId,
+                                 Order = m.Order,
+                                 MenuUrl = m.Url,
+                                 Type = m.Type,
+                                 IconType = m.IconType,
+                                 ActiveIcon = m.ActiveIcon,
+                                 Icon = m.Icon,
+                                 IsExternalLink = m.IsExternalLink
+                             })
+                            .Distinct();
+                var list = await query.ToListAsync();
+
+                List<RolePermissionDto> getChildren(long parentId)
+                {
+                    var children = list.Where(a => a.ParentId == parentId).OrderBy(a => a.Order).ToList();
+                    return children.Select(a =>
+                    {
+                        a.Children = getChildren(a.MenuId);
+                        return a;
+                    }).ToList();
+                }
+
+                return getChildren(0);
+            }
         }
     }
 }
