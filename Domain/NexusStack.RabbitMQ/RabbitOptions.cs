@@ -70,5 +70,10 @@ namespace NexusStack.RabbitMQ
         /// 消费幂等键过期小时数
         /// </summary>
         public int ConsumerIdempotencyExpireHours { get; set; } = 24;
+
+        /// <summary>
+        /// 延迟消息用交换机名称（为空时使用 ExchangeName + ".delayed"）
+        /// </summary>
+        public string? DelayedExchangeName { get; set; }
     }
 }
