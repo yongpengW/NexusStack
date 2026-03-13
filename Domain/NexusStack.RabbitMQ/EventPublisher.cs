@@ -85,7 +85,9 @@ namespace NexusStack.RabbitMQ
                     Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
                 };
 
-                var delayedExchange = this.options.DelayedExchangeName ?? (this.options.ExchangeName + ".delayed");
+                var delayedExchange = string.IsNullOrWhiteSpace(this.options.DelayedExchangeName)
+                    ? this.options.ExchangeName + ".delayed"
+                    : this.options.DelayedExchangeName;
                 var routingKey = $"{tierKey}.{SanitizeEventTypeName(eventName)}";
 
                 await this.publisherChannel.BasicPublishAsync(
