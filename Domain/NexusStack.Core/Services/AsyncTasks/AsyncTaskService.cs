@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using NexusStack.Core.Entities.AsyncTasks;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
@@ -51,6 +51,21 @@ namespace NexusStack.Core.Services.AsyncTasks
             }
 
             await publisher.PublishAsync(eventInstance);
+            return task;
+        }
+
+        public async Task<AsyncTask> CreateDelayedTaskAsync(object data, string code, DelayTier delayTier)
+        {
+            var eventType = eventCodeManager.GetEventType(code) ?? throw new InvalidOperationException($"未找到{code}对应的事件类型。");
+
+            var task = await GenerateTaskAsync(data, code);
+
+            if (Activator.CreateInstance(eventType, task) is not EventBase eventInstance)
+            {
+                throw new InvalidOperationException($"无法创建类型 {eventType.Name} 的实例。");
+            }
+
+            await publisher.PublishDelayedAsync(eventInstance, delayTier);
             return task;
         }
 
