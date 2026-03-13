@@ -126,12 +126,14 @@ namespace NexusStack.RabbitMQ
         {
             var delayedExchange = this.options.DelayedExchangeName ?? (this.options.ExchangeName + ".delayed");
 
-            if (Interlocked.CompareExchange(ref this.delayedExchangeDeclared, 1, 0) == 0)
+            if (Volatile.Read(ref this.delayedExchangeDeclared) == 0)
             {
                 await this.publisherChannel.ExchangeDeclareAsync(
                     exchange: delayedExchange,
                     type: ExchangeType.Direct,
                     durable: true);
+
+                Interlocked.Exchange(ref this.delayedExchangeDeclared, 1);
             }
 
             var sanitized = SanitizeEventTypeName(eventTypeName);
