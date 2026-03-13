@@ -74,6 +74,6 @@ namespace NexusStack.RabbitMQ
         /// <summary>
         /// 延迟消息用交换机名称（为空时使用 ExchangeName + ".delayed"）
         /// </summary>
-        public string DelayedExchangeName { get; set; }
+        public string? DelayedExchangeName { get; set; }
     }
 }
