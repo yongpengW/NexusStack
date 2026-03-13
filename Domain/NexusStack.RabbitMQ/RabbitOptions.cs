@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -75,10 +75,5 @@ namespace NexusStack.RabbitMQ
         /// 延迟消息用交换机名称（为空时使用 ExchangeName + ".delayed"）
         /// </summary>
         public string DelayedExchangeName { get; set; }
-
-        /// <summary>
-        /// 延迟档位（分钟）：1/3/5/10/30/60/120
-        /// </summary>
-        public static readonly int[] DelayedTiersMinutes = { 1, 3, 5, 10, 30, 60, 120 };
     }
 }
