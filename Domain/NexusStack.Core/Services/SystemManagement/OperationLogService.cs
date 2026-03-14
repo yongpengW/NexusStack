@@ -8,6 +8,7 @@ using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
 using NexusStack.Excel.ExportStream;
 using NexusStack.Infrastructure;
+using NexusStack.Infrastructure.Utils;
 using NexusStack.Infrastructure.Enums;
 using Newtonsoft.Json;
 using System;
@@ -30,7 +31,7 @@ namespace NexusStack.Core.Services.SystemManagement
             {
                 IpAddress = ipAddress,
                 OperationMenu = code ?? "",
-                OperationContent = content ?? json,
+                OperationContent = content.IsNotNullOrEmpty() ? content : json,
                 UserAgent = userAgent,
                 MenuCode = code ?? "",
                 //Remark = json,

@@ -1,4 +1,4 @@
-# NexusStack - 微服务全栈解决方案
+# Nexus Stack - 微服务全栈解决方案
 
 <div align="center">
 
