@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NexusStack.Redis;
@@ -434,12 +434,17 @@ namespace NexusStack.RabbitMQ
                 return;
             }
 
+            // 与 handlerType 同一次“视图”下解析队列名，避免后续 RemoveConsumerMappings 竞态导致退化为 RoutingKey、多 Handler 共用一个幂等键
+            var queueDimension = this.consumerQueueMappings.TryGetValue(eventArgs.ConsumerTag, out var resolvedQueueName)
+                ? resolvedQueueName
+                : eventArgs.RoutingKey;
+
             var idempotencyKey = string.Empty;
             var processedSuccessfully = false;
 
             try
             {
-                var idempotencyResult = await TryAcquireIdempotencyAsync(eventArgs, message);
+                var idempotencyResult = await TryAcquireIdempotencyAsync(eventArgs, message, queueDimension);
                 if (!string.IsNullOrEmpty(idempotencyResult) && idempotencyResult.StartsWith("DUPLICATE|"))
                 {
                     this.logger.LogInformation($"检测到重复消息，直接确认并跳过处理。RoutingKey:{eventName}");
@@ -457,7 +462,7 @@ namespace NexusStack.RabbitMQ
                     return;
                 }
 
-                await HandleFailureAsync(eventArgs, idempotencyKey, consumerChannel);
+                await HandleFailureAsync(eventArgs, idempotencyKey, queueDimension, consumerChannel);
             }
             catch (Exception ex)
             {
@@ -470,40 +475,69 @@ namespace NexusStack.RabbitMQ
                     return;
                 }
 
-                await HandleFailureAsync(eventArgs, idempotencyKey, consumerChannel);
+                await HandleFailureAsync(eventArgs, idempotencyKey, queueDimension, consumerChannel);
             }
         }
 
-        private async Task HandleFailureAsync(BasicDeliverEventArgs eventArgs, string idempotencyKey, IChannel consumerChannel)
+        private async Task HandleFailureAsync(BasicDeliverEventArgs eventArgs, string idempotencyKey, string queueNameForRetry, IChannel consumerChannel)
         {
+            var canRetry = true;
             if (!string.IsNullOrEmpty(idempotencyKey))
-            {
-                await this.redisService.DeleteAsync(idempotencyKey);
-            }
-
-            var currentRetryCount = GetRetryCount(eventArgs.BasicProperties?.Headers);
-            if (currentRetryCount < this.options.MaxRetryCount)
             {
                 try
                 {
-                    await RepublishForRetryAsync(eventArgs, currentRetryCount + 1);
-                    await consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
-                    return;
+                    await this.redisService.DeleteAsync(idempotencyKey);
                 }
-                catch (Exception republishEx)
+                catch (Exception ex)
                 {
-                    this.logger.LogError(republishEx, $"重试消息发布失败，直接进入DLQ。RoutingKey:{eventArgs.RoutingKey}");
+                    this.logger.LogError(ex, "幂等键删除失败，无法安全重试，消息将进入 DLQ。Key:{IdempotencyKey}", idempotencyKey);
+                    canRetry = false;
                 }
             }
 
-            // 超过最大重试次数或重试消息发布失败，拒绝消息，不重新入队，交由 DLQ 承接
-            await consumerChannel.BasicNackAsync(
-                deliveryTag: eventArgs.DeliveryTag,
-                multiple: false,
-                requeue: false);
+            if (canRetry)
+            {
+                var currentRetryCount = GetRetryCount(eventArgs.BasicProperties?.Headers);
+                if (currentRetryCount < this.options.MaxRetryCount)
+                {
+                    try
+                    {
+                        await RepublishForRetryAsync(eventArgs, currentRetryCount + 1, queueNameForRetry);
+                        try
+                        {
+                            await consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, false);
+                            return;
+                        }
+                        catch (Exception ackEx)
+                        {
+                            this.logger.LogError(ackEx, "重试已发布但 ACK 失败，为避免原消息重投导致重复处理，将当前消息 Nack 进 DLQ。RoutingKey:{RoutingKey}", eventArgs.RoutingKey);
+                        }
+                    }
+                    catch (Exception republishEx)
+                    {
+                        this.logger.LogError(republishEx, $"重试消息发布失败，直接进入DLQ。RoutingKey:{eventArgs.RoutingKey}");
+                    }
+                }
+            }
+
+            // 超过最大重试次数、重试发布失败或幂等键删除失败时，拒绝消息，不重新入队，交由 DLQ 承接
+            try
+            {
+                await consumerChannel.BasicNackAsync(
+                    deliveryTag: eventArgs.DeliveryTag,
+                    multiple: false,
+                    requeue: false);
+            }
+            catch (Exception nackEx)
+            {
+                this.logger.LogError(
+                    nackEx,
+                    "消息 Nack 进 DLQ 失败，可能导致消息重复或滞留。RoutingKey:{RoutingKey}",
+                    eventArgs.RoutingKey);
+            }
         }
 
-        private async Task<string> TryAcquireIdempotencyAsync(BasicDeliverEventArgs eventArgs, string message)
+        private async Task<string> TryAcquireIdempotencyAsync(BasicDeliverEventArgs eventArgs, string message, string queueDimension)
         {
             if (!this.options.EnableConsumerIdempotency)
             {
@@ -516,21 +550,19 @@ namespace NexusStack.RabbitMQ
                 messageId = eventArgs.BasicProperties?.CorrelationId;
             }
 
+            // 无 MessageId/CorrelationId 时用消息体 SHA256 降级；受 JSON 序列化格式影响，建议发布端始终设置 MessageId
             if (string.IsNullOrWhiteSpace(messageId))
             {
                 var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(message));
                 messageId = Convert.ToHexString(hashBytes);
             }
 
-            var queueDimension = this.consumerQueueMappings.TryGetValue(eventArgs.ConsumerTag, out var queueName)
-                ? queueName
-                : eventArgs.RoutingKey;
-
             var key = $"mq:idempotent:{queueDimension}:{messageId}";
+            var expireHours = this.options.ConsumerIdempotencyExpireHours <= 0 ? 1 : this.options.ConsumerIdempotencyExpireHours;
             var acquired = await this.redisService.SetAsync(
                 key,
                 DateTimeOffset.UtcNow.ToString("O"),
-                TimeSpan.FromHours(this.options.ConsumerIdempotencyExpireHours),
+                TimeSpan.FromHours(expireHours),
                 CSRedis.RedisExistence.Nx);
 
             return acquired ? $"ACQUIRED|{key}" : $"DUPLICATE|{key}";
@@ -565,7 +597,7 @@ namespace NexusStack.RabbitMQ
             }
         }
 
-        private async Task RepublishForRetryAsync(BasicDeliverEventArgs eventArgs, int nextRetryCount)
+        private async Task RepublishForRetryAsync(BasicDeliverEventArgs eventArgs, int nextRetryCount, string queueName)
         {
             var headers = eventArgs.BasicProperties?.Headers is null
                 ? new Dictionary<string, object>()
@@ -585,11 +617,6 @@ namespace NexusStack.RabbitMQ
                 AppId = eventArgs.BasicProperties?.AppId,
                 Headers = headers
             };
-
-            if (!this.consumerQueueMappings.TryGetValue(eventArgs.ConsumerTag, out var queueName))
-            {
-                queueName = eventArgs.RoutingKey;
-            }
 
             var retryExchangeName = $"{this.options.ExchangeName}.retry";
 

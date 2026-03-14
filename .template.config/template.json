@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json.schemastore.org/template",
   "author": "Leo Wang",
   "classifications": [ "Web", "API", "Microservices", "NexusStack" ],
@@ -65,14 +65,6 @@
         {
           "choice": "PostgreSQL",
           "description": "使用 PostgreSQL 数据库"
-        },
-        {
-          "choice": "MySQL",
-          "description": "使用 MySQL 数据库"
-        },
-        {
-          "choice": "SqlServer",
-          "description": "使用 SQL Server 数据库"
         }
       ],
       "defaultValue": "PostgreSQL",
@@ -86,8 +78,7 @@
         "datatype": "string",
         "cases": [
           { "condition": "(DatabaseProvider == 'PostgreSQL')", "value": "AddEFCoreAndPostgreSQL" },
-          { "condition": "(DatabaseProvider == 'MySQL')", "value": "AddEFCoreAndMySql" },
-          { "condition": "(DatabaseProvider == 'SqlServer')", "value": "AddEFCoreAndSqlServer" }
+          { "condition": "true", "value": "AddEFCoreAndPostgreSQL" }
         ]
       },
       "replaces": "AddEFCoreAndPostgreSQL"
