@@ -521,10 +521,20 @@ namespace NexusStack.RabbitMQ
             }
 
             // 超过最大重试次数、重试发布失败或幂等键删除失败时，拒绝消息，不重新入队，交由 DLQ 承接
-            await consumerChannel.BasicNackAsync(
-                deliveryTag: eventArgs.DeliveryTag,
-                multiple: false,
-                requeue: false);
+            try
+            {
+                await consumerChannel.BasicNackAsync(
+                    deliveryTag: eventArgs.DeliveryTag,
+                    multiple: false,
+                    requeue: false);
+            }
+            catch (Exception nackEx)
+            {
+                this.logger.LogError(
+                    nackEx,
+                    "消息 Nack 进 DLQ 失败，可能导致消息重复或滞留。RoutingKey:{RoutingKey}",
+                    eventArgs.RoutingKey);
+            }
         }
 
         private async Task<string> TryAcquireIdempotencyAsync(BasicDeliverEventArgs eventArgs, string message, string queueDimension)
