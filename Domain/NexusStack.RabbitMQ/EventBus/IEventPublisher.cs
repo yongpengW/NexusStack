@@ -14,8 +14,9 @@ namespace NexusStack.RabbitMQ.EventBus
         /// 发布事件消息
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
-        /// <param name="message"></param>
-        Task PublishAsync<TEvent>(TEvent message) where TEvent : IEvent;
+        /// <param name="message">事件消息</param>
+        /// <param name="messageIdOverride">可选。指定时用作 BasicProperties.MessageId，用于手动重试等场景，避免与首次发布的消费幂等键冲突</param>
+        Task PublishAsync<TEvent>(TEvent message, string? messageIdOverride = null) where TEvent : IEvent;
 
         /// <summary>
         /// 发布延迟事件消息（TTL + DLX，使用固定档位）

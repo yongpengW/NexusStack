@@ -41,9 +41,9 @@ namespace NexusStack.RabbitMQ
             };
         }
 
-        public Task PublishAsync<TEvent>(TEvent message) where TEvent : IEvent
+        public Task PublishAsync<TEvent>(TEvent message, string? messageIdOverride = null) where TEvent : IEvent
         {
-            return PublishInternalAsync(message);
+            return PublishInternalAsync(message, messageIdOverride);
         }
 
         public Task PublishDelayedAsync<TEvent>(TEvent message, DelayTier delayTier) where TEvent : IEvent
@@ -72,9 +72,7 @@ namespace NexusStack.RabbitMQ
                 await EnsureDelayedExchangeAndQueueAsync(tierKey, tierMs, eventName);
 
                 var body = JsonSerializer.Serialize(message);
-                var messageId = message is EventBase eventBase && eventBase.TaskId > 0
-                    ? $"{message.TaskCode}:{eventBase.TaskId}"
-                    : $"{message.TaskCode}:{message.Id}";
+                var messageId = BuildMessageId(message);
 
                 var properties = new BasicProperties
                 {
@@ -106,6 +104,25 @@ namespace NexusStack.RabbitMQ
             {
                 this.publishLock.Release();
             }
+        }
+
+        /// <summary>
+        /// 生成消息唯一标识，用于消费端幂等。保证 Id 为空时仍唯一，避免误判重复。
+        /// </summary>
+        private static string BuildMessageId(IEvent message)
+        {
+            if (message is EventBase eventBase && eventBase.TaskId > 0)
+            {
+                return $"{message.TaskCode}:{eventBase.TaskId}";
+            }
+
+            var idPart = message.Id?.ToString();
+            if (string.IsNullOrWhiteSpace(idPart))
+            {
+                idPart = Guid.NewGuid().ToString();
+            }
+
+            return $"{message.TaskCode}:{idPart}";
         }
 
         private static (string TierKey, int TierMs) GetTierFromEnum(DelayTier delayTier)
@@ -165,7 +182,7 @@ namespace NexusStack.RabbitMQ
             this.declaredDelayQueues.TryAdd(queueKey, 0);
         }
 
-        private async Task PublishInternalAsync<TEvent>(TEvent message) where TEvent : IEvent
+        private async Task PublishInternalAsync<TEvent>(TEvent message, string? messageIdOverride = null) where TEvent : IEvent
         {
             if (Interlocked.CompareExchange(ref this.disposed, 0, 0) == 1)
             {
@@ -184,9 +201,7 @@ namespace NexusStack.RabbitMQ
                 var eventName = message.GetType().FullName;
                 var body = JsonSerializer.Serialize(message);
 
-                var messageId = message is EventBase eventBase && eventBase.TaskId > 0
-                    ? $"{message.TaskCode}:{eventBase.TaskId}"
-                    : $"{message.TaskCode}:{message.Id}";
+                var messageId = !string.IsNullOrWhiteSpace(messageIdOverride) ? messageIdOverride : BuildMessageId(message);
 
                 var properties = new BasicProperties
                 {

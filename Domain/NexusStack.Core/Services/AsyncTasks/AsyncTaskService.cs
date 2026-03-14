@@ -69,6 +69,9 @@ namespace NexusStack.Core.Services.AsyncTasks
             return task;
         }
 
+        /// <summary>
+        /// 重试异步任务：重新发布 MQ 消息。使用与首次发布不同的 MessageId（retry:Guid），避免被消费端幂等键拦截。
+        /// </summary>
         public async Task<bool> RetryAsync(AsyncTask task)
         {
             var eventType = eventCodeManager.GetEventType(task.Code) ?? throw new InvalidOperationException($"未找到{task.Code}对应的事件类型。");
@@ -78,7 +81,8 @@ namespace NexusStack.Core.Services.AsyncTasks
                 throw new InvalidOperationException($"无法创建类型 {eventType.Name} 的实例。");
             }
 
-            await publisher.PublishAsync(eventInstance);
+            var messageIdForRetry = $"{task.Code}:{task.Id}:retry:{Guid.NewGuid():N}";
+            await publisher.PublishAsync(eventInstance, messageIdForRetry);
             return true;
         }
     }
