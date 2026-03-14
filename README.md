@@ -1,4 +1,4 @@
-﻿# NexusStack - 微服务全栈解决方案
+# NexusStack - 微服务全栈解决方案
 
 <div align="center">
 
@@ -17,6 +17,7 @@
 > PS. 其实主要是为了偷懒，毕竟每次新项目都要搭建一大堆东西，干脆做成模板了。如果本项目也能为你节省时间和精力，那就太好了！
 
 - 🏗️ **清晰架构** - 结构良好的分层（基础设施、领域、宿主）
+- 🖥️ **NexusStackPro 前端** - 配套的UI前端模板（React + TypeScript + Vite + Ant Design），[开箱即用](https://github.com/yongpengW/NexusStackPro)
 - 🌐 **API 网关** - 基于 YARP 的动态路由网关，支持实时配置管理和服务代理
 - 🔄 **SignalR** - 实时通信，自动映射 Hub
 - 📨 **RabbitMQ** - 事件驱动的消息系统
