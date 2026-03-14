@@ -72,6 +72,7 @@ namespace NexusStack.WebAPI.Controllers
                     IsEnable = u.IsEnable,
                     LastLoginTime = u.LastLoginTime,
                     Avatar = u.Avatar,
+                    Remark = u.Remark
                 });
 
             var list = query.ToPagedList(model.Page, model.Limit);

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NexusStack.Redis;
@@ -235,7 +235,7 @@ namespace NexusStack.RabbitMQ
                         autoDelete: false,
                         arguments: new Dictionary<string, object>
                         {
-                            ["x-message-ttl"] = (int)TimeSpan.FromDays(7).TotalMilliseconds
+                            ["x-message-ttl"] = (int)TimeSpan.FromDays(3).TotalMilliseconds
                         });
 
                     await consumerChannel.QueueBindAsync(
