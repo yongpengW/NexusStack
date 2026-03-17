@@ -372,6 +372,10 @@ namespace NexusStack.Core
                             CacheDirectory = agileConfigSection["cache:directory"]
                         };
 
+                        Console.WriteLine($"AgileConfig initialized for {moduleKey}:");
+                        Console.WriteLine($"  AppId: {options.AppId}");
+                        Console.WriteLine($"  Env: {options.ENV}");
+
                         // 处理 ServiceRegister
                         var serviceRegisterSection = agileConfigSection.GetSection("serviceRegister");
                         if (serviceRegisterSection.Exists())
@@ -381,13 +385,10 @@ namespace NexusStack.Core
                                 ServiceId = serviceRegisterSection["serviceId"],
                                 ServiceName = serviceRegisterSection["serviceName"]
                             };
-                        }
 
-                        Console.WriteLine($"AgileConfig initialized for {moduleKey}:");
-                        Console.WriteLine($"  AppId: {options.AppId}");
-                        Console.WriteLine($"  Env: {options.ENV}");
-                        Console.WriteLine($"  ServiceId: {options.RegisterInfo?.ServiceId}");
-                        Console.WriteLine($"  ServiceName: {options.RegisterInfo?.ServiceName}");
+                            Console.WriteLine($"  ServiceId: {options.RegisterInfo?.ServiceId}");
+                            Console.WriteLine($"  ServiceName: {options.RegisterInfo?.ServiceName}");
+                        }
 
                         return options;
                     }
