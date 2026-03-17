@@ -235,7 +235,7 @@ namespace NexusStack.RabbitMQ
                         autoDelete: false,
                         arguments: new Dictionary<string, object>
                         {
-                            ["x-message-ttl"] = (int)TimeSpan.FromDays(3).TotalMilliseconds
+                            ["x-message-ttl"] = (int)TimeSpan.FromDays(7).TotalMilliseconds
                         });
 
                     await consumerChannel.QueueBindAsync(
