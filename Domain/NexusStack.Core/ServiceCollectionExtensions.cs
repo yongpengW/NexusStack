@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using DynamicLocalizer;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
@@ -186,6 +186,7 @@ namespace NexusStack.Core
                             options.Audience = authentik.Audience;
                             options.TokenValidationParameters.ValidateIssuer = true;
                             options.Events = new AuthentikJwtBearerEvents();
+                            options.RequireHttpsMetadata = false;
                         });
                 }
                 else
