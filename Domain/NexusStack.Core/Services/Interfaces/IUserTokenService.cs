@@ -1,4 +1,4 @@
-﻿using NexusStack.Core.Dtos.Users;
+using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure.Enums;
@@ -50,5 +50,15 @@ namespace NexusStack.Core.Services.Interfaces
         /// <param name="refreshToken"></param>
         /// <returns></returns>
         Task<UserTokenDto> RefreshTokenAsync(long userId, string refreshToken);
+
+        /// <summary>
+        /// 确保 Authentik JWT 会话已注册：首次使用 JWT 时创建 UserToken 并写入 Redis，与内置 Token 方案保持一致。
+        /// </summary>
+        /// <param name="userId">用户 ID</param>
+        /// <param name="jwt">Authentik 签发的 JWT</param>
+        /// <param name="platform">平台</param>
+        /// <param name="expirationDate">JWT 过期时间（通常来自 exp 声明）</param>
+        /// <param name="cancellationToken">取消令牌</param>
+        Task EnsureAuthentikSessionAsync(long userId, string jwt, PlatformType platform, DateTimeOffset expirationDate, CancellationToken cancellationToken = default);
     }
 }

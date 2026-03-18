@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DynamicLocalizer;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SignalR;
@@ -167,16 +169,30 @@ namespace NexusStack.Core
 
             if (coreServiceType == CoreServiceType.WebService)
             {
-                //SSO认证
-                //builder.Services.AddSsoAuthentication(builder.Configuration);
-                //builder.Services.AddAuthentication("OpenAPIAuthentication")
-                //    //开放平台开放API认证
-                //    .AddScheme<RequestAuthenticationSchemeOptions, RequestAuthenticationHandler>(
-                //    "OpenAPIAuthentication",
-                //    options => { });
+                var authSection = builder.Configuration.GetSection("Authentication");
+                var provider = authSection["Provider"] ?? "BuiltIn";
 
-                builder.Services.AddAuthentication("Authorization-Token")
-                    .AddScheme<RequestAuthenticationTokenSchemeOptions, RequestAuthenticationTokenHandler>("Authorization-Token", options => { });
+                if (string.Equals(provider, "Authentik", StringComparison.OrdinalIgnoreCase))
+                {
+                    var authOptions = authSection.Get<Infrastructure.Options.AuthenticationOptions>();
+                    var authentik = authOptions?.Authentik;
+                    if (string.IsNullOrEmpty(authentik?.Authority) || string.IsNullOrEmpty(authentik?.Audience))
+                        throw new InvalidOperationException("Authentication:Provider=Authentik 时，必须配置 Authentication:Authentik:Authority 和 Audience");
+
+                    builder.Services.AddAuthentication("Authentik")
+                        .AddJwtBearer("Authentik", options =>
+                        {
+                            options.Authority = authentik.Authority.TrimEnd('/');
+                            options.Audience = authentik.Audience;
+                            options.TokenValidationParameters.ValidateIssuer = true;
+                            options.Events = new AuthentikJwtBearerEvents();
+                        });
+                }
+                else
+                {
+                    builder.Services.AddAuthentication("Authorization-Token")
+                        .AddScheme<RequestAuthenticationTokenSchemeOptions, RequestAuthenticationTokenHandler>("Authorization-Token", options => { });
+                }
 
                 builder.Services.AddAuthorization();
             }

@@ -1,4 +1,4 @@
-﻿using LinqKit;
+using LinqKit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -52,19 +52,20 @@ namespace NexusStack.WebAPI.Controllers
                 throw new UnauthorizedException("请先登录");
             }
 
-            var tokenHash = StringExtensions.EncodeMD5(this.CurrentUser.Token);
+            var tokenHash = StringExtensions.EncodeMD5(this.CurrentUser.Token ?? string.Empty);
 
-            // 修改 UserToken 中的 ExpirationDate 为当前时间
+            // 修改 UserToken 中的 ExpirationDate 为当前时间（内置 Token 模式）
             var userToken = await userTokenService.GetAsync(a => a.TokenHash == tokenHash && a.UserId == this.CurrentUser.UserId);
             if (userToken != null)
             {
                 userToken.ExpirationDate = DateTimeOffset.UtcNow;
                 userToken.LoginType = LoginStatus.logout;
                 await userTokenService.UpdateAsync(userToken);
-                // 删除 Redis 中的缓存
                 await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(userToken.TokenHash));
-                await userContextCacheService.InvalidateAsync(CurrentUser.UserId, (PlatformType)CurrentUser.PlatformType);
             }
+
+            // 失效 UserContext 缓存（内置与 Authentik 均需）
+            await userContextCacheService.InvalidateAsync(CurrentUser.UserId, (PlatformType)CurrentUser.PlatformType);
 
             return Ok();
         }

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +13,7 @@ namespace NexusStack.Core
     /// <summary>
     /// 项目中所有控制器的基类
     /// </summary>
-    [ApiController, Authorize(AuthenticationSchemes = "Authorization-Token"), Route("api/[controller]")]
+    [ApiController, Authorize, Route("api/[controller]")]
     public abstract class ApiControllerBase : ControllerBase
     {
         /// <summary>

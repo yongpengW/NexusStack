@@ -29,7 +29,7 @@ namespace NexusStack.Core.Services.Users
             if (entity.Password.IsNotNullOrEmpty())
             {
                 // 为每个密码生成一个32位的唯一盐值
-                entity.PasswordSalt = StringExtensions.GeneratePassworldSalt();
+                entity.PasswordSalt = StringExtensions.GeneratePasswordSalt();
 
                 entity.Password = entity.Password.EncodePassword(entity.PasswordSalt);
             }
@@ -79,7 +79,7 @@ namespace NexusStack.Core.Services.Users
             }
 
             // 重置为手机号后 6 位，与创建时默认密码策略一致
-            user.PasswordSalt = StringExtensions.GeneratePassworldSalt();
+            user.PasswordSalt = StringExtensions.GeneratePasswordSalt();
             user.Password = user.Mobile[^6..].EncodePassword(user.PasswordSalt);
 
             await UpdateAsync(user);
@@ -115,7 +115,7 @@ namespace NexusStack.Core.Services.Users
             }
 
             // 生成新的盐值并加密新密码
-            user.PasswordSalt = StringExtensions.GeneratePassworldSalt();
+            user.PasswordSalt = StringExtensions.GeneratePasswordSalt();
             user.Password = newPassword.EncodePassword(user.PasswordSalt);
 
             await UpdateAsync(user);

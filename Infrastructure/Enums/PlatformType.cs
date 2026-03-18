@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -56,7 +56,11 @@ namespace NexusStack.Infrastructure.Enums
         /// <summary>
         /// 扫描登录
         /// </summary>
-        ScanCode = 3
+        ScanCode = 3,
+        /// <summary>
+        /// Authentik OIDC
+        /// </summary>
+        Authentik = 4
     }
 
     public enum UserType

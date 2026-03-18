@@ -253,5 +253,64 @@ namespace NexusStack.Core.Services.Users
 
             return token;
         }
+
+        /// <inheritdoc />
+        public async Task EnsureAuthentikSessionAsync(long userId, string jwt, PlatformType platform, DateTimeOffset expirationDate, CancellationToken cancellationToken = default)
+        {
+            var tokenHash = StringExtensions.EncodeMD5(jwt);
+
+            // Redis 已存在则跳过（同一 JWT 多次请求）
+            var cached = await redisService.GetAsync<UserTokenCacheDto>(CoreRedisConstants.UserToken.Format(tokenHash));
+            if (cached != null)
+                return;
+
+            // DB 已存在且未登出则回填 Redis 后返回
+            var existing = await GetAsync(a => a.TokenHash == tokenHash && a.LoginType != LoginStatus.logout, cancellationToken);
+            if (existing != null)
+            {
+                var existingCache = Mapper.Map<UserTokenCacheDto>(existing);
+                var remaining = existing.ExpirationDate - DateTimeOffset.UtcNow;
+                if (remaining > TimeSpan.Zero)
+                    await redisService.SetAsync(CoreRedisConstants.UserToken.Format(tokenHash), existingCache, remaining);
+                return;
+            }
+
+            var user = await userService.GetAsync(a => a.Id == userId, cancellationToken);
+            if (user == null)
+                return;
+
+            // 更新最后登录时间
+            await userService.UpdateFromQueryAsync(a => a.Id == userId, a => new User { LastLoginTime = DateTimeOffset.UtcNow });
+
+            var ipAddress = httpContextAccessor.HttpContext?.Request.GetRemoteIpAddress();
+            var userAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent.ToString();
+
+            var token = new UserToken
+            {
+                UserId = userId,
+                Token = "authentik",
+                TokenHash = tokenHash,
+                RefreshToken = "authentik",
+                ExpirationDate = expirationDate,
+                IpAddress = ipAddress?.ToString() ?? string.Empty,
+                UserAgent = userAgent ?? string.Empty,
+                PlatformType = platform,
+                LoginMethodType = LoginMethodType.Authentik,
+                LoginType = LoginStatus.Login,
+                RefreshTokenIsAvailable = false
+            };
+
+            await InsertAsync(token);
+            token.User = user;
+
+            var options = tokenOptions.CurrentValue;
+            var cacheData = Mapper.Map<UserTokenCacheDto>(token);
+            var ttl = expirationDate - DateTimeOffset.UtcNow;
+            if (ttl > TimeSpan.Zero)
+                await redisService.SetAsync(CoreRedisConstants.UserToken.Format(tokenHash), cacheData, ttl);
+
+            // 预热用户上下文缓存，与内置 Token 方案一致
+            _ = await userContextCacheService.GetOrSetAsync(userId, platform, ttl > TimeSpan.Zero ? ttl : null, cancellationToken);
+        }
     }
 }
