@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EPPlus" Version="8.4.2" />
+    <PackageReference Include="EPPlus" Version="8.5.0" />
     <PackageReference Include="iTextSharp.LGPLv2.Core" Version="3.7.12" />
-    <PackageReference Include="NPOI" Version="2.7.5" />
+    <PackageReference Include="NPOI" Version="2.7.6" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
   </ItemGroup>
 
