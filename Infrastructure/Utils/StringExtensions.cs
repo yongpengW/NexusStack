@@ -116,7 +116,7 @@ namespace NexusStack.Infrastructure.Utils
         /// 生成 PasswordSalt
         /// </summary>
         /// <returns></returns>
-        public static string GeneratePassworldSalt()
+        public static string GeneratePasswordSalt()
         {
             var data = new byte[32];
             RandomNumberGenerator.Create().GetBytes(data);
