@@ -11,13 +11,14 @@
     <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="9.3.1" />
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="LinqKit.Core" Version="1.2.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.6" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageReference Include="Snowflake.Core" Version="2.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.6" />
     <PackageReference Include="X.PagedList" Version="10.5.9" />
     <PackageReference Include="X.PagedList.EF" Version="10.5.9" />
-    <PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="10.105.3" />
+    <PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="10.105.4" />
   </ItemGroup>
 
   <ItemGroup>
