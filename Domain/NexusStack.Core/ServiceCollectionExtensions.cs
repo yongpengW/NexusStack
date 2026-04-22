@@ -1,5 +1,6 @@
-﻿using AutoMapper;
-using DynamicLocalizer;
+﻿using DynamicLocalizer;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -246,7 +247,7 @@ namespace NexusStack.Core
             // 注册 HttpClient 服务（包含 IHttpClientFactory）
             builder.Services.AddHttpRequestClient();
 
-            builder.Services.AddAllAutoMapper();
+            builder.Services.AddAllMapster();
 
             builder.Services.AddRabbitMQ(builder.Configuration);
 
@@ -457,34 +458,32 @@ namespace NexusStack.Core
         }
 
         /// <summary>
-        /// 注册所有 AutoMapper 配置信息
+        /// 注册所有 Mapster 映射配置
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static IServiceCollection AddAllAutoMapper(this IServiceCollection services)
+        public static IServiceCollection AddAllMapster(this IServiceCollection services)
         {
-            var types = TypeFinders.SearchTypes(typeof(Profile), TypeFinders.TypeClassification.Class).ToArray();
-            // .net8可以直接services.AddAutoMapper(types);
-            // 但是.net10的AddAutoMapper不支持直接传Type[]了
+            var registerTypes = TypeFinders.SearchTypes(typeof(IRegister), TypeFinders.TypeClassification.Class).ToArray();
 
-            if (types.Length == 0)
+            if (registerTypes.Length == 0)
             {
-                Console.WriteLine("警告: 未找到任何 AutoMapper Profile 类型");
-                return services;
+                Console.WriteLine("警告: 未找到任何 Mapster IRegister 类型");
             }
 
-            var assemblies = types.Select(t => t.Assembly).Distinct().ToArray();
+            var assemblies = registerTypes.Select(t => t.Assembly).Distinct().ToArray();
+            var config = TypeAdapterConfig.GlobalSettings;
 
-            Console.WriteLine($"注册 AutoMapper，共找到 {types.Length} 个 Profile，分布在 {assemblies.Length} 个程序集中");
-            foreach (var t in types) Console.WriteLine($"  找到 Profile: {t.FullName}");
-
-            services.AddAutoMapper(cfg =>
+            if (assemblies.Length > 0)
             {
-                foreach (var profileType in types)
-                {
-                    cfg.AddProfile(profileType);
-                }
-            });
+                config.Scan(assemblies);
+            }
+
+            Console.WriteLine($"注册 Mapster，共找到 {registerTypes.Length} 个 IRegister，分布在 {assemblies.Length} 个程序集中");
+            foreach (var t in registerTypes) Console.WriteLine($"  找到 Mapster Register: {t.FullName}");
+
+            services.AddSingleton(config);
+            services.AddScoped<IMapper, ServiceMapper>();
 
             return services;
         }
