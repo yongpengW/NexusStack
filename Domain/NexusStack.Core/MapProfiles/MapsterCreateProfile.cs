@@ -6,15 +6,11 @@ using NexusStack.Core.Dtos.Roles;
 using NexusStack.Core.Dtos.Users;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Entities.Users;
-using NPOI.SS.Formula.Functions;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NexusStack.Core.MapProfiles
 {
     /// <summary>
-    /// 新增和修改数据的映射文件
+    /// 新增和修改数据的 Mapster 映射配置
     /// </summary>
     public class MapsterCreateProfile : IRegister
     {
