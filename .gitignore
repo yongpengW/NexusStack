@@ -465,3 +465,6 @@ FodyWeavers.xsd
 # Serilog generated log files (specific patterns)
 **/logs/*.txt
 **/logs/*.json
+
+# Git worktrees
+.worktrees/
