@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +17,7 @@ namespace NexusStack.Core
     public abstract class ApiControllerBase : ControllerBase
     {
         /// <summary>
-        /// 可直接使用AutoMapper
+        /// 可直接使用 Mapster Mapper
         /// </summary>
         public IMapper Mapper
         {

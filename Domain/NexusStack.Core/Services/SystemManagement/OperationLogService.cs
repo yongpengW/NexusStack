@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Dtos;
@@ -17,7 +18,7 @@ using System.Text;
 
 namespace NexusStack.Core.Services.SystemManagement
 {
-    public class OperationLogService(MainContext dbContext, IMapper mapper) : ServiceBase<OperationLog>(dbContext, mapper), IOperationLogService, IScopedDependency
+    public class OperationLogService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<OperationLog>(dbContext, mapper, mapperConfig), IOperationLogService, IScopedDependency
     {
         /// <summary>
         /// 记录操作日志

@@ -1,5 +1,6 @@
 using Ardalis.Specification;
-using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
@@ -16,7 +17,7 @@ namespace NexusStack.Core.Services.Users
     /// <summary>
     /// 用户角色
     /// </summary>
-    public class UserRoleService(MainContext dbContext, IMapper mapper, IRoleService roleService) : ServiceBase<UserRole>(dbContext, mapper), IUserRoleService, IScopedDependency
+    public class UserRoleService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig, IRoleService roleService) : ServiceBase<UserRole>(dbContext, mapper, mapperConfig), IUserRoleService, IScopedDependency
     {
         public async Task<List<UserRole>> GetUserRoles(long userId, PlatformType platformType)
         {

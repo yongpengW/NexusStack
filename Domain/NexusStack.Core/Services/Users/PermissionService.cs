@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Dtos.Menus;
@@ -15,7 +16,7 @@ using NexusStack.Core.Services.Interfaces;
 
 namespace NexusStack.Core.Services.Users
 {
-    public class PermissionService(MainContext dbContext, IMapper mapper, IMenuService menuService, IServiceBase<ApiResource> apiResourceService, IServiceBase<MenuResource> menuResourceService, IRoleService roleService, IUserContextCacheService userContextCacheService) : ServiceBase<Permission>(dbContext, mapper), IPermissionService, IScopedDependency
+    public class PermissionService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig, IMenuService menuService, IServiceBase<ApiResource> apiResourceService, IServiceBase<MenuResource> menuResourceService, IRoleService roleService, IUserContextCacheService userContextCacheService) : ServiceBase<Permission>(dbContext, mapper, mapperConfig), IPermissionService, IScopedDependency
     {
         /// <summary>
         /// 修改角色权限

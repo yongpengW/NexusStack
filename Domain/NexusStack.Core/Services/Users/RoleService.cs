@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Entities.Users;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
@@ -9,7 +10,7 @@ using NexusStack.Infrastructure.Utils;
 
 namespace NexusStack.Core.Services.Users
 {
-    public class RoleService(MainContext dbContext, IMapper mapper) : ServiceBase<Role>(dbContext, mapper), IRoleService, IScopedDependency
+    public class RoleService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<Role>(dbContext, mapper, mapperConfig), IRoleService, IScopedDependency
     {
         public override async Task<Role> InsertAsync(Role entity, CancellationToken cancellationToken = default)
         {

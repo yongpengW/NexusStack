@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Dtos.Menus;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Services.Interfaces;
@@ -11,7 +12,7 @@ using System.Text;
 
 namespace NexusStack.Core.Services.SystemManagement
 {
-    public class ApiResrouceCoreService(MainContext dbContext, IMapper mapper) : ServiceBase<ApiResource>(dbContext, mapper), IApiResrouceCoreService, IScopedDependency
+    public class ApiResrouceCoreService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<ApiResource>(dbContext, mapper, mapperConfig), IApiResrouceCoreService, IScopedDependency
     {
         public async Task<List<MenuResourceDto>> GetTreeListAsync()
         {

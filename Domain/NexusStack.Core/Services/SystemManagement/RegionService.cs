@@ -1,5 +1,6 @@
-﻿using Ardalis.Specification;
-using AutoMapper;
+using Ardalis.Specification;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Dtos.Regions;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Services.Interfaces;
@@ -16,7 +17,7 @@ using System.Text;
 
 namespace NexusStack.Core.Services.SystemManagement
 {
-    public class RegionService(MainContext dbContext, IMapper mapper) : ServiceBase<Region>(dbContext, mapper), IRegionService, IScopedDependency
+    public class RegionService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<Region>(dbContext, mapper, mapperConfig), IRegionService, IScopedDependency
     {
         public override async Task<Region> InsertAsync(Region entity, CancellationToken cancellationToken = default)
         {

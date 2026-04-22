@@ -8,9 +8,9 @@ using System.Linq.Expressions;
 using System.Text;
 using X.PagedList;
 
-namespace NexusStack.EFCore.Repository.AutoMapper
+namespace NexusStack.EFCore.Repository.Mapping
 {
-    public interface IAutoMapperRepository<TEntity, TKey> : IRepositoryBase<TEntity, TKey> where TEntity : class
+    public interface IMappingRepository<TEntity, TKey> : IRepositoryBase<TEntity, TKey> where TEntity : class
     {
         Task<TProjectedType> GetAsync<TProjectedType>(ISpecification<TEntity> specification, CancellationToken cancellationToken = default) where TProjectedType : class;
 

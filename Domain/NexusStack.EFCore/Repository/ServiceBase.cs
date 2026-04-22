@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+﻿using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Entities;
-using NexusStack.EFCore.Repository.AutoMapper;
+using NexusStack.EFCore.Repository.Mapping;
 using NexusStack.Infrastructure.Models;
 using Npgsql;
 using System;
@@ -15,12 +16,12 @@ using System.Text;
 
 namespace NexusStack.EFCore.Repository
 {
-    public partial class ServiceBase<TEntity, TKey> : AutoMapperRepository<TEntity, TKey>, IServiceBase<TEntity, TKey> where TEntity : class, IEntity<TKey>
+    public partial class ServiceBase<TEntity, TKey> : MappingRepository<TEntity, TKey>, IServiceBase<TEntity, TKey> where TEntity : class, IEntity<TKey>
     {
         public MainContext GetDbContext => this.DbContext;
 
-        public ServiceBase(MainContext dbContext, IMapper mapper)
-        : base(dbContext, mapper)
+        public ServiceBase(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig)
+        : base(dbContext, mapper, mapperConfig)
         {
         }
 
@@ -122,8 +123,8 @@ namespace NexusStack.EFCore.Repository
 
     public partial class ServiceBase<TEntity> : ServiceBase<TEntity, long>, IServiceBase<TEntity> where TEntity : class, IEntity<long>
     {
-        public ServiceBase(MainContext dbContext, IMapper mapper)
-            : base(dbContext, mapper)
+        public ServiceBase(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig)
+            : base(dbContext, mapper, mapperConfig)
         {
         }
 
