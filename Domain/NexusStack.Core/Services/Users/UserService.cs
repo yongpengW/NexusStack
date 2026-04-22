@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
@@ -11,7 +12,7 @@ using NexusStack.Core.Services.Interfaces;
 
 namespace NexusStack.Core.Services.Users
 {
-    public class UserService(MainContext dbContext, IMapper mapper, CurrentUser currentUser) : ServiceBase<User>(dbContext, mapper), IUserService, IScopedDependency
+    public class UserService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig, CurrentUser currentUser) : ServiceBase<User>(dbContext, mapper, mapperConfig), IUserService, IScopedDependency
     {
         public async Task<bool> CheckCurrentExists(CurrentUser user)
         {

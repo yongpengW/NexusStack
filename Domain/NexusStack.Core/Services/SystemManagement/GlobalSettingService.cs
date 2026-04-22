@@ -1,5 +1,6 @@
-﻿using Ardalis.Specification;
-using AutoMapper;
+using Ardalis.Specification;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Dtos.GlobalSettings;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.EFCore.DbContexts;
@@ -67,7 +68,7 @@ namespace NexusStack.Core.Services.SystemManagement
         Task<int> PutAsync(CreateGlobalSettingDto model);
     }
 
-    public class GlobalSettingService(MainContext dbContext, IMapper mapper) : ServiceBase<GlobalSettings>(dbContext, mapper), IGlobalSettingService, IScopedDependency
+    public class GlobalSettingService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<GlobalSettings>(dbContext, mapper, mapperConfig), IGlobalSettingService, IScopedDependency
     {
         public async Task<IPagedList<GlobalSettingDto>> GetSettingListAsync(GlobalSettingQueryDto model)
         {
