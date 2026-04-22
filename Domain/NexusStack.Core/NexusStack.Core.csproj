@@ -20,10 +20,10 @@
     <PackageReference Include="Cronos" Version="0.12.0" />
     <PackageReference Include="DynamicLocalizer" Version="1.0.2" />
     <PackageReference Include="IP2Region.Net" Version="3.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.7" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="Snowflake.Core" Version="2.0.0" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.6" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
 
