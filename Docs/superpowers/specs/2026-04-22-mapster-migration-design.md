@@ -1,6 +1,6 @@
 # NexusStack 后端 Mapster 替换 AutoMapper 设计
 
-> 状态：待评审  
+> 状态：已实施
 > 日期：2026-04-22  
 > 范围：NexusStackBackend  
 > 决策：使用 Mapster 替换 AutoMapper
