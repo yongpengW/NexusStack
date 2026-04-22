@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using Mapster;
 using NexusStack.Core.Dtos.GlobalSettings;
 using NexusStack.Core.Dtos.Menus;
 using NexusStack.Core.Dtos.Regions;
@@ -16,22 +16,22 @@ namespace NexusStack.Core.MapProfiles
     /// <summary>
     /// 新增和修改数据的映射文件
     /// </summary>
-    public class AutoMapperCreateProfile : Profile
+    public class MapsterCreateProfile : IRegister
     {
-        public AutoMapperCreateProfile()
+        public void Register(TypeAdapterConfig config)
         {
-            CreateMap<CreateMenuDto, Menu>();
+            config.NewConfig<CreateMenuDto, Menu>();
 
-            CreateMap<CreateRoleDto, Role>();
+            config.NewConfig<CreateRoleDto, Role>();
 
-            CreateMap<CreateRegionDto, Region>();
+            config.NewConfig<CreateRegionDto, Region>();
 
-            CreateMap<CreateUserDto, User>()
-                .ForMember(a => a.UserRoles, a => a.Ignore());
+            config.NewConfig<CreateUserDto, User>()
+                .Ignore(a => a.UserRoles);
 
-            CreateMap<CreateUserRoleDto, UserRole>();
+            config.NewConfig<CreateUserRoleDto, UserRole>();
 
-            CreateMap<CreateGlobalSettingDto, GlobalSettings>();
+            config.NewConfig<CreateGlobalSettingDto, GlobalSettings>();
         }
     }
 }
