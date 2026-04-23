@@ -259,12 +259,12 @@ namespace NexusStack.Core
                 builder.Services.AddCronTask();
 
                 //初始化Database数据
-                builder.Services.AddHostedService<ExecuteSeedDataService>();
+                //builder.Services.AddHostedService<ExecuteSeedDataService>();
             }
             else if (coreServiceType == CoreServiceType.WebService)
             {
                 // 初始化API资源数据
-                builder.Services.AddHostedService<InitApiResourceService>();
+                //builder.Services.AddHostedService<InitApiResourceService>();
             }
 
             return builder;

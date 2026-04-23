@@ -1,4 +1,4 @@
-using Mapster;
+﻿using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -108,8 +108,9 @@ namespace NexusStack.Core.Services.Users
             password = password.Base64ToString();
             //!等特殊字符会被转义，这里需要解码
             password = Uri.UnescapeDataString(password);
+            var pass = password.EncodePassword(user.PasswordSalt);
 
-            if (!user.Password.Equals(password.EncodePassword(user.PasswordSalt)))
+            if (!user.Password.Equals(pass))
             {
                 throw new UnauthorizedException("账号或密码错误");
             }
