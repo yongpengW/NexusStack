@@ -194,7 +194,7 @@ namespace NexusStack.Core
                 builder.Services.AddSignalR(options =>
                 {
                     options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-                }).AddMessagePackProtocol();
+                });
             }
             else if (coreServiceType == CoreServiceType.Gateway)
             {
