@@ -53,7 +53,7 @@ namespace NexusStack.WebAPI.Controllers
         [HttpGet("download"), NoLogging]
         public async Task<ExportbufferDto> GetDownloadLinkAsync(long id)
         {
-            var downloadItem = await downloadService.GetByIdAsync(id)
+            var downloadItem = await downloadService.GetAsync(x => x.Id == id && x.CreatedBy == CurrentUser.UserId)
                 ?? throw new BusinessException("未找到对应的导出记录");
 
             var aliyunStorage = storageFactory.GetStorage(FileStorageType.Aliyun);
