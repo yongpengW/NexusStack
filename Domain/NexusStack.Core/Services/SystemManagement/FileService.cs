@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using Ardalis.Specification;
 using Microsoft.AspNetCore.StaticFiles;
 using NexusStack.Core.Dtos.Files;
@@ -33,7 +34,7 @@ namespace NexusStack.Core.Services.SystemManagement
     /// <param name="storageFactory"></param>
     /// <param name="contentTypeProvider"></param>
     /// <param name="httpClientFactory"></param>
-    public class FileService(MainContext dbContext, IMapper mapper, IFileStorageFactory storageFactory, IContentTypeProvider contentTypeProvider, IHttpClientFactory httpClientFactory) : ServiceBase<File>(dbContext, mapper), IFileService, IScopedDependency
+    public class FileService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig, IFileStorageFactory storageFactory, IContentTypeProvider contentTypeProvider, IHttpClientFactory httpClientFactory) : ServiceBase<File>(dbContext, mapper, mapperConfig), IFileService, IScopedDependency
     {
         public Task<byte[]> GetContentAsync(string url)
         {

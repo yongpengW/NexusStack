@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using LinqKit;
 using NexusStack.Core.Dtos.DownloadCenter;
 using NexusStack.Core.Entities.SystemManagement;
@@ -16,10 +17,10 @@ using System.Text.Json;
 
 namespace NexusStack.Core.Services.SystemManagement
 {
-    public class DownloadService(MainContext dbContext, IMapper mapper,
+    public class DownloadService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig,
     Lazy<IUserService> userService,
     Lazy<ICurrentUser> currentUser
-    ) : ServiceBase<DownloadItem>(dbContext, mapper), IDownloadService, IScopedDependency
+    ) : ServiceBase<DownloadItem>(dbContext, mapper, mapperConfig), IDownloadService, IScopedDependency
     {
         private List<ExportExcelTypeMapDto>? _exportTypeMap;
         private List<ExportExcelTypeMapDto> ExportTypeMap => _exportTypeMap ??= InitExportTypeMap();

@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 using NexusStack.Core.Dtos.Menus;
@@ -15,7 +16,7 @@ using NexusStack.Core.Services.Interfaces;
 
 namespace NexusStack.Core.Services.Users
 {
-    public class PermissionService(MainContext dbContext, IMapper mapper, IMenuService menuService, IServiceBase<ApiResource> apiResourceService, IServiceBase<MenuResource> menuResourceService, IRoleService roleService, IUserContextCacheService userContextCacheService) : ServiceBase<Permission>(dbContext, mapper), IPermissionService, IScopedDependency
+    public class PermissionService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig, IMenuService menuService, IServiceBase<ApiResource> apiResourceService, IServiceBase<MenuResource> menuResourceService, IRoleService roleService, IUserContextCacheService userContextCacheService) : ServiceBase<Permission>(dbContext, mapper, mapperConfig), IPermissionService, IScopedDependency
     {
         /// <summary>
         /// 修改角色权限
@@ -33,6 +34,60 @@ namespace NexusStack.Core.Services.Users
             // 平台上下文：如未显式指定，则按角色 Platforms 过滤可见菜单
             var platform = model.PlatformType;
 
+            // 前端提交的菜单 Id 集合（去重）
+            var submittedMenuIds = model.Menus?.Select(m => m.MenuId).ToArray() ?? Array.Empty<long>();
+            var distinctSubmittedMenuIds = submittedMenuIds.Distinct().ToArray();
+            var permissions = new List<Permission>();
+
+            if (distinctSubmittedMenuIds.Length > 0)
+            {
+                // 校验前端提交的菜单是否全部存在且属于当前平台上下文。校验必须发生在删除旧权限之前。
+                var validMenuQuery = menuService.GetQueryable()
+                    .Where(a => distinctSubmittedMenuIds.Contains(a.Id)
+                                && (!platform.HasValue
+                                    ? (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)
+                                    : a.PlatformType == platform.Value));
+
+                var menus = await validMenuQuery.ToListAsync();
+
+                var validMenuIds = menus.Select(m => m.Id).ToHashSet();
+                var invalidSubmittedIds = distinctSubmittedMenuIds.Where(id => !validMenuIds.Contains(id)).ToArray();
+                if (invalidSubmittedIds.Length > 0)
+                {
+                    // 提交了不存在或不属于当前平台的菜单
+                    throw new BusinessException("存在无效或跨平台的菜单Id，变更已取消。");
+                }
+                var parentIds = new List<long>();
+
+                foreach (var item in menus)
+                {
+                    if (!submittedMenuIds.Contains(item.ParentId) && item.ParentId != 0)
+                    {
+                        parentIds.Add(item.ParentId);
+                    }
+                }
+
+                // 构建 menuId -> DataRange 映射；父级节点固定使用 DataRange.All
+                var menuDataRangeMap = model.Menus!
+                    .GroupBy(m => m.MenuId)
+                    .ToDictionary(g => g.Key, g => g.First().DataRange);
+
+                foreach (var parentId in parentIds.Distinct())
+                {
+                    if (!menuDataRangeMap.ContainsKey(parentId))
+                    {
+                        menuDataRangeMap[parentId] = DataRange.All;
+                    }
+                }
+
+                permissions = menuDataRangeMap.Select(kv => new Permission
+                {
+                    MenuId = kv.Key,
+                    RoleId = model.RoleId,
+                    DataRange = kv.Value
+                }).ToList();
+            }
+
             // 优化：使用子查询直接在数据库层面删除，只需要一次数据库操作
             var menuIdsQuery = menuService.GetQueryable()
                 .Where(a => (!platform.HasValue
@@ -40,78 +95,26 @@ namespace NexusStack.Core.Services.Users
                                 : a.PlatformType == platform.Value))
                 .Select(x => x.Id);
 
-            // 使用 Any 在数据库层面执行删除，避免将菜单ID列表加载到内存
-            await dbContext.Set<Permission>()
-                .Where(p => p.RoleId == model.RoleId && menuIdsQuery.Contains(p.MenuId))
-                .DeleteFromQueryAsync();
-
-            if (model.Menus is not { Length: > 0 })
+            using var trans = await BeginTransactionAsync();
+            try
             {
-                // 没有任何菜单被勾选，直接清空权限并失效缓存
+                // 使用 Any 在数据库层面执行删除，避免将菜单ID列表加载到内存
+                await dbContext.Set<Permission>()
+                    .Where(p => p.RoleId == model.RoleId && menuIdsQuery.Contains(p.MenuId))
+                    .DeleteFromQueryAsync();
 
-                var emptyAffectedUserIds = await dbContext.Set<UserRole>()
-                    .Where(ur => ur.RoleId == model.RoleId)
-                    .Select(ur => ur.UserId)
-                    .Distinct()
-                    .ToListAsync();
-
-                foreach (var userId in emptyAffectedUserIds)
-                    await userContextCacheService.InvalidateAsync(userId);
-
-                return;
-            }
-
-            // 前端提交的菜单 Id 集合（去重）
-            var submittedMenuIds = model.Menus.Select(m => m.MenuId).ToArray();
-            var distinctSubmittedMenuIds = submittedMenuIds.Distinct().ToArray();
-
-            // 校验前端提交的菜单是否全部存在且属于当前平台上下文
-            var validMenuQuery = menuService.GetQueryable()
-                .Where(a => distinctSubmittedMenuIds.Contains(a.Id)
-                            && (!platform.HasValue
-                                ? (role.Platforms == PlatformType.All || (role.Platforms & a.PlatformType) != 0)
-                                : a.PlatformType == platform.Value));
-
-            var menus = await validMenuQuery.ToListAsync();
-
-            var validMenuIds = menus.Select(m => m.Id).ToHashSet();
-            var invalidSubmittedIds = distinctSubmittedMenuIds.Where(id => !validMenuIds.Contains(id)).ToArray();
-            if (invalidSubmittedIds.Length > 0)
-            {
-                // 提交了不存在或不属于当前平台的菜单
-                throw new BusinessException("存在无效或跨平台的菜单Id，变更已取消。");
-            }
-            var parentIds = new List<long>();
-
-            foreach (var item in menus)
-            {
-                if (!submittedMenuIds.Contains(item.ParentId) && item.ParentId != 0)
+                if (permissions.Count > 0)
                 {
-                    parentIds.Add(item.ParentId);
+                    await InsertAsync(permissions);
                 }
+
+                await trans.CommitAsync();
             }
-
-            // 构建 menuId -> DataRange 映射；父级节点固定使用 DataRange.All
-            var menuDataRangeMap = model.Menus
-                .GroupBy(m => m.MenuId)
-                .ToDictionary(g => g.Key, g => g.First().DataRange);
-
-            foreach (var parentId in parentIds.Distinct())
+            catch
             {
-                if (!menuDataRangeMap.ContainsKey(parentId))
-                {
-                    menuDataRangeMap[parentId] = DataRange.All;
-                }
+                await RollbackAsync(trans);
+                throw;
             }
-
-            var permissions = menuDataRangeMap.Select(kv => new Permission
-            {
-                MenuId = kv.Key,
-                RoleId = model.RoleId,
-                DataRange = kv.Value
-            }).ToList();
-
-            await InsertAsync(permissions);
 
             // 角色权限变更后，使所有拥有该角色的用户的权限缓存失效
             var affectedUserIds = await dbContext.Set<UserRole>()

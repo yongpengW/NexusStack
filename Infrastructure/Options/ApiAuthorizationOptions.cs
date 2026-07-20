@@ -18,7 +18,7 @@ namespace NexusStack.Infrastructure.Options
         /// - RootOnly(2): 超级管理员跳过校验，普通用户执行完整 RBAC 校验
         /// - Disabled(99): 跳过所有 API 权限校验（仅用于开发/测试环境）
         /// </summary>
-        public ApiPermissionMode ApiPermissionMode { get; set; } = ApiPermissionMode.Strict;
+        public ApiPermissionMode ApiPermissionMode { get; set; } = ApiPermissionMode.RootOnly;
 
         /// <summary>
         /// 是否启用超级管理员绕过权限检查（仅在 Strict 模式下有效）

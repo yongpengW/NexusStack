@@ -1,8 +1,8 @@
 ﻿using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using LinqKit;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
@@ -16,37 +16,34 @@ using System.Text;
 using X.PagedList;
 using X.PagedList.EF;
 
-namespace NexusStack.EFCore.Repository.AutoMapper
+namespace NexusStack.EFCore.Repository.Mapping
 {
-    public abstract class AutoMapperRepository<TEntity, TKey> : RepositoryBase<TEntity, TKey>, IAutoMapperRepository<TEntity, TKey> where TEntity : class
+    public abstract class MappingRepository<TEntity, TKey> : RepositoryBase<TEntity, TKey>, IMappingRepository<TEntity, TKey> where TEntity : class
     {
         protected readonly IMapper Mapper;
-        /// <summary>
-        /// IConfigurationProvider中包含所有定义好的映射关系，通过services.AddAutoMapper()方法注入
-        /// </summary>
-        protected readonly IConfigurationProvider MapperConfig;
+        protected readonly TypeAdapterConfig MapperConfig;
 
-        protected AutoMapperRepository(MainContext dbContext, IMapper mapper)
-            : this(dbContext, mapper, SpecificationEvaluator.Default)
+        protected MappingRepository(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig)
+            : this(dbContext, mapper, mapperConfig, SpecificationEvaluator.Default)
         {
         }
 
-        public AutoMapperRepository(MainContext dbContext, IMapper mapper, ISpecificationEvaluator specificationEvaluator)
+        public MappingRepository(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig, ISpecificationEvaluator specificationEvaluator)
             : base(dbContext, specificationEvaluator)
         {
             Mapper = mapper;
-            MapperConfig = mapper.ConfigurationProvider;
+            MapperConfig = mapperConfig;
         }
 
         public Task<TProjectedType> GetAsync<TProjectedType>(Expression<Func<TEntity, bool>> condition, CancellationToken cancellationToken = default) where TProjectedType : class
         {
             ArgumentNullException.ThrowIfNull(condition);
-            return GetQueryable().Where(condition).ProjectTo<TProjectedType>(MapperConfig).FirstOrDefaultAsync(cancellationToken);
+            return GetQueryable().Where(condition).ProjectToType<TProjectedType>(MapperConfig).FirstOrDefaultAsync(cancellationToken);
         }
 
         public Task<TProjectedType> GetAsync<TProjectedType>(ISpecification<TEntity> specification, CancellationToken cancellationToken = default) where TProjectedType : class
         {
-            return ApplySpecification(specification).ProjectTo<TProjectedType>(MapperConfig).FirstOrDefaultAsync(cancellationToken);
+            return ApplySpecification(specification).ProjectToType<TProjectedType>(MapperConfig).FirstOrDefaultAsync(cancellationToken);
         }
 
         public Task<TProjectedType> GetByIdAsync<TProjectedType>(TKey id, CancellationToken cancellationToken = default) where TProjectedType : class
@@ -82,7 +79,7 @@ namespace NexusStack.EFCore.Repository.AutoMapper
 
             var query = GetQueryable();
 
-            return query.Where(expressionTree).ProjectTo<TProjectedType>(MapperConfig).FirstOrDefaultAsync(cancellationToken);
+            return query.Where(expressionTree).ProjectToType<TProjectedType>(MapperConfig).FirstOrDefaultAsync(cancellationToken);
         }
 
         public Task<List<TProjectedType>> GetListAsync<TProjectedType>(Expression<Func<TEntity, bool>> condition = null,
@@ -113,12 +110,12 @@ namespace NexusStack.EFCore.Repository.AutoMapper
                 query = query.AsNoTracking();
             }
 
-            return query.ProjectTo<TProjectedType>(MapperConfig).ToListAsync(cancellationToken);
+            return query.ProjectToType<TProjectedType>(MapperConfig).ToListAsync(cancellationToken);
         }
 
         public Task<List<TProjectedType>> GetListAsync<TProjectedType>(ISpecification<TEntity> specification, CancellationToken cancellationToken = default) where TProjectedType : class
         {
-            return ApplySpecification(specification).ProjectTo<TProjectedType>(MapperConfig).ToListAsync(cancellationToken);
+            return ApplySpecification(specification).ProjectToType<TProjectedType>(MapperConfig).ToListAsync(cancellationToken);
         }
 
         public Task<IPagedList<TProjectedType>> GetPagedListAsync<TProjectedType>(int pageIndex = 1,
@@ -151,22 +148,22 @@ namespace NexusStack.EFCore.Repository.AutoMapper
                 query = query.AsNoTracking();
             }
 
-            return query.ProjectTo<TProjectedType>(MapperConfig).ToPagedListAsync(pageIndex, pageSize, null, cancellationToken);
+            return query.ProjectToType<TProjectedType>(MapperConfig).ToPagedListAsync(pageIndex, pageSize, null, cancellationToken);
         }
 
         public Task<IPagedList<TProjectedType>> GetPagedListAsync<TProjectedType>(ISpecification<TEntity> specification, int pageIndex = 1, int pageSize = 10, CancellationToken cancellationToken = default) where TProjectedType : class
         {
-            return ApplySpecification(specification).ProjectTo<TProjectedType>(MapperConfig).ToPagedListAsync(pageIndex, pageSize, null, cancellationToken);
+            return ApplySpecification(specification).ProjectToType<TProjectedType>(MapperConfig).ToPagedListAsync(pageIndex, pageSize, null, cancellationToken);
         }
 
         public Task<IPagedList<TProjectedType>> GetPagedListAsync<TProjectedType>(ExpressionStarter<TEntity> expression, int pageIndex = 1, int pageSize = 10, CancellationToken cancellationToken = default) where TProjectedType : class
         {
-            return GetExpandable().Where(expression).ProjectTo<TProjectedType>(MapperConfig).ToPagedListAsync(pageIndex, pageSize, null, cancellationToken);
+            return GetExpandable().Where(expression).ProjectToType<TProjectedType>(MapperConfig).ToPagedListAsync(pageIndex, pageSize, null, cancellationToken);
         }
 
         public Task<List<TProjectedType>> GetListAsync<TProjectedType>(ExpressionStarter<TEntity> expression, CancellationToken cancellationToken = default) where TProjectedType : class
         {
-            return GetExpandable().Where(expression).ProjectTo<TProjectedType>(MapperConfig).ToListAsync(cancellationToken);
+            return GetExpandable().Where(expression).ProjectToType<TProjectedType>(MapperConfig).ToListAsync(cancellationToken);
         }
     }
 }

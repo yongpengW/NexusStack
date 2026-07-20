@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -31,7 +32,7 @@ namespace NexusStack.Core.Services.Users
     /// <param name="httpContextAccessor"></param>
     public class UserTokenService(
         MainContext dbContext,
-        IMapper mapper,
+        IMapper mapper, TypeAdapterConfig mapperConfig,
         IRedisService redisService,
         IUserService userService,
         IUserRoleService userRoleService,
@@ -39,7 +40,7 @@ namespace NexusStack.Core.Services.Users
         IHttpContextAccessor httpContextAccessor,
         IHostEnvironment hostEnvironment,
         IOptionsMonitor<TokenOptions> tokenOptions
-    ) : ServiceBase<UserToken>(dbContext, mapper), IUserTokenService, IScopedDependency
+    ) : ServiceBase<UserToken>(dbContext, mapper, mapperConfig), IUserTokenService, IScopedDependency
     {
         public async Task<CaptchaDto> GenerateCaptchaAsync()
         {
@@ -107,8 +108,9 @@ namespace NexusStack.Core.Services.Users
             password = password.Base64ToString();
             //!等特殊字符会被转义，这里需要解码
             password = Uri.UnescapeDataString(password);
+            var pass = password.EncodePassword(user.PasswordSalt);
 
-            if (!user.Password.Equals(password.EncodePassword(user.PasswordSalt)))
+            if (!user.Password.Equals(pass))
             {
                 throw new UnauthorizedException("账号或密码错误");
             }

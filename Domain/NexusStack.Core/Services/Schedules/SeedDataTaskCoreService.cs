@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Entities.Schedules;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
@@ -10,7 +11,7 @@ using System.Text;
 
 namespace NexusStack.Core.Services.Schedules
 {
-    public class SeedDataTaskCoreService(MainContext dbContext, IMapper mapper) : ServiceBase<SeedDataTask>(dbContext, mapper), ISeedDataTaskCoreService, IScopedDependency
+    public class SeedDataTaskCoreService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<SeedDataTask>(dbContext, mapper, mapperConfig), ISeedDataTaskCoreService, IScopedDependency
     {
 
     }

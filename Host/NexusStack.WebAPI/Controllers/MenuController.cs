@@ -8,6 +8,7 @@ using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.Repository;
 using NexusStack.Infrastructure.Enums;
+using NexusStack.Infrastructure.Exceptions;
 
 namespace NexusStack.WebAPI.Controllers
 {
@@ -167,16 +168,49 @@ namespace NexusStack.WebAPI.Controllers
         [HttpPut("{id}/bind")]
         public async Task<StatusCodeResult> BindResourceAsync(long id, long[] resources)
         {
-            var existLists = await menuResourceService.GetListAsync(a => a.MenuId == id);
-            await menuResourceService.DeleteAsync(existLists);
+            if (!await menuService.ExistsAsync(a => a.Id == id))
+            {
+                throw new BusinessException("菜单不存在");
+            }
 
-            var newResources = resources.Select(a => new MenuResource
+            var distinctResourceIds = (resources ?? Array.Empty<long>()).Distinct().ToArray();
+            if (distinctResourceIds.Length > 0)
+            {
+                var validResourceIds = await apiResourceService.GetQueryable()
+                    .Where(a => distinctResourceIds.Contains(a.Id))
+                    .Select(a => a.Id)
+                    .ToListAsync();
+
+                var invalidResourceIds = distinctResourceIds.Except(validResourceIds).ToArray();
+                if (invalidResourceIds.Length > 0)
+                {
+                    throw new BusinessException("存在无效的接口资源Id，绑定已取消。");
+                }
+            }
+
+            var newResources = distinctResourceIds.Select(a => new MenuResource
             {
                 MenuId = id,
                 ApiResourceId = a
-            });
+            }).ToList();
 
-            await menuResourceService.InsertAsync(newResources);
+            using var trans = await menuResourceService.BeginTransactionAsync();
+            try
+            {
+                await menuResourceService.BatchDeleteAsync(a => a.MenuId == id);
+
+                if (newResources.Count > 0)
+                {
+                    await menuResourceService.InsertAsync(newResources);
+                }
+
+                await trans.CommitAsync();
+            }
+            catch
+            {
+                await menuResourceService.RollbackAsync(trans);
+                throw;
+            }
 
             // 菜单绑定的 API 资源变更后，ApiPermissionKeys 缓存失效
             await InvalidateMenuUsersAsync(id);

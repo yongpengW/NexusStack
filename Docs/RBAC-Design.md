@@ -648,7 +648,7 @@ private const string CacheVersion = "v2";  // 升级此值即可自动淘汰全�
 | 4 | 权限变更后缓存未失效（Role/Menu/Permission 各操作） | 全链路补充 `InvalidateAsync` 调用 |
 | 5 | `PlatformType` Claim 存为枚举名字符串，解析时 `FormatException` | 改为 `((int)PlatformType).ToString()` |
 | 6 | 禁用角色仍参与权限计算 | `UserRoleService.GetUserRoles` 增加 `r.IsEnable` 过滤 |
-| 7 | `RoleController.PutAsync` 中 AutoMapper 绕过 `IsSystem` 保护 | Mapper.Map 前增加前置 `IsSystem` 检查 |
+| 7 | `RoleController.PutAsync` 中对象映射绕过 `IsSystem` 保护 | Mapper.Map 前增加前置 `IsSystem` 检查 |
 | 8 | 同名重载 Action 的 `ApiResource.Code` 冲突 | Code 改为 `RouteTemplate:Method` 格式 |
 | 9 | `UserController.PutAsync` catch 块吞掉原始异常类型 | 改为 `catch { throw; }` |
 | 10 | 登录禁用用户返回"无角色"而非"已禁用"的语义错误 | 密码验证后立即检查 `IsEnable`，优先于平台角色校验 |

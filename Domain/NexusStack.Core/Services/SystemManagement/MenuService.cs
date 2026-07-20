@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Dtos.Menus;
 using NexusStack.Core.Entities.SystemManagement;
 using NexusStack.EFCore.DbContexts;
@@ -14,7 +15,7 @@ using NexusStack.Core.Services.Interfaces;
 
 namespace NexusStack.Core.Services.SystemManagement
 {
-    public class MenuService(MainContext dbContext, IMapper mapper) : ServiceBase<Menu>(dbContext, mapper), IMenuService, IScopedDependency
+    public class MenuService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<Menu>(dbContext, mapper, mapperConfig), IMenuService, IScopedDependency
     {
         public async Task<int> DeleteAsync(long id)
         {

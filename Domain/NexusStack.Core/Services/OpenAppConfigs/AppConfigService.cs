@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Entities.OpenAppConfigs;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
@@ -16,7 +17,7 @@ namespace NexusStack.Core.Services.OpenAppConfigs
     {
 
     }
-    public class AppConfigService(MainContext dbContext, IMapper mapper) : ServiceBase<AppConfig>(dbContext, mapper), IAppConfigService, IScopedDependency
+    public class AppConfigService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<AppConfig>(dbContext, mapper, mapperConfig), IAppConfigService, IScopedDependency
     {
 
     }

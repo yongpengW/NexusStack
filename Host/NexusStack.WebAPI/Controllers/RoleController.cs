@@ -255,6 +255,12 @@ namespace NexusStack.WebAPI.Controllers
         [HttpPost("permission/{roleId}")]
         public async Task<StatusCodeResult> PostAsync(long roleId, ChangeRolePermissionDto dto)
         {
+            if (dto.RoleId != 0 && dto.RoleId != roleId)
+            {
+                throw new BusinessException("路由角色Id与请求体角色Id不一致，变更已取消。");
+            }
+
+            dto.RoleId = roleId;
             await permissionService.ChangeRolePermissionAsync(dto);
             return Ok();
         }

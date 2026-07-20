@@ -1,4 +1,5 @@
-using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Entities.AsyncTasks;
 using NexusStack.Core.Services.Interfaces;
 using NexusStack.EFCore.DbContexts;
@@ -21,9 +22,9 @@ namespace NexusStack.Core.Services.AsyncTasks
     /// <param name="dbContext"></param>
     /// <param name="mapper"></param>
     /// <param name="publisher"></param>
-    public class AsyncTaskService(MainContext dbContext, IMapper mapper,
+    public class AsyncTaskService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig,
         IEventPublisher publisher,
-        IEventCodeManager eventCodeManager) : ServiceBase<AsyncTask>(dbContext, mapper), IAsyncTaskService, IScopedDependency
+        IEventCodeManager eventCodeManager) : ServiceBase<AsyncTask>(dbContext, mapper, mapperConfig), IAsyncTaskService, IScopedDependency
     {
         private async Task<AsyncTask> GenerateTaskAsync<TData>(TData data, string code) where TData : new()
         {

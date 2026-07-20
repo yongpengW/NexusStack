@@ -1,6 +1,6 @@
 ﻿using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Entities;
-using NexusStack.EFCore.Repository.AutoMapper;
+using NexusStack.EFCore.Repository.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -20,7 +20,7 @@ namespace NexusStack.EFCore.Repository
         Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default);
     }
 
-    public interface IServiceBase<TEntity, TKey> : IAutoMapperRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
+    public interface IServiceBase<TEntity, TKey> : IMappingRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
     {
         /// <summary>
         /// 通过指定条件判断，更新或插入数据

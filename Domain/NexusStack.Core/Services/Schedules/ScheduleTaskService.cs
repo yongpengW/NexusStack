@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 using NexusStack.Core.Dtos.ScheduleTasks;
 using NexusStack.Core.Entities.Schedules;
@@ -18,9 +19,9 @@ using System.Text;
 namespace NexusStack.Core.Services.Schedules
 {
     public class ScheduleTaskService(MainContext dbContext, 
-        IMapper mapper, 
+        IMapper mapper, TypeAdapterConfig mapperConfig,
         IServiceScopeFactory scopeFactory, 
-        IRedisService redisService) : ServiceBase<ScheduleTask>(dbContext, mapper), IScheduleTaskService, IScopedDependency
+        IRedisService redisService) : ServiceBase<ScheduleTask>(dbContext, mapper, mapperConfig), IScheduleTaskService, IScopedDependency
     {
         public async Task InitializeAsync()
         {

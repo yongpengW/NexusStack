@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using NexusStack.Core.Entities.Users;
 using NexusStack.EFCore.DbContexts;
 using NexusStack.EFCore.Repository;
@@ -13,7 +14,7 @@ namespace NexusStack.Core.Services.Users
     {
 
     }
-    public class UserDepartmentService(MainContext dbContext, IMapper mapper) : ServiceBase<UserDepartment>(dbContext, mapper), IUserDepartmentService, IScopedDependency
+    public class UserDepartmentService(MainContext dbContext, IMapper mapper, TypeAdapterConfig mapperConfig) : ServiceBase<UserDepartment>(dbContext, mapper, mapperConfig), IUserDepartmentService, IScopedDependency
     {
 
     }
